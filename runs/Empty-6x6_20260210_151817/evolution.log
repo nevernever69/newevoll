@@ -1,0 +1,432 @@
+2026-02-10 15:18:17 INFO mdp_discovery.llm_client: LLMClient initialized: model=claude-4-sonnet region=us-east-1
+2026-02-10 15:18:17 INFO mdp_discovery.controller: Starting evolution: 20 iterations, env=MiniGrid-Empty-6x6, model=claude-4-sonnet
+2026-02-10 15:18:17 INFO mdp_discovery.controller: [Iter 1] Generating candidate (parent=scratch, gen=0)...
+2026-02-10 15:18:31 INFO mdp_discovery.controller: [Iter 1] Evaluating candidate...
+2026-02-10 15:18:31 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:18:34 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=12)
+2026-02-10 15:18:34 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:19:25 INFO mdp_discovery.evaluator: Short training done: success=26%, length=116.6, time=35.9s
+2026-02-10 15:19:25 INFO mdp_discovery.evaluator: Passed threshold (26% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:19:49 INFO mdp_discovery.evaluator: Full training done: success=26%, length=116.6, time=17.9s
+2026-02-10 15:19:49 DEBUG mdp_discovery.database: Added program 29e6e43a to island 0 cell 2-2 (fitness=0.2600)
+2026-02-10 15:19:49 INFO mdp_discovery.controller: [Iter 1] full_train success=26% length=116.6 | best=26% | 92.0s *** NEW BEST ***
+2026-02-10 15:19:49 INFO mdp_discovery.controller: [Iter 2] Generating candidate (parent=29e6e43a, gen=1)...
+2026-02-10 15:20:19 INFO mdp_discovery.controller: [Iter 2] Evaluating candidate...
+2026-02-10 15:20:19 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:20:19 INFO mdp_discovery.evaluator: Candidate crashed at stage 2: TypeError: Indexer must have integer or boolean type, got indexer with type float32 at position 0, indexer value 0.0
+2026-02-10 15:20:19 INFO mdp_discovery.controller: [Iter 2] Retrying after crash: TypeError: Indexer must have integer or boolean type, got indexer with type floa
+2026-02-10 15:20:44 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:20:45 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=23)
+2026-02-10 15:20:45 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:21:16 INFO mdp_discovery.evaluator: Short training done: success=42%, length=108.9, time=23.0s
+2026-02-10 15:21:16 INFO mdp_discovery.evaluator: Passed threshold (42% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:21:43 INFO mdp_discovery.evaluator: Full training done: success=42%, length=108.9, time=20.4s
+2026-02-10 15:21:43 INFO mdp_discovery.controller: [Iter 2] Retry succeeded: full_train return=0.4200
+2026-02-10 15:21:43 DEBUG mdp_discovery.database: Added program c206a5c1 to island 0 cell 4-4 (fitness=0.4200)
+2026-02-10 15:21:43 INFO mdp_discovery.controller: [Iter 2] full_train success=42% length=108.9 | best=42% | 114.0s *** NEW BEST ***
+2026-02-10 15:21:43 INFO mdp_discovery.controller: [Iter 3] Generating candidate (parent=29e6e43a, gen=1)...
+2026-02-10 15:22:18 INFO mdp_discovery.controller: [Iter 3] Evaluating candidate...
+2026-02-10 15:22:18 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:22:19 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=31)
+2026-02-10 15:22:19 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:22:50 INFO mdp_discovery.evaluator: Short training done: success=42%, length=100.8, time=23.1s
+2026-02-10 15:22:50 INFO mdp_discovery.evaluator: Passed threshold (42% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:23:19 INFO mdp_discovery.evaluator: Full training done: success=42%, length=100.8, time=21.5s
+2026-02-10 15:23:19 INFO mdp_discovery.controller: [Iter 3] full_train success=42% length=100.8 | best=42% | 96.3s
+2026-02-10 15:23:19 INFO mdp_discovery.controller: [Iter 4] Generating candidate (parent=29e6e43a, gen=1)...
+2026-02-10 15:23:59 INFO mdp_discovery.controller: [Iter 4] Evaluating candidate...
+2026-02-10 15:23:59 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:24:00 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=34)
+2026-02-10 15:24:00 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:24:01 ERROR mdp_discovery.evaluator: Short training failed: Attempted boolean conversion of traced array with shape bool[].
+The error occurred while tracing the function call_wrapped at /home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/jax/_src/linear_util.py:210 for shard_map. This value became a tracer due to JAX operations on these lines:
+
+  operation a[35m:u8[6,6,2][39m = broadcast_in_dim[
+  broadcast_dimensions=()
+  shape=(6, 6, 2)
+  sharding=None
+] 0:u8[]
+    from line /home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/xminigrid/core/grid.py:13:11 (empty_world)
+
+  operation a[35m:i32[1][39m = broadcast_in_dim[broadcast_dimensions=() shape=(1,) sharding=None] 0:i32[]
+    from line /home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/xminigrid/core/grid.py:44:11 (vertical_line)
+
+  operation a[35m:i32[1][39m = broadcast_in_dim[broadcast_dimensions=() shape=(1,) sharding=None] 5:i32[]
+    from line /home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/xminigrid/core/grid.py:44:11 (vertical_line)
+
+  operation a[35m:i32[1][39m = broadcast_in_dim[broadcast_dimensions=() shape=(1,) sharding=None] 0:i32[]
+    from line /home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/xminigrid/core/grid.py:39:11 (horizontal_line)
+
+  operation a[35m:i32[1][39m = broadcast_in_dim[broadcast_dimensions=() shape=(1,) sharding=None] 5:i32[]
+    from line /home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/xminigrid/core/grid.py:39:11 (horizontal_line)
+
+(Additional originating lines are not shown.)
+See https://docs.jax.dev/en/latest/errors.html#jax.errors.TracerBoolConversionError
+2026-02-10 15:24:01 INFO mdp_discovery.controller: [Iter 4] short_train success=0% length=0.0 | best=42% | 42.1s
+2026-02-10 15:24:01 INFO mdp_discovery.controller: [Iter 5] Generating candidate (parent=29e6e43a, gen=1)...
+2026-02-10 15:24:39 INFO mdp_discovery.controller: [Iter 5] Evaluating candidate...
+2026-02-10 15:24:39 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:24:39 INFO mdp_discovery.evaluator: Candidate crashed at stage 2: TypeError: Indexer must have integer or boolean type, got indexer with type float32 at position 0, indexer value 1.0
+2026-02-10 15:24:39 INFO mdp_discovery.controller: [Iter 5] Retrying after crash: TypeError: Indexer must have integer or boolean type, got indexer with type floa
+2026-02-10 15:25:14 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:25:14 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=32)
+2026-02-10 15:25:14 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:25:46 INFO mdp_discovery.evaluator: Short training done: success=34%, length=84.0, time=22.5s
+2026-02-10 15:25:46 INFO mdp_discovery.evaluator: Passed threshold (34% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:26:13 INFO mdp_discovery.evaluator: Full training done: success=34%, length=84.0, time=20.1s
+2026-02-10 15:26:13 INFO mdp_discovery.controller: [Iter 5] Retry succeeded: full_train return=0.3400
+2026-02-10 15:26:13 INFO mdp_discovery.controller: [Iter 5] full_train success=34% length=84.0 | best=42% | 131.3s
+2026-02-10 15:26:13 INFO mdp_discovery.controller: [Iter 6] Generating candidate (parent=29e6e43a, gen=1)...
+2026-02-10 15:26:53 WARNING mdp_discovery.controller: [Iter 6] LLM returned no code fence, skipping
+2026-02-10 15:26:53 INFO mdp_discovery.controller: [Iter 7] Generating candidate (parent=c206a5c1, gen=2)...
+2026-02-10 15:27:25 INFO mdp_discovery.controller: [Iter 7] Evaluating candidate...
+2026-02-10 15:27:25 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:27:25 INFO mdp_discovery.evaluator: Candidate crashed at stage 2: TypeError: Indexer must have integer or boolean type, got indexer with type float32 at position 0, indexer value 0.0
+2026-02-10 15:27:25 INFO mdp_discovery.controller: [Iter 7] Retrying after crash: TypeError: Indexer must have integer or boolean type, got indexer with type floa
+2026-02-10 15:27:49 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:27:49 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=24)
+2026-02-10 15:27:49 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:28:19 INFO mdp_discovery.evaluator: Short training done: success=32%, length=96.5, time=22.0s
+2026-02-10 15:28:19 INFO mdp_discovery.evaluator: Passed threshold (32% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:28:45 INFO mdp_discovery.evaluator: Full training done: success=32%, length=96.5, time=19.6s
+2026-02-10 15:28:45 INFO mdp_discovery.controller: [Iter 7] Retry succeeded: full_train return=0.3200
+2026-02-10 15:28:45 DEBUG mdp_discovery.database: Added program bed5212d to island 0 cell 4-2 (fitness=0.3200)
+2026-02-10 15:28:45 INFO mdp_discovery.controller: [Iter 7] full_train success=32% length=96.5 | best=42% | 112.4s
+2026-02-10 15:28:45 INFO mdp_discovery.controller: [Iter 8] Generating candidate (parent=bed5212d, gen=3)...
+2026-02-10 15:29:21 INFO mdp_discovery.controller: [Iter 8] Evaluating candidate...
+2026-02-10 15:29:21 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:29:21 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=22)
+2026-02-10 15:29:21 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:29:51 INFO mdp_discovery.evaluator: Short training done: success=32%, length=100.7, time=22.2s
+2026-02-10 15:29:51 INFO mdp_discovery.evaluator: Passed threshold (32% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:30:18 INFO mdp_discovery.evaluator: Full training done: success=32%, length=100.7, time=20.8s
+2026-02-10 15:30:18 INFO mdp_discovery.controller: [Iter 8] full_train success=32% length=100.7 | best=42% | 92.9s
+2026-02-10 15:30:18 INFO mdp_discovery.controller: [Iter 9] Generating candidate (parent=c206a5c1, gen=2)...
+2026-02-10 15:30:51 INFO mdp_discovery.controller: [Iter 9] Evaluating candidate...
+2026-02-10 15:30:51 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:30:51 INFO mdp_discovery.evaluator: Candidate crashed at stage 2: TypeError: Indexer must have integer or boolean type, got indexer with type float32 at position 0, indexer value 0.0
+2026-02-10 15:30:51 INFO mdp_discovery.controller: [Iter 9] Retrying after crash: TypeError: Indexer must have integer or boolean type, got indexer with type floa
+2026-02-10 15:31:22 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:31:22 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=26)
+2026-02-10 15:31:22 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:31:51 INFO mdp_discovery.evaluator: Short training done: success=42%, length=82.4, time=21.2s
+2026-02-10 15:31:51 INFO mdp_discovery.evaluator: Passed threshold (42% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:32:17 INFO mdp_discovery.evaluator: Full training done: success=42%, length=82.4, time=20.3s
+2026-02-10 15:32:17 INFO mdp_discovery.controller: [Iter 9] Retry succeeded: full_train return=0.4200
+2026-02-10 15:32:17 DEBUG mdp_discovery.database: Added program 6960f9ec to island 0 cell 3-3 (fitness=0.4200)
+2026-02-10 15:32:17 INFO mdp_discovery.controller: [Iter 9] full_train success=42% length=82.4 | best=42% | 119.5s
+2026-02-10 15:32:17 INFO mdp_discovery.controller: [Iter 10] Generating candidate (parent=6960f9ec, gen=3)...
+2026-02-10 15:33:03 INFO mdp_discovery.controller: [Iter 10] Evaluating candidate...
+2026-02-10 15:33:03 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:33:04 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=35)
+2026-02-10 15:33:04 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:33:37 INFO mdp_discovery.evaluator: Short training done: success=38%, length=102.3, time=24.2s
+2026-02-10 15:33:37 INFO mdp_discovery.evaluator: Passed threshold (38% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:34:07 INFO mdp_discovery.evaluator: Full training done: success=38%, length=102.3, time=21.7s
+2026-02-10 15:34:07 INFO mdp_discovery.controller: [Iter 10] full_train success=38% length=102.3 | best=42% | 109.2s
+2026-02-10 15:34:07 INFO mdp_discovery.controller: [Iter 11] Generating candidate (parent=bed5212d, gen=3)...
+2026-02-10 15:34:39 INFO mdp_discovery.controller: [Iter 11] Evaluating candidate...
+2026-02-10 15:34:39 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:34:39 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=20)
+2026-02-10 15:34:39 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:35:08 INFO mdp_discovery.evaluator: Short training done: success=44%, length=95.1, time=20.3s
+2026-02-10 15:35:08 INFO mdp_discovery.evaluator: Passed threshold (44% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:35:33 INFO mdp_discovery.evaluator: Full training done: success=44%, length=95.1, time=19.3s
+2026-02-10 15:35:33 DEBUG mdp_discovery.database: Added program 200f11b2 to island 0 cell 3-1 (fitness=0.4400)
+2026-02-10 15:35:33 INFO mdp_discovery.controller: [Iter 11] full_train success=44% length=95.1 | best=44% | 86.3s *** NEW BEST ***
+2026-02-10 15:35:33 INFO mdp_discovery.controller: [Iter 12] Generating candidate (parent=29e6e43a, gen=1)...
+2026-02-10 15:36:13 INFO mdp_discovery.controller: [Iter 12] Evaluating candidate...
+2026-02-10 15:36:13 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:36:14 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=27)
+2026-02-10 15:36:14 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:36:43 INFO mdp_discovery.evaluator: Short training done: success=38%, length=79.0, time=21.2s
+2026-02-10 15:36:43 INFO mdp_discovery.evaluator: Passed threshold (38% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:37:09 INFO mdp_discovery.evaluator: Full training done: success=38%, length=79.0, time=20.0s
+2026-02-10 15:37:09 DEBUG mdp_discovery.database: Added program 1c845ca7 to island 0 cell 4-3 (fitness=0.3800)
+2026-02-10 15:37:09 INFO mdp_discovery.controller: [Iter 12] full_train success=38% length=79.0 | best=44% | 96.4s
+2026-02-10 15:37:09 INFO mdp_discovery.controller: [Iter 13] Generating candidate (parent=c206a5c1, gen=2)...
+2026-02-10 15:37:49 INFO mdp_discovery.controller: [Iter 13] Evaluating candidate...
+2026-02-10 15:37:49 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:37:49 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=24)
+2026-02-10 15:37:49 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:38:18 INFO mdp_discovery.evaluator: Short training done: success=44%, length=82.7, time=21.6s
+2026-02-10 15:38:18 INFO mdp_discovery.evaluator: Passed threshold (44% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:38:47 INFO mdp_discovery.evaluator: Full training done: success=44%, length=82.7, time=20.4s
+2026-02-10 15:38:47 DEBUG mdp_discovery.database: Added program f48d6744 to island 0 cell 4-2 (fitness=0.4400)
+2026-02-10 15:38:47 INFO mdp_discovery.controller: [Iter 13] full_train success=44% length=82.7 | best=44% | 97.2s
+2026-02-10 15:38:47 INFO mdp_discovery.controller: [Iter 14] Generating candidate (parent=bed5212d, gen=3)...
+2026-02-10 15:39:20 INFO mdp_discovery.controller: [Iter 14] Evaluating candidate...
+2026-02-10 15:39:20 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:39:20 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=21)
+2026-02-10 15:39:20 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:39:47 INFO mdp_discovery.evaluator: Short training done: success=44%, length=81.1, time=20.7s
+2026-02-10 15:39:47 INFO mdp_discovery.evaluator: Passed threshold (44% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:40:13 INFO mdp_discovery.evaluator: Full training done: success=44%, length=81.1, time=19.5s
+2026-02-10 15:40:13 DEBUG mdp_discovery.database: Added program 2861cc15 to island 0 cell 4-1 (fitness=0.4400)
+2026-02-10 15:40:13 INFO mdp_discovery.controller: [Iter 14] full_train success=44% length=81.1 | best=44% | 86.3s
+2026-02-10 15:40:13 INFO mdp_discovery.controller: [Iter 15] Generating candidate (parent=6960f9ec, gen=3)...
+2026-02-10 15:40:50 INFO mdp_discovery.controller: [Iter 15] Evaluating candidate...
+2026-02-10 15:40:50 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:40:50 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=17)
+2026-02-10 15:40:50 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:41:19 INFO mdp_discovery.evaluator: Short training done: success=38%, length=101.4, time=20.9s
+2026-02-10 15:41:19 INFO mdp_discovery.evaluator: Passed threshold (38% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:41:45 INFO mdp_discovery.evaluator: Full training done: success=38%, length=101.4, time=18.6s
+2026-02-10 15:41:45 INFO mdp_discovery.controller: [Iter 15] full_train success=38% length=101.4 | best=44% | 92.0s
+2026-02-10 15:41:45 INFO mdp_discovery.controller: [Iter 16] Generating candidate (parent=bed5212d, gen=3)...
+2026-02-10 15:42:19 INFO mdp_discovery.controller: [Iter 16] Evaluating candidate...
+2026-02-10 15:42:19 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:42:20 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=22)
+2026-02-10 15:42:20 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:42:46 INFO mdp_discovery.evaluator: Short training done: success=30%, length=88.8, time=19.2s
+2026-02-10 15:42:46 INFO mdp_discovery.evaluator: Passed threshold (30% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:43:13 INFO mdp_discovery.evaluator: Full training done: success=30%, length=88.8, time=20.4s
+2026-02-10 15:43:13 DEBUG mdp_discovery.database: Added program fc0e4ef2 to island 0 cell 3-2 (fitness=0.3000)
+2026-02-10 15:43:13 INFO mdp_discovery.controller: [Iter 16] full_train success=30% length=88.8 | best=44% | 88.0s
+2026-02-10 15:43:13 INFO mdp_discovery.controller: [Iter 17] Generating candidate (parent=8b21215c, gen=4)...
+2026-02-10 15:43:46 INFO mdp_discovery.controller: [Iter 17] Evaluating candidate...
+2026-02-10 15:43:46 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:43:46 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=18)
+2026-02-10 15:43:46 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:44:15 INFO mdp_discovery.evaluator: Short training done: success=32%, length=101.2, time=21.4s
+2026-02-10 15:44:15 INFO mdp_discovery.evaluator: Passed threshold (32% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:44:41 INFO mdp_discovery.evaluator: Full training done: success=32%, length=101.2, time=20.4s
+2026-02-10 15:44:41 INFO mdp_discovery.controller: [Iter 17] full_train success=32% length=101.2 | best=44% | 88.4s
+2026-02-10 15:44:41 INFO mdp_discovery.controller: [Iter 18] Generating candidate (parent=f48d6744, gen=3)...
+2026-02-10 15:45:15 INFO mdp_discovery.controller: [Iter 18] Evaluating candidate...
+2026-02-10 15:45:15 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:45:15 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=18)
+2026-02-10 15:45:15 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:45:42 INFO mdp_discovery.evaluator: Short training done: success=32%, length=96.6, time=20.3s
+2026-02-10 15:45:42 INFO mdp_discovery.evaluator: Passed threshold (32% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:46:08 INFO mdp_discovery.evaluator: Full training done: success=32%, length=96.6, time=20.3s
+2026-02-10 15:46:08 INFO mdp_discovery.controller: [Iter 18] full_train success=32% length=96.6 | best=44% | 87.0s
+2026-02-10 15:46:08 INFO mdp_discovery.controller: [Iter 19] Generating candidate (parent=29e6e43a, gen=1)...
+2026-02-10 15:46:45 INFO mdp_discovery.controller: [Iter 19] Evaluating candidate...
+2026-02-10 15:46:45 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:46:45 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=27)
+2026-02-10 15:46:45 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:47:12 INFO mdp_discovery.evaluator: Short training done: success=42%, length=89.3, time=19.3s
+2026-02-10 15:47:12 INFO mdp_discovery.evaluator: Passed threshold (42% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:47:40 INFO mdp_discovery.evaluator: Full training done: success=42%, length=89.3, time=19.3s
+2026-02-10 15:47:40 DEBUG mdp_discovery.database: Added program 5c5f0ffa to island 0 cell 4-3 (fitness=0.4200)
+2026-02-10 15:47:40 INFO mdp_discovery.controller: [Iter 19] full_train success=42% length=89.3 | best=44% | 91.3s
+2026-02-10 15:47:40 INFO mdp_discovery.controller: [Iter 20] Generating candidate (parent=fc0e4ef2, gen=4)...
+2026-02-10 15:48:15 INFO mdp_discovery.controller: [Iter 20] Evaluating candidate...
+2026-02-10 15:48:15 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-10 15:48:15 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=17)
+2026-02-10 15:48:15 INFO mdp_discovery.evaluator: Running short training (131,072 steps)...
+2026-02-10 15:48:42 INFO mdp_discovery.evaluator: Short training done: success=32%, length=96.1, time=18.8s
+2026-02-10 15:48:42 INFO mdp_discovery.evaluator: Passed threshold (32% >= 0%). Running full training (131,072 steps)...
+2026-02-10 15:49:07 INFO mdp_discovery.evaluator: Full training done: success=32%, length=96.1, time=18.9s
+2026-02-10 15:49:07 INFO mdp_discovery.controller: [Iter 20] full_train success=32% length=96.1 | best=44% | 87.3s
+2026-02-10 15:49:07 INFO mdp_discovery.database: Database saved to runs/Empty-6x6_20260210_151817/database (19 programs)
+2026-02-10 15:49:07 INFO mdp_discovery.controller: [Iter 20] Checkpoint saved to runs/Empty-6x6_20260210_151817
+2026-02-10 15:49:07 INFO mdp_discovery.controller: ============================================================
+2026-02-10 15:49:07 INFO mdp_discovery.controller: Evolution complete
+2026-02-10 15:49:07 INFO mdp_discovery.controller:   Iterations: 20
+2026-02-10 15:49:07 INFO mdp_discovery.controller:   Wall time: 1850.0s
+2026-02-10 15:49:07 INFO mdp_discovery.controller:   Total programs: 19
+2026-02-10 15:49:07 INFO mdp_discovery.controller:   Total eval time: 1036.6s
+2026-02-10 15:49:07 INFO mdp_discovery.controller:   Total LLM tokens: 561943
+2026-02-10 15:49:07 INFO mdp_discovery.controller:   Recent failures: 1
+2026-02-10 15:49:07 INFO mdp_discovery.controller:   Grid cells filled: [8, 0, 0]
+2026-02-10 15:49:07 INFO mdp_discovery.controller:   Island sizes: [17, 0, 0]
+2026-02-10 15:49:07 INFO mdp_discovery.controller:   Best success rate: 44%
+2026-02-10 15:49:07 INFO mdp_discovery.controller:   Best obs_dim: 20
+2026-02-10 15:49:07 INFO mdp_discovery.controller:   Best program:
+import jax
+import jax.numpy as jnp
+
+def get_observation(state):
+    """Extract focused observation for navigation task."""
+    H, W = state.grid.shape[:2]
+    
+    # Agent position normalized to [0, 1]
+    agent_pos = state.agent.position.astype(jnp.float32)
+    norm_pos = agent_pos / jnp.array([H - 1, W - 1], dtype=jnp.float32)
+    
+    # Agent direction as one-hot encoding
+    direction_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)
+    
+    # Find goal positions
+    goal_mask = (state.grid[:, :, 0] == 6)  # GOAL tile type
+    
+    # Create coordinate grids
+    ys = jnp.arange(H, dtype=jnp.float32)
+    xs = jnp.arange(W, dtype=jnp.float32)
+    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
+    
+    # Compute goal center
+    goal_count = jnp.sum(goal_mask)
+    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(goal_count, 1.0)
+    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(goal_count, 1.0)
+    goal_center = jnp.array([goal_y, goal_x]) / jnp.array([H - 1, W - 1])
+    
+    # Raw goal delta (unnormalized for clearer signals)
+    goal_delta = jnp.array([goal_y - agent_pos[0], goal_x - agent_pos[1]])
+    
+    # Manhattan distance to goal (normalized)
+    manhattan_dist = jnp.abs(goal_delta[0]) + jnp.abs(goal_delta[1])
+    max_dist = H + W - 2
+    norm_manhattan = manhattan_dist / max_dist
+    
+    # Direction vectors: Up=(-1,0), Right=(0,1), Down=(1,0), Left=(0,-1)
+    DIRECTION_VECTORS = jnp.array([[-1, 0], [0, 1], [1, 0], [0, -1]], dtype=jnp.float32)
+    
+    # Compute optimal direction to goal (which cardinal direction minimizes distance)
+    optimal_moves = jnp.array([
+        jnp.maximum(-goal_delta[0], 0.0),  # up moves needed
+        jnp.maximum(goal_delta[1], 0.0),   # right moves needed  
+        jnp.maximum(goal_delta[0], 0.0),   # down moves needed
+        jnp.maximum(-goal_delta[1], 0.0)   # left moves needed
+    ])
+    
+    # Normalize by total moves needed
+    total_moves = jnp.sum(optimal_moves)
+    optimal_direction_probs = optimal_moves / jnp.maximum(total_moves, 1.0)
+    
+    # Current agent facing direction
+    agent_facing = DIRECTION_VECTORS[state.agent.direction]
+    
+    # Alignment of current direction with goal delta
+    goal_direction_norm = goal_delta / jnp.maximum(jnp.linalg.norm(goal_delta), 1e-8)
+    current_alignment = jnp.dot(goal_direction_norm, agent_facing)
+    
+    # Compute alignment for each possible direction
+    all_alignments = jnp.array([
+        jnp.dot(goal_direction_norm, DIRECTION_VECTORS[0]),  # up
+        jnp.dot(goal_direction_norm, DIRECTION_VECTORS[1]),  # right
+        jnp.dot(goal_direction_norm, DIRECTION_VECTORS[2]),  # down
+        jnp.dot(goal_direction_norm, DIRECTION_VECTORS[3])   # left
+    ])
+    
+    # Best alignment possible
+    best_alignment = jnp.max(all_alignments)
+    
+    # How many turns needed to face optimal direction
+    best_direction = jnp.argmax(all_alignments)
+    turns_needed = jnp.minimum(
+        (best_direction - state.agent.direction) % 4,
+        (state.agent.direction - best_direction) % 4
+    )
+    
+    # Simple action guidance: value of each action
+    # Forward value based on current alignment
+    forward_value = jnp.maximum(current_alignment, 0.0)
+    
+    # Turn values based on alignment improvement
+    left_dir = (state.agent.direction - 1) % 4
+    right_dir = (state.agent.direction + 1) % 4
+    left_alignment = all_alignments[left_dir]
+    right_alignment = all_alignments[right_dir]
+    
+    left_turn_value = jnp.maximum(left_alignment - current_alignment, 0.0)
+    right_turn_value = jnp.maximum(right_alignment - current_alignment, 0.0)
+    
+    # Step count normalized
+    norm_step = state.step_num.astype(jnp.float32) / 100.0
+    
+    # Distance components (signed, showing which direction to go)
+    delta_y_norm = goal_delta[0] / (H - 1)  # negative means go up, positive means go down
+    delta_x_norm = goal_delta[1] / (W - 1)  # negative means go left, positive means go right
+    
+    # Proximity indicators
+    very_close = (norm_manhattan < 0.05).astype(jnp.float32)
+    close = (norm_manhattan < 0.15).astype(jnp.float32)
+    
+    # Concatenate all features (19 elements total)
+    observation = jnp.concatenate([
+        norm_pos,                                              # 2: agent position
+        direction_onehot,                                      # 4: agent direction
+        goal_center,                                           # 2: goal position
+        jnp.array([delta_y_norm, delta_x_norm]),              # 2: signed direction to goal
+        jnp.array([norm_manhattan]),                          # 1: distance to goal
+        jnp.array([current_alignment, best_alignment]),       # 2: alignment metrics
+        jnp.array([forward_value, left_turn_value, right_turn_value]), # 3: action values
+        jnp.array([turns_needed.astype(jnp.float32) / 2.0]),  # 1: turns to optimal (normalized)
+        jnp.array([very_close, close]),                       # 2: proximity flags
+        jnp.array([norm_step])                                # 1: time step
+    ])
+    
+    return observation.astype(jnp.float32)
+
+def compute_reward(state, action, next_state):
+    """Compute reward with clear, consistent signals."""
+    H, W = state.grid.shape[:2]
+    
+    # Check if agent is on a goal tile in next state
+    agent_pos = next_state.agent.position
+    agent_y, agent_x = agent_pos[0], agent_pos[1]
+    on_goal = (next_state.grid[agent_y, agent_x, 0] == 6)
+    
+    # Large goal reached bonus
+    goal_reward = jax.lax.select(on_goal, 100.0, 0.0)
+    
+    # Find goal center
+    goal_mask = (next_state.grid[:, :, 0] == 6)
+    goal_count = jnp.sum(goal_mask)
+    
+    ys = jnp.arange(H, dtype=jnp.float32)
+    xs = jnp.arange(W, dtype=jnp.float32)
+    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
+    
+    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(goal_count, 1.0)
+    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(goal_count, 1.0)
+    
+    # Manhattan distance progress
+    curr_pos = next_state.agent.position.astype(jnp.float32)
+    prev_pos = state.agent.position.astype(jnp.float32)
+    
+    curr_dist = jnp.abs(curr_pos[0] - goal_y) + jnp.abs(curr_pos[1] - goal_x)
+    prev_dist = jnp.abs(prev_pos[0] - goal_y) + jnp.abs(prev_pos[1] - goal_x)
+    
+    # Strong progress reward - this is the main learning signal
+    progress_reward = (prev_dist - curr_dist) * 5.0
+    
+    # Bonus for being close to goal (exponential)
+    proximity_bonus = jnp.exp(-curr_dist / 3.0) * 0.5
+    
+    # Action-specific rewards
+    goal_direction = jnp.array([goal_y - prev_pos[0], goal_x - prev_pos[1]])
+    goal_direction_norm = goal_direction / jnp.maximum(jnp.linalg.norm(goal_direction), 1e-8)
+    
+    DIRECTION_VECTORS = jnp.array([[-1, 0], [0, 1], [1, 0], [0, -1]], dtype=jnp.float32)
+    agent_facing = DIRECTION_VECTORS[state.agent.direction]
+    
+    alignment = jnp.dot(goal_direction_norm, agent_facing)
+    
+    # Reward forward movement when reasonably aligned
+    forward_action = (action == 0)
+    forward_bonus = jax.lax.select(
+        jnp.logical_and(forward_action, alignment > 0.2),
+        alignment * 0.8,
+        0.0
+    )
+    
+    # Reward turns that improve alignment, penalize unnecessary turns
+    turning = jnp.logical_or(action == 1, action == 2)
+    
+    # Compute new alignment after turn
+    new_direction = jax.lax.select(
+        action == 1, (state.agent.direction + 1) % 4,
+        jax.lax.select(action == 2, (state.agent.direction - 1) % 4, state.agent.direction)
+    )
+    new_facing = DIRECTION_VECTORS[new_direction]
+    new_alignment = jnp.dot(goal_direction_norm, new_facing)
+    
+    # Reward good turns, penalize bad ones
+    turn_reward = jax.lax.select(
+        turning,
+        (new_alignment - alignment) * 1.0,  # Reward improvement, penalize degradation
+        0.0
+    )
+    
+    # Small time penalty to encourage efficiency
+    time_penalty = -0.02
+    
+    # Total reward
+    total_reward = goal_reward + progress_reward + proximity_bonus + forward_bonus + turn_reward + time_penalty
+    
+    return total_reward.astype(jnp.float32)
+2026-02-10 15:49:07 INFO mdp_discovery.controller: ============================================================

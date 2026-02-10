@@ -1,0 +1,26 @@
+{
+  "id": "e820cdbf-aedf-44d9-b780-540a1fecaa32",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Direct spatial encoding - agent and goal positions separately.\"\"\"\n    # Get grid dimensions\n    H, W = state.grid.shape[:2]\n    \n    # Agent position (raw coordinates, lightly normalized)\n    agent_pos = state.agent.position.astype(jnp.float32)\n    agent_y = agent_pos[0] / 5.0  # Scale by grid size for 6x6\n    agent_x = agent_pos[1] / 5.0\n    \n    # Find goal position (raw coordinates)\n    goal_mask = (state.grid[:, :, 0] == 6)\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.sum(goal_mask)\n    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(goal_count, 1.0)\n    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(goal_count, 1.0)\n    \n    # Goal position (raw coordinates, same scaling)\n    norm_goal_y = goal_y / 5.0\n    norm_goal_x = goal_x / 5.0\n    \n    # Agent direction as one-hot (discrete, clear signal)\n    dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # Just 8 features: agent pos + goal pos + direction\n    observation = jnp.concatenate([\n        jnp.array([agent_y, agent_x]),     # Agent position (2)\n        jnp.array([norm_goal_y, norm_goal_x]),  # Goal position (2)\n        dir_onehot                         # Direction one-hot (4)\n    ])\n    \n    return observation.astype(jnp.float32)\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Euclidean distance shaping - try different distance metric.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    \n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.sum(goal_mask)\n    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(goal_count, 1.0)\n    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(goal_count, 1.0)\n    \n    # Agent positions\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    # Euclidean distances (different from Manhattan used in best programs)\n    prev_dist = jnp.sqrt((prev_pos[0] - goal_y)**2 + (prev_pos[1] - goal_x)**2)\n    curr_dist = jnp.sqrt((curr_pos[0] - goal_y)**2 + (curr_pos[1] - goal_x)**2)\n    \n    # Distance improvement reward\n    reward = prev_dist - curr_dist\n    \n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 3.1337926387786865,
+    "final_length": 105.80000305175781,
+    "success_rate": 0.34,
+    "learning_curve": [
+      3.1337926387786865
+    ],
+    "success_curve": [
+      0.574999988079071
+    ],
+    "training_time": 17.165274381637573
+  },
+  "obs_dim": 8,
+  "stage": "full_train",
+  "generation": 3,
+  "parent_id": "c1e2d754-7e59-46d0-afcf-315347b34845",
+  "island": 0,
+  "timestamp": 1770742574.2688904,
+  "feature_coords": [
+    0,
+    0
+  ]
+}

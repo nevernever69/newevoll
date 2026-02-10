@@ -1,0 +1,26 @@
+{
+  "id": "d9dbc88e-a35b-4841-bcd5-df3df5654a9a",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"5x5 local grid patch + minimal global info for spatial awareness.\"\"\"\n    H, W = state.grid.shape[:2]\n    agent_pos = state.agent.position\n    \n    # Extract 5x5 patch around agent for rich local spatial information\n    agent_y, agent_x = agent_pos[0], agent_pos[1]\n    \n    # Get 5x5 neighborhood (with boundary handling)\n    patch_features = []\n    for dy in [-2, -1, 0, 1, 2]:\n        for dx in [-2, -1, 0, 1, 2]:\n            y = jnp.clip(agent_y + dy, 0, H - 1)\n            x = jnp.clip(agent_x + dx, 0, W - 1)\n            tile_id = state.grid[y, x, 0]\n            # Simple binary encoding: is this a goal tile?\n            is_goal = (tile_id == 6).astype(jnp.float32)\n            patch_features.append(is_goal)\n    \n    # Find goal position for minimal global context\n    goal_mask = (state.grid[:, :, 0] == 6)\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.sum(goal_mask)\n    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(goal_count, 1.0)\n    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(goal_count, 1.0)\n    \n    # Just the distance to goal (single scalar)\n    agent_pos_f = agent_pos.astype(jnp.float32)\n    dist_to_goal = jnp.sqrt((goal_y - agent_pos_f[0])**2 + (goal_x - agent_pos_f[1])**2)\n    norm_dist = dist_to_goal / jnp.sqrt((H-1)**2 + (W-1)**2)  # Normalize by max possible distance\n    \n    # Agent direction as simple index (0-3, normalized)\n    norm_direction = state.agent.direction.astype(jnp.float32) / 3.0\n    \n    # Combine: 25 patch + 1 distance + 1 direction = 27 features\n    observation = jnp.concatenate([\n        jnp.array(patch_features),  # 5x5 goal detection patch (25)\n        jnp.array([norm_dist]),     # Distance to goal (1)\n        jnp.array([norm_direction]) # Agent direction (1)\n    ])\n    \n    return observation.astype(jnp.float32)\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Euclidean distance shaping with small step penalty.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    \n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.sum(goal_mask)\n    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(goal_count, 1.0)\n    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(goal_count, 1.0)\n    \n    # Agent positions\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    # Euclidean distances (smooth gradients)\n    prev_dist = jnp.sqrt((prev_pos[0] - goal_y)**2 + (prev_pos[1] - goal_x)**2)\n    curr_dist = jnp.sqrt((curr_pos[0] - goal_y)**2 + (curr_pos[1] - goal_x)**2)\n    \n    # Distance improvement + tiny step penalty to encourage efficiency\n    distance_reward = prev_dist - curr_dist\n    step_penalty = -0.01  # Very small penalty to encourage shorter paths\n    \n    reward = distance_reward + step_penalty\n    \n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 1.7415779829025269,
+    "final_length": 111.30000305175781,
+    "success_rate": 0.24,
+    "learning_curve": [
+      1.7415779829025269
+    ],
+    "success_curve": [
+      0.512499988079071
+    ],
+    "training_time": 20.955593585968018
+  },
+  "obs_dim": 27,
+  "stage": "full_train",
+  "generation": 2,
+  "parent_id": "934335eb-acdb-44aa-a4b9-f10debece520",
+  "island": 0,
+  "timestamp": 1770742134.0511298,
+  "feature_coords": [
+    0,
+    4
+  ]
+}

@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "mdp-discovery"
+version = "0.1.0"
+description = "MDP Interface Discovery via LLM-Guided Evolutionary Search"
+requires-python = ">=3.10"
+dependencies = [
+    "jax>=0.4.20",
+    "jaxlib>=0.4.20",
+    "flax>=0.8.0",
+    "optax>=0.1.7",
+    "distrax>=0.1.5",
+    "xminigrid>=0.9.0",
+    "pyyaml>=6.0",
+    "dacite>=1.8.0",
+    "openai>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["mdp_discovery*"]

@@ -1,0 +1,26 @@
+{
+  "id": "7294449a-d422-4f14-9236-158c1b57739d",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Extract minimal observation focused on navigation essentials.\"\"\"\n    # Get grid dimensions\n    H, W = state.grid.shape[:2]\n    \n    # Agent position (normalized to [0, 1])\n    agent_pos = state.agent.position.astype(jnp.float32)\n    norm_agent_y = agent_pos[0] / (H - 1)\n    norm_agent_x = agent_pos[1] / (W - 1)\n    \n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)  # GOAL tile ID is 6\n    \n    # Get coordinates using meshgrid\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    # Goal position (normalized)\n    goal_count = jnp.sum(goal_mask)\n    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(goal_count, 1.0)\n    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(goal_count, 1.0)\n    norm_goal_y = goal_y / (H - 1)\n    norm_goal_x = goal_x / (W - 1)\n    \n    # Direction to goal (normalized displacement)\n    rel_y = (goal_y - agent_pos[0]) / (H - 1)\n    rel_x = (goal_x - agent_pos[1]) / (W - 1)\n    \n    # Manhattan distance to goal (normalized)\n    manhattan_dist = jnp.abs(agent_pos[0] - goal_y) + jnp.abs(agent_pos[1] - goal_x)\n    max_manhattan = (H - 1) + (W - 1)\n    norm_manhattan = manhattan_dist / max_manhattan\n    \n    # Agent direction as normalized angle\n    norm_direction = state.agent.direction.astype(jnp.float32) / 3.0\n    \n    # Simple 6-feature observation\n    observation = jnp.array([\n        norm_agent_y,    # Agent Y position\n        norm_agent_x,    # Agent X position  \n        rel_y,           # Direction to goal Y\n        rel_x,           # Direction to goal X\n        norm_manhattan,  # Manhattan distance to goal\n        norm_direction   # Agent facing direction\n    ])\n    \n    return observation.astype(jnp.float32)\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Compute reward with simple distance shaping.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    \n    # Get coordinates\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    # Goal position\n    goal_count = jnp.sum(goal_mask)\n    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(goal_count, 1.0)\n    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(goal_count, 1.0)\n    \n    # Agent positions\n    agent_pos = state.agent.position.astype(jnp.float32)\n    next_agent_pos = next_state.agent.position.astype(jnp.float32)\n    \n    # Manhattan distances to goal\n    prev_manhattan = jnp.abs(agent_pos[0] - goal_y) + jnp.abs(agent_pos[1] - goal_x)\n    curr_manhattan = jnp.abs(next_agent_pos[0] - goal_y) + jnp.abs(next_agent_pos[1] - goal_x)\n    \n    # Distance improvement reward (Manhattan-based)\n    distance_reward = prev_manhattan - curr_manhattan\n    \n    # Check if agent reached goal\n    agent_y, agent_x = next_agent_pos[0].astype(jnp.int32), next_agent_pos[1].astype(jnp.int32)\n    on_goal = (next_state.grid[agent_y, agent_x, 0] == 6)\n    goal_bonus = jax.lax.select(on_goal, 5.0, 0.0)\n    \n    # Simple two-term reward\n    total_reward = distance_reward + goal_bonus\n    \n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 6.800000190734863,
+    "final_length": 110.9000015258789,
+    "success_rate": 0.3,
+    "learning_curve": [
+      6.800000190734863
+    ],
+    "success_curve": [
+      0.4749999940395355
+    ],
+    "training_time": 17.697884798049927
+  },
+  "obs_dim": 6,
+  "stage": "full_train",
+  "generation": 1,
+  "parent_id": "e4157723-e2a5-4a45-8385-8b8deb9528ce",
+  "island": 0,
+  "timestamp": 1770741613.993002,
+  "feature_coords": [
+    0,
+    0
+  ]
+}
