@@ -1,0 +1,26 @@
+{
+  "id": "7a08ca7f-8d38-4da8-b897-dca12c7bbb5c",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Local grid patch observation - let the agent learn spatial reasoning.\"\"\"\n    H, W = state.grid.shape[:2]\n    agent_pos = state.agent.position.astype(jnp.int32)\n    \n    # Create 5x5 local patch around agent (agent at center)\n    patch_size = 5\n    half_size = patch_size // 2\n    local_patch = jnp.zeros((patch_size, patch_size), dtype=jnp.float32)\n    \n    # Fill patch with tile IDs, using WALL (2) for out-of-bounds\n    for dy in range(-half_size, half_size + 1):\n        for dx in range(-half_size, half_size + 1):\n            patch_y = dy + half_size\n            patch_x = dx + half_size\n            \n            world_y = agent_pos[0] + dy\n            world_x = agent_pos[1] + dx\n            \n            # Check bounds\n            in_bounds = ((world_y >= 0) & (world_y < H) & (world_x >= 0) & (world_x < W))\n            \n            tile_id = jnp.where(in_bounds,\n                               state.grid[jnp.clip(world_y, 0, H-1), \n                                        jnp.clip(world_x, 0, W-1), 0].astype(jnp.float32),\n                               2.0)  # WALL for out of bounds\n            \n            local_patch = local_patch.at[patch_y, patch_x].set(tile_id)\n    \n    # Flatten patch and normalize tile IDs\n    patch_flat = local_patch.flatten() / 12.0  # Normalize by max tile ID\n    \n    # Agent direction as one-hot\n    dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # Find goal and compute relative direction (still need some goal info)\n    goal_mask = (state.grid[:, :, 0] == 6)\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    agent_pos_f = agent_pos.astype(jnp.float32)\n    rel_goal_y = (goal_y - agent_pos_f[0]) / (H - 1)\n    rel_goal_x = (goal_x - agent_pos_f[1]) / (W - 1)\n    \n    # Combine: 25 (patch) + 4 (direction) + 2 (relative goal) = 31 features\n    observation = jnp.concatenate([\n        patch_flat,                              # 25: local grid patch\n        dir_onehot,                             # 4: agent direction\n        jnp.array([rel_goal_y, rel_goal_x])     # 2: relative goal direction\n    ])\n    \n    return observation\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Pure distance shaping - no goal bonus to keep signal clean.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Manhattan distance progress (proven to work well)\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.abs(prev_pos[0] - goal_y) + jnp.abs(prev_pos[1] - goal_x)\n    curr_dist = jnp.abs(curr_pos[0] - goal_y) + jnp.abs(curr_pos[1] - goal_x)\n    \n    # Pure distance shaping - let the environment termination handle goal detection\n    reward = prev_dist - curr_dist\n    \n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 4.8125,
+    "final_length": 103.5625,
+    "success_rate": 0.3,
+    "learning_curve": [
+      4.8125
+    ],
+    "success_curve": [
+      0.5875000357627869
+    ],
+    "training_time": 27.770190715789795
+  },
+  "obs_dim": 31,
+  "stage": "full_train",
+  "generation": 2,
+  "parent_id": "8fa14c8c-8ab4-47f6-ad37-87bafe296e40",
+  "island": 0,
+  "timestamp": 1770785956.1992412,
+  "feature_coords": [
+    0,
+    4
+  ]
+}

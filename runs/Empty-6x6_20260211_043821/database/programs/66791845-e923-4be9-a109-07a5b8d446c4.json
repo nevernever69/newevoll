@@ -1,0 +1,26 @@
+{
+  "id": "66791845-e923-4be9-a109-07a5b8d446c4",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Ultra-minimal observation for navigation task.\"\"\"\n    # Get grid dimensions\n    H, W = state.grid.shape[:2]\n    \n    # Agent position (normalized to [0, 1])\n    agent_pos = state.agent.position.astype(jnp.float32)\n    norm_agent_y = agent_pos[0] / (H - 1)\n    norm_agent_x = agent_pos[1] / (W - 1)\n    \n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)  # GOAL tile has ID 6\n    \n    # Get coordinates using meshgrid\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    # Goal position (normalized)\n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    norm_goal_y = goal_y / (H - 1)\n    norm_goal_x = goal_x / (W - 1)\n    \n    # Raw direction vector to goal (normalized to [-1, 1])\n    dir_to_goal_y = (goal_y - agent_pos[0]) / (H - 1)\n    dir_to_goal_x = (goal_x - agent_pos[1]) / (W - 1)\n    \n    # Agent facing direction as unit vector\n    DIRECTIONS = jnp.array([(-1.0, 0.0), (0.0, 1.0), (1.0, 0.0), (0.0, -1.0)])\n    facing_vec = DIRECTIONS[state.agent.direction]\n    \n    # Just 6 essential features - let the network figure out the rest\n    observation = jnp.array([\n        norm_agent_y,      # Where am I? (Y)\n        norm_agent_x,      # Where am I? (X)  \n        dir_to_goal_y,     # Which way to goal? (Y)\n        dir_to_goal_x,     # Which way to goal? (X)\n        facing_vec[0],     # Which way am I facing? (Y)\n        facing_vec[1]      # Which way am I facing? (X)\n    ], dtype=jnp.float32)\n    \n    return observation\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Clean reward signal - just distance progress.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Use Manhattan distance for cleaner gradients\n    agent_pos = state.agent.position.astype(jnp.float32)\n    next_agent_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.abs(agent_pos[0] - goal_y) + jnp.abs(agent_pos[1] - goal_x)\n    curr_dist = jnp.abs(next_agent_pos[0] - goal_y) + jnp.abs(next_agent_pos[1] - goal_x)\n    \n    # Just distance improvement - no other terms to confuse learning\n    reward = prev_dist - curr_dist\n    \n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 4.974999904632568,
+    "final_length": 105.57500457763672,
+    "success_rate": 0.34,
+    "learning_curve": [
+      4.974999904632568
+    ],
+    "success_curve": [
+      0.6000000238418579
+    ],
+    "training_time": 20.373340129852295
+  },
+  "obs_dim": 6,
+  "stage": "full_train",
+  "generation": 1,
+  "parent_id": "6ea0f3d9-f7a8-4be7-b55d-dd8ea064b231",
+  "island": 0,
+  "timestamp": 1770784970.8969436,
+  "feature_coords": [
+    0,
+    0
+  ]
+}

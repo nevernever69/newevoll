@@ -1,0 +1,26 @@
+{
+  "id": "b3c84925-3679-48d0-a1f0-273c07122dce",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Local grid patch observation with goal direction.\"\"\"\n    # Get grid dimensions\n    H, W = state.grid.shape[:2]\n    \n    # Agent position and direction\n    agent_pos = state.agent.position.astype(jnp.int32)\n    agent_y, agent_x = agent_pos[0], agent_pos[1]\n    \n    # Extract 3x3 local patch around agent (tile IDs only)\n    patch = jnp.zeros((3, 3), dtype=jnp.float32)\n    for dy in range(-1, 2):\n        for dx in range(-1, 2):\n            y = jnp.clip(agent_y + dy, 0, H - 1)\n            x = jnp.clip(agent_x + dx, 0, W - 1)\n            patch = patch.at[dy + 1, dx + 1].set(state.grid[y, x, 0].astype(jnp.float32))\n    \n    # Flatten patch and normalize tile IDs to [0, 1]\n    patch_flat = patch.flatten() / 12.0  # Max tile ID is 12\n    \n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Direction to goal (normalized)\n    agent_pos_f = agent_pos.astype(jnp.float32)\n    dir_to_goal_y = (goal_y - agent_pos_f[0]) / (H - 1)\n    dir_to_goal_x = (goal_x - agent_pos_f[1]) / (W - 1)\n    \n    # Agent facing direction as unit vector\n    DIRECTIONS = jnp.array([(-1.0, 0.0), (0.0, 1.0), (1.0, 0.0), (0.0, -1.0)])\n    facing_vec = DIRECTIONS[state.agent.direction]\n    \n    # Combine: 9 patch features + 2 goal direction + 2 agent direction = 13 features\n    observation = jnp.concatenate([\n        patch_flat,           # Local 3x3 patch (9)\n        jnp.array([dir_to_goal_y, dir_to_goal_x]),  # Direction to goal (2)\n        facing_vec            # Agent facing direction (2)\n    ])\n    \n    return observation.astype(jnp.float32)\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Pure Manhattan distance shaping - simplest possible reward.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Manhattan distance before and after\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.abs(prev_pos[0] - goal_y) + jnp.abs(prev_pos[1] - goal_x)\n    curr_dist = jnp.abs(curr_pos[0] - goal_y) + jnp.abs(curr_pos[1] - goal_x)\n    \n    # Just distance improvement - no other terms\n    reward = prev_dist - curr_dist\n    \n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 5.125,
+    "final_length": 92.8125,
+    "success_rate": 0.34,
+    "learning_curve": [
+      5.125
+    ],
+    "success_curve": [
+      0.675000011920929
+    ],
+    "training_time": 21.339438915252686
+  },
+  "obs_dim": 13,
+  "stage": "full_train",
+  "generation": 1,
+  "parent_id": "0c4c5681-ba42-4b62-a780-46430de2ce3b",
+  "island": 0,
+  "timestamp": 1770785050.2530434,
+  "feature_coords": [
+    0,
+    3
+  ]
+}

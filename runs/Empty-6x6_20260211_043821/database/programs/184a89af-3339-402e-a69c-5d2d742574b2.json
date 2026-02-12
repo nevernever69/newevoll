@@ -1,0 +1,26 @@
+{
+  "id": "184a89af-3339-402e-a69c-5d2d742574b2",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Local grid patch observation - fundamentally different approach.\"\"\"\n    H, W = state.grid.shape[:2]\n    agent_pos = state.agent.position\n    \n    # Extract 5x5 patch around agent (2 cells in each direction)\n    patch_size = 5\n    half_patch = 2\n    \n    # Initialize patch with walls (out of bounds = wall)\n    patch = jnp.full((patch_size, patch_size), 2.0, dtype=jnp.float32)  # WALL = 2\n    \n    # Fill in actual grid values where they exist\n    for dy in range(-half_patch, half_patch + 1):\n        for dx in range(-half_patch, half_patch + 1):\n            grid_y = agent_pos[0] + dy\n            grid_x = agent_pos[1] + dx\n            \n            # Check if position is within grid bounds\n            in_bounds = ((grid_y >= 0) & (grid_y < H) & (grid_x >= 0) & (grid_x < W))\n            \n            patch_y = dy + half_patch\n            patch_x = dx + half_patch\n            \n            tile_value = jax.lax.select(\n                in_bounds,\n                state.grid[grid_y, grid_x, 0].astype(jnp.float32),\n                2.0  # WALL for out of bounds\n            )\n            \n            patch = patch.at[patch_y, patch_x].set(tile_value)\n    \n    # Normalize tile IDs to [0, 1] range\n    patch_normalized = patch / 12.0  # Max tile ID is 12\n    \n    # Agent direction as one-hot\n    dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # Flatten patch and combine with direction\n    # 25 patch features + 4 direction features = 29 total (much smaller than previous approaches)\n    observation = jnp.concatenate([\n        patch_normalized.flatten(),  # 25 elements: local spatial information\n        dir_onehot                   # 4 elements: which way am I facing\n    ])\n    \n    return observation\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Simplified reward: just Manhattan distance shaping.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Manhattan distance progress\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.abs(prev_pos[0] - goal_y) + jnp.abs(prev_pos[1] - goal_x)\n    curr_dist = jnp.abs(curr_pos[0] - goal_y) + jnp.abs(curr_pos[1] - goal_x)\n    \n    # Pure distance improvement - no other terms to avoid confusion\n    reward = prev_dist - curr_dist\n    \n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 4.599999904632568,
+    "final_length": 110.8375015258789,
+    "success_rate": 0.36,
+    "learning_curve": [
+      4.599999904632568
+    ],
+    "success_curve": [
+      0.5
+    ],
+    "training_time": 29.515399932861328
+  },
+  "obs_dim": 29,
+  "stage": "full_train",
+  "generation": 3,
+  "parent_id": "cffcd495-1dc0-4766-8234-2c53df3bbf8d",
+  "island": 0,
+  "timestamp": 1770786697.7937582,
+  "feature_coords": [
+    0,
+    4
+  ]
+}

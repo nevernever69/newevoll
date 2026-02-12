@@ -1,0 +1,26 @@
+{
+  "id": "305d77b9-8a07-447d-bdac-c3fc6f5639e9",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Enhanced observation with local spatial awareness.\"\"\"\n    # Get grid dimensions\n    H, W = state.grid.shape[:2]\n    \n    # Agent position (normalized to [0, 1])\n    agent_pos = state.agent.position.astype(jnp.float32)\n    norm_agent_y = agent_pos[0] / (H - 1)\n    norm_agent_x = agent_pos[1] / (W - 1)\n    \n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)  # GOAL tile has ID 6\n    \n    # Get coordinates using meshgrid\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    # Goal position (normalized)\n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Direction vector to goal (normalized to [-1, 1])\n    dir_to_goal_y = (goal_y - agent_pos[0]) / (H - 1)\n    dir_to_goal_x = (goal_x - agent_pos[1]) / (W - 1)\n    \n    # Agent facing direction as one-hot (more stable than unit vector)\n    dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # Distance to goal (normalized by max possible distance)\n    goal_distance = jnp.sqrt(dir_to_goal_y**2 + dir_to_goal_x**2) / jnp.sqrt(2.0)\n    \n    # Local spatial awareness: check tiles in 4 cardinal directions\n    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)])  # Up, Right, Down, Left\n    local_info = jnp.zeros(4, dtype=jnp.float32)\n    \n    for i in range(4):\n        dy, dx = DIRECTIONS[i]\n        neighbor_y = agent_pos[0] + dy\n        neighbor_x = agent_pos[1] + dx\n        \n        # Check if neighbor is in bounds\n        in_bounds = ((neighbor_y >= 0) & (neighbor_y < H) & \n                    (neighbor_x >= 0) & (neighbor_x < W))\n        \n        # Get tile type (default to wall if out of bounds)\n        neighbor_y_clipped = jnp.clip(neighbor_y, 0, H - 1).astype(jnp.int32)\n        neighbor_x_clipped = jnp.clip(neighbor_x, 0, W - 1).astype(jnp.int32)\n        \n        tile_id = jnp.where(in_bounds,\n                           state.grid[neighbor_y_clipped, neighbor_x_clipped, 0].astype(jnp.float32),\n                           2.0)  # WALL for out of bounds\n        \n        # Normalize: 1.0 for walkable (FLOOR=1, GOAL=6), 0.0 for walls\n        is_walkable = jnp.where((tile_id == 1) | (tile_id == 6), 1.0, 0.0)\n        local_info = local_info.at[i].set(is_walkable)\n    \n    # Combine all features (12 total - reasonable size)\n    observation = jnp.concatenate([\n        jnp.array([norm_agent_y, norm_agent_x]),  # 2: agent position\n        jnp.array([dir_to_goal_y, dir_to_goal_x]),  # 2: direction to goal\n        dir_onehot,  # 4: agent facing direction (one-hot)\n        jnp.array([goal_distance]),  # 1: distance to goal\n        local_info  # 4: local walkability info\n    ])\n    \n    return observation\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Clean distance-based reward with small goal bonus.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Use Manhattan distance for cleaner gradients\n    agent_pos = state.agent.position.astype(jnp.float32)\n    next_agent_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.abs(agent_pos[0] - goal_y) + jnp.abs(agent_pos[1] - goal_x)\n    curr_dist = jnp.abs(next_agent_pos[0] - goal_y) + jnp.abs(next_agent_pos[1] - goal_x)\n    \n    # Distance improvement reward\n    distance_reward = prev_dist - curr_dist\n    \n    # Small goal bonus to encourage completion (not overwhelming)\n    agent_on_goal = (next_state.grid[next_agent_pos[0].astype(jnp.int32), \n                                   next_agent_pos[1].astype(jnp.int32), 0] == 6)\n    goal_bonus = jax.lax.select(agent_on_goal, 2.0, 0.0)\n    \n    # Total reward: distance shaping + modest goal bonus\n    reward = distance_reward + goal_bonus\n    \n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 5.712500095367432,
+    "final_length": 105.67500305175781,
+    "success_rate": 0.4,
+    "learning_curve": [
+      5.712500095367432
+    ],
+    "success_curve": [
+      0.574999988079071
+    ],
+    "training_time": 22.124480485916138
+  },
+  "obs_dim": 13,
+  "stage": "full_train",
+  "generation": 2,
+  "parent_id": "66791845-e923-4be9-a109-07a5b8d446c4",
+  "island": 0,
+  "timestamp": 1770785862.1269546,
+  "feature_coords": [
+    3,
+    1
+  ]
+}

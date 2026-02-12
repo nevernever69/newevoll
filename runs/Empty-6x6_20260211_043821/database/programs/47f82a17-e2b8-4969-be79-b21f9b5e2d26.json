@@ -1,0 +1,26 @@
+{
+  "id": "47f82a17-e2b8-4969-be79-b21f9b5e2d26",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Enhanced minimal observation with local spatial awareness.\"\"\"\n    # Get grid dimensions\n    H, W = state.grid.shape[:2]\n    \n    # Agent position (normalized to [0, 1])\n    agent_pos = state.agent.position.astype(jnp.float32)\n    norm_agent_y = agent_pos[0] / (H - 1)\n    norm_agent_x = agent_pos[1] / (W - 1)\n    \n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)  # GOAL tile has ID 6\n    \n    # Get coordinates using meshgrid\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    # Goal position (normalized)\n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Raw direction vector to goal (normalized to [-1, 1])\n    dir_to_goal_y = (goal_y - agent_pos[0]) / (H - 1)\n    dir_to_goal_x = (goal_x - agent_pos[1]) / (W - 1)\n    \n    # Agent facing direction as unit vector\n    DIRECTIONS = jnp.array([(-1.0, 0.0), (0.0, 1.0), (1.0, 0.0), (0.0, -1.0)])\n    facing_vec = DIRECTIONS[state.agent.direction]\n    \n    # Distance to goal (normalized by max diagonal)\n    goal_distance = jnp.sqrt(dir_to_goal_y**2 + dir_to_goal_x**2) / jnp.sqrt(2.0)\n    \n    # Simple local awareness: check tiles in 4 cardinal directions\n    DIRECTION_OFFSETS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)])\n    local_info = jnp.zeros(4, dtype=jnp.float32)\n    \n    for i in range(4):\n        dy, dx = DIRECTION_OFFSETS[i]\n        neighbor_y = agent_pos[0] + dy\n        neighbor_x = agent_pos[1] + dx\n        \n        # Check bounds and get tile info\n        in_bounds = ((neighbor_y >= 0) & (neighbor_y < H) & \n                    (neighbor_x >= 0) & (neighbor_x < W))\n        \n        # If in bounds, check if it's walkable (1=FLOOR, 6=GOAL, 10=DOOR_OPEN)\n        tile_id = jnp.where(in_bounds,\n                           state.grid[neighbor_y.astype(jnp.int32), \n                                    neighbor_x.astype(jnp.int32), 0],\n                           2)  # WALL for out of bounds\n        \n        # Simple binary: walkable (1.0) or not (0.0)\n        walkable = jnp.where((tile_id == 1) | (tile_id == 6) | (tile_id == 10), 1.0, 0.0)\n        local_info = local_info.at[i].set(walkable)\n    \n    # Combine all features (11 total - still quite minimal)\n    observation = jnp.array([\n        norm_agent_y,      # Where am I? (Y)\n        norm_agent_x,      # Where am I? (X)  \n        dir_to_goal_y,     # Which way to goal? (Y)\n        dir_to_goal_x,     # Which way to goal? (X)\n        facing_vec[0],     # Which way am I facing? (Y)\n        facing_vec[1],     # Which way am I facing? (X)\n        goal_distance,     # How far to goal?\n        local_info[0],     # Can move up?\n        local_info[1],     # Can move right?\n        local_info[2],     # Can move down?\n        local_info[3]      # Can move left?\n    ], dtype=jnp.float32)\n    \n    return observation\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Clean reward with distance shaping and moderate goal bonus.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Use Manhattan distance for cleaner gradients\n    agent_pos = state.agent.position.astype(jnp.float32)\n    next_agent_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.abs(agent_pos[0] - goal_y) + jnp.abs(agent_pos[1] - goal_x)\n    curr_dist = jnp.abs(next_agent_pos[0] - goal_y) + jnp.abs(next_agent_pos[1] - goal_x)\n    \n    # Distance improvement (main shaping signal)\n    distance_reward = prev_dist - curr_dist\n    \n    # Goal bonus (moderate size to reinforce success without overwhelming shaping)\n    agent_on_goal = (next_state.grid[next_agent_pos[0].astype(jnp.int32), \n                                   next_agent_pos[1].astype(jnp.int32), 0] == 6)\n    goal_bonus = jax.lax.select(agent_on_goal, 2.0, 0.0)\n    \n    # Total reward: distance shaping + moderate goal bonus\n    reward = distance_reward + goal_bonus\n    \n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 6.025000095367432,
+    "final_length": 104.92500305175781,
+    "success_rate": 0.3,
+    "learning_curve": [
+      6.025000095367432
+    ],
+    "success_curve": [
+      0.574999988079071
+    ],
+    "training_time": 23.168736219406128
+  },
+  "obs_dim": 11,
+  "stage": "full_train",
+  "generation": 2,
+  "parent_id": "66791845-e923-4be9-a109-07a5b8d446c4",
+  "island": 0,
+  "timestamp": 1770786113.4919744,
+  "feature_coords": [
+    3,
+    1
+  ]
+}

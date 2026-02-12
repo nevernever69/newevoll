@@ -1,0 +1,26 @@
+{
+  "id": "3b78ae74-9bb8-4332-b27a-15ab0ce6d0d5",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Minimal observation with essential navigation features only.\"\"\"\n    # Get grid dimensions\n    H, W = state.grid.shape[:2]\n    \n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Agent position\n    agent_pos = state.agent.position.astype(jnp.float32)\n    \n    # Relative vector to goal (normalized by grid size)\n    rel_y = (goal_y - agent_pos[0]) / (H - 1)\n    rel_x = (goal_x - agent_pos[1]) / (W - 1)\n    \n    # Agent direction as one-hot (more explicit than unit vector)\n    dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # 6 features total: relative goal position (2) + agent direction (4)\n    observation = jnp.concatenate([\n        jnp.array([rel_y, rel_x]),  # 2: relative goal position\n        dir_onehot                   # 4: agent facing direction\n    ])\n    \n    return observation\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Manhattan distance shaping with moderate goal bonus.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Use Manhattan distance (cleaner gradients than Euclidean)\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.abs(prev_pos[0] - goal_y) + jnp.abs(prev_pos[1] - goal_x)\n    curr_dist = jnp.abs(curr_pos[0] - goal_y) + jnp.abs(curr_pos[1] - goal_x)\n    \n    # Distance improvement reward\n    distance_reward = prev_dist - curr_dist\n    \n    # Goal bonus (moderate size to provide clear terminal signal)\n    agent_on_goal = (next_state.grid[curr_pos[0].astype(jnp.int32), \n                                   curr_pos[1].astype(jnp.int32), 0] == 6)\n    goal_bonus = jax.lax.select(agent_on_goal, 3.0, 0.0)\n    \n    # Two components: distance shaping + goal bonus\n    total_reward = distance_reward + goal_bonus\n    \n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 6.362500190734863,
+    "final_length": 106.75,
+    "success_rate": 0.34,
+    "learning_curve": [
+      6.362500190734863
+    ],
+    "success_curve": [
+      0.5375000238418579
+    ],
+    "training_time": 22.819831371307373
+  },
+  "obs_dim": 6,
+  "stage": "full_train",
+  "generation": 4,
+  "parent_id": "8bfac653-9df2-40c4-b231-56d149dd574c",
+  "island": 0,
+  "timestamp": 1770786454.9762473,
+  "feature_coords": [
+    3,
+    0
+  ]
+}

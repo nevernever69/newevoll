@@ -1,0 +1,26 @@
+{
+  "id": "778e3ade-d25e-412c-9459-bbeb7786e802",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Local grid patch observation - let the network learn spatial patterns.\"\"\"\n    H, W = state.grid.shape[:2]\n    agent_pos = state.agent.position\n    \n    # 5x5 local patch around agent (25 tiles)\n    patch_size = 5\n    half_patch = patch_size // 2\n    \n    # Initialize patch with walls (out of bounds)\n    patch = jnp.full((patch_size, patch_size), 2.0, dtype=jnp.float32)  # WALL = 2\n    \n    # Fill in actual grid values where in bounds\n    for dy in range(-half_patch, half_patch + 1):\n        for dx in range(-half_patch, half_patch + 1):\n            patch_y = dy + half_patch\n            patch_x = dx + half_patch\n            \n            grid_y = agent_pos[0] + dy\n            grid_x = agent_pos[1] + dx\n            \n            # Check if position is within grid bounds\n            in_bounds = ((grid_y >= 0) & (grid_y < H) & (grid_x >= 0) & (grid_x < W))\n            \n            # Get tile value if in bounds, otherwise keep wall\n            tile_val = jnp.where(in_bounds, \n                                state.grid[jnp.clip(grid_y, 0, H-1), \n                                          jnp.clip(grid_x, 0, W-1), 0].astype(jnp.float32),\n                                2.0)\n            patch = patch.at[patch_y, patch_x].set(tile_val)\n    \n    # Normalize tile IDs to [0, 1]\n    patch_norm = patch / 12.0  # Max tile ID is 12\n    \n    # Agent direction as one-hot (4 features)\n    dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # Flatten patch and concatenate with direction\n    # Total: 25 (patch) + 4 (direction) = 29 features\n    observation = jnp.concatenate([\n        patch_norm.flatten(),  # 25 elements: local spatial context\n        dir_onehot             # 4 elements: which way agent is facing\n    ])\n    \n    return observation\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Pure distance shaping - no goal bonus to avoid reward hacking.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Euclidean distance (try different from Manhattan used in best programs)\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.sqrt((prev_pos[0] - goal_y)**2 + (prev_pos[1] - goal_x)**2)\n    curr_dist = jnp.sqrt((curr_pos[0] - goal_y)**2 + (curr_pos[1] - goal_x)**2)\n    \n    # Just distance improvement - let episode termination handle goal detection\n    reward = prev_dist - curr_dist\n    \n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 3.15567684173584,
+    "final_length": 108.8499984741211,
+    "success_rate": 0.3,
+    "learning_curve": [
+      3.15567684173584
+    ],
+    "success_curve": [
+      0.550000011920929
+    ],
+    "training_time": 29.963049173355103
+  },
+  "obs_dim": 29,
+  "stage": "full_train",
+  "generation": 2,
+  "parent_id": "a2e4d67e-0748-4ced-9da5-8a69bc914e53",
+  "island": 0,
+  "timestamp": 1770786382.356252,
+  "feature_coords": [
+    0,
+    4
+  ]
+}

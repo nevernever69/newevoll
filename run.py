@@ -69,6 +69,7 @@ def parse_args():
     parser.add_argument("--timesteps", type=int, default=None, help="Short training timesteps override.")
     parser.add_argument("--timesteps-full", type=int, default=None, help="Full training timesteps override.")
     parser.add_argument("--cascade-threshold", type=float, default=None, help="Cascade threshold override.")
+    parser.add_argument("--candidates", type=int, default=None, help="Number of candidates to evaluate in parallel per batch.")
     parser.add_argument("--no-cascade", action="store_true", help="Disable cascade (go straight to full training).")
     parser.add_argument("--log-level", type=str, default=None, help="Logging level (DEBUG, INFO, WARNING).")
 
@@ -127,6 +128,8 @@ def main():
         config.training.total_timesteps_full = args.timesteps_full
     if args.cascade_threshold is not None:
         config.evaluator.cascade_thresholds = [args.cascade_threshold]
+    if args.candidates:
+        config.candidates_per_iteration = args.candidates
     if args.no_cascade:
         config.evaluator.cascade_evaluation = False
     if args.log_level:
@@ -163,6 +166,7 @@ def main():
     print(f"  Environment: {config.environment.env_id}")
     print(f"  Model:       {config.llm.model_name} ({config.llm.region_name})")
     print(f"  Iterations:  {config.max_iterations}")
+    print(f"  Candidates:  {config.candidates_per_iteration} per batch")
     print(f"  Training:    {config.training.total_timesteps:,} short / {config.training.total_timesteps_full:,} full steps")
     print(f"  Cascade:     {'ON' if config.evaluator.cascade_evaluation else 'OFF'} (thresholds={config.evaluator.cascade_thresholds})")
     print(f"  Run dir:     {run_dir}")

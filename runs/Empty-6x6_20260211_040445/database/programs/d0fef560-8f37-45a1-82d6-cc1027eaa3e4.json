@@ -1,0 +1,26 @@
+{
+  "id": "d0fef560-8f37-45a1-82d6-cc1027eaa3e4",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Extract observation for navigation task.\n    \n    Features:\n    - Agent position (normalized to [0,1])\n    - Agent direction (one-hot encoded)  \n    - Goal position (normalized to [0,1])\n    - Distance to goal (normalized)\n    - Step count (normalized)\n    \n    Total: 2 + 4 + 2 + 1 + 1 = 10 features\n    \"\"\"\n    H, W = state.grid.shape[:2]\n    \n    # Agent position normalized to [0, 1]\n    agent_pos_norm = state.agent.position.astype(jnp.float32) / jnp.array([H-1, W-1], dtype=jnp.float32)\n    \n    # Agent direction as one-hot (4 directions)\n    agent_dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)  # GOAL tile ID is 6\n    \n    # Get goal coordinates using meshgrid\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    # Mean position of goal tiles (handles case of multiple goals)\n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)  # Avoid division by zero\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Goal position normalized to [0, 1]\n    goal_pos_norm = jnp.array([goal_y, goal_x]) / jnp.array([H-1, W-1], dtype=jnp.float32)\n    \n    # Manhattan distance to goal (normalized by max possible distance)\n    agent_pos_float = state.agent.position.astype(jnp.float32)\n    manhattan_dist = jnp.abs(agent_pos_float[0] - goal_y) + jnp.abs(agent_pos_float[1] - goal_x)\n    max_dist = (H - 1) + (W - 1)  # Max possible Manhattan distance\n    dist_norm = manhattan_dist / max_dist\n    \n    # Step count normalized (assuming max steps around 100-200)\n    step_norm = state.step_num.astype(jnp.float32) / 100.0\n    \n    # Concatenate all features\n    obs = jnp.concatenate([\n        agent_pos_norm,      # [2] - agent y, x position\n        agent_dir_onehot,    # [4] - agent direction one-hot\n        goal_pos_norm,       # [2] - goal y, x position  \n        jnp.array([dist_norm]),  # [1] - distance to goal\n        jnp.array([step_norm])   # [1] - step progress\n    ])\n    \n    return obs.astype(jnp.float32)\n\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Compute reward for navigation task.\n    \n    Reward components:\n    1. Distance improvement: +1.0 for getting closer, -1.0 for getting farther\n    2. Small step penalty: -0.01 to encourage efficiency\n    3. Goal bonus: +10.0 for reaching the goal\n    \"\"\"\n    H, W = state.grid.shape[:2]\n    \n    # Find goal position (same logic as observation)\n    goal_mask = (state.grid[:, :, 0] == 6)\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Calculate distances before and after action\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.abs(prev_pos[0] - goal_y) + jnp.abs(prev_pos[1] - goal_x)\n    curr_dist = jnp.abs(curr_pos[0] - goal_y) + jnp.abs(curr_pos[1] - goal_x)\n    \n    # Distance improvement reward\n    dist_improvement = prev_dist - curr_dist\n    distance_reward = dist_improvement * 1.0\n    \n    # Small step penalty to encourage efficiency\n    step_penalty = -0.01\n    \n    # Check if agent is on goal tile\n    agent_y, agent_x = curr_pos[0].astype(jnp.int32), curr_pos[1].astype(jnp.int32)\n    on_goal = (next_state.grid[agent_y, agent_x, 0] == 6)\n    goal_bonus = jax.lax.select(on_goal, 10.0, 0.0)\n    \n    # Total reward\n    total_reward = distance_reward + step_penalty + goal_bonus\n    \n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 9.398624420166016,
+    "final_length": 106.38750457763672,
+    "success_rate": 0.4,
+    "learning_curve": [
+      9.398624420166016
+    ],
+    "success_curve": [
+      0.574999988079071
+    ],
+    "training_time": 21.350322008132935
+  },
+  "obs_dim": 10,
+  "stage": "full_train",
+  "generation": 0,
+  "parent_id": null,
+  "island": 0,
+  "timestamp": 1770782812.4481015,
+  "feature_coords": [
+    2,
+    2
+  ]
+}

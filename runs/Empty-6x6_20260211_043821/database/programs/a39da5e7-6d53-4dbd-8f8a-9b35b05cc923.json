@@ -1,0 +1,26 @@
+{
+  "id": "a39da5e7-6d53-4dbd-8f8a-9b35b05cc923",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Minimal observation with just essential navigation features.\"\"\"\n    # Get grid dimensions\n    H, W = state.grid.shape[:2]\n    \n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Agent position\n    agent_pos = state.agent.position.astype(jnp.float32)\n    \n    # Relative vector to goal (normalized by grid size)\n    rel_y = (goal_y - agent_pos[0]) / (H - 1)\n    rel_x = (goal_x - agent_pos[1]) / (W - 1)\n    \n    # Agent direction as one-hot (simpler than unit vector for NN)\n    dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # Distance to goal (normalized)\n    distance = jnp.sqrt(rel_y**2 + rel_x**2) / jnp.sqrt(2.0)  # max diagonal is sqrt(2)\n    \n    # Concatenate: 7 features total (much simpler than parent's 16)\n    observation = jnp.concatenate([\n        jnp.array([rel_y, rel_x]),  # 2: relative goal direction\n        dir_onehot,                 # 4: agent facing direction\n        jnp.array([distance])       # 1: distance to goal\n    ])\n    \n    return observation\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Clean reward with balanced distance shaping and small goal bonus.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Use Manhattan distance for cleaner gradients\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.abs(prev_pos[0] - goal_y) + jnp.abs(prev_pos[1] - goal_x)\n    curr_dist = jnp.abs(curr_pos[0] - goal_y) + jnp.abs(curr_pos[1] - goal_x)\n    \n    # Distance improvement reward (primary signal)\n    distance_reward = prev_dist - curr_dist\n    \n    # Small goal bonus to avoid overwhelming the shaping signal\n    agent_on_goal = (next_state.grid[curr_pos[0].astype(jnp.int32), \n                                   curr_pos[1].astype(jnp.int32), 0] == 6)\n    goal_bonus = jax.lax.select(agent_on_goal, 2.0, 0.0)\n    \n    # Small step penalty to encourage efficiency\n    step_penalty = -0.01\n    \n    # Total reward with balanced components\n    total_reward = distance_reward + goal_bonus + step_penalty\n    \n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 5.082249641418457,
+    "final_length": 103.0250015258789,
+    "success_rate": 0.38,
+    "learning_curve": [
+      5.082249641418457
+    ],
+    "success_curve": [
+      0.5875000357627869
+    ],
+    "training_time": 19.530771017074585
+  },
+  "obs_dim": 7,
+  "stage": "full_train",
+  "generation": 2,
+  "parent_id": "48239ee5-90c2-473f-afc8-e79114b2b68b",
+  "island": 0,
+  "timestamp": 1770786193.0570517,
+  "feature_coords": [
+    4,
+    0
+  ]
+}

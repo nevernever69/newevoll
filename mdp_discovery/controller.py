@@ -12,13 +12,14 @@ from __future__ import annotations
 
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 from mdp_discovery.config import Config
-from mdp_discovery.database import FailedProgram, ProgramDatabase
+from mdp_discovery.database import ProgramDatabase
 from mdp_discovery.evaluator import CandidateResult, CascadeEvaluator, EvalStage
-from mdp_discovery.llm_client import LLMClient
+from mdp_discovery.llm_client import LLMClient, LLMResponse
 from mdp_discovery.prompts import PromptBuilder
 
 logger = logging.getLogger(__name__)
@@ -79,31 +80,39 @@ class EvolutionController:
             max_iterations: Override config.max_iterations.
         """
         max_iter = max_iterations or self.config.max_iterations
+        n = self.config.candidates_per_iteration
         self.start_time = time.time()
+        self.iteration = 0
 
         logger.info(
-            "Starting evolution: %d iterations, env=%s, model=%s",
+            "Starting evolution: %d iterations, %d candidates/batch, env=%s, model=%s",
             max_iter,
+            n,
             self.config.environment.env_id,
             self.config.llm.model_name,
         )
 
-        for self.iteration in range(1, max_iter + 1):
-            try:
-                self._run_iteration()
-            except KeyboardInterrupt:
-                logger.info("Interrupted at iteration %d", self.iteration)
-                break
-            except Exception:
-                logger.exception("Error in iteration %d", self.iteration)
-                continue
+        executor = ThreadPoolExecutor(max_workers=n)
+        try:
+            while self.iteration < max_iter:
+                batch_size = min(n, max_iter - self.iteration)
+                try:
+                    self._run_batch(executor, batch_size)
+                except KeyboardInterrupt:
+                    logger.info("Interrupted at iteration %d", self.iteration)
+                    break
+                except Exception:
+                    logger.exception("Error in batch at iteration %d", self.iteration)
+                    continue
 
-            # Checkpoint
-            if (
-                self.checkpoint_dir
-                and self.iteration % self.config.checkpoint_interval == 0
-            ):
-                self._checkpoint()
+                # Checkpoint
+                if (
+                    self.checkpoint_dir
+                    and self.iteration % self.config.checkpoint_interval == 0
+                ):
+                    self._checkpoint()
+        finally:
+            executor.shutdown(wait=False)
 
         # Final checkpoint
         if self.checkpoint_dir:
@@ -112,17 +121,17 @@ class EvolutionController:
         self._log_summary()
 
     # ------------------------------------------------------------------
-    # Single iteration
+    # Batch iteration
     # ------------------------------------------------------------------
 
-    def _run_iteration(self) -> None:
-        """Execute one iteration of the evolution loop."""
-        iter_start = time.time()
+    def _prepare_candidate(self):
+        """Prepare prompt and parent info for one candidate (main thread).
 
-        # 1. Sample parent (or go from-scratch)
+        Returns:
+            (prompt, parent_code, parent_id, generation)
+        """
         parent = self.db.sample_parent() if self.db.programs else None
 
-        # 2. Build prompt (include failures even in from-scratch mode)
         if parent is not None:
             best = self.db.get_best_program()
             prompt = self.prompt_builder.build_prompt(
@@ -139,118 +148,124 @@ class EvolutionController:
                 ),
                 best_metrics=best.metrics if best else None,
             )
-            parent_id = parent.id
-            generation = parent.generation + 1
+            return prompt, parent.code, parent.id, parent.generation + 1
         else:
             prompt = self.prompt_builder.build_prompt(
                 failed_programs=self.db.get_recent_failures(
                     n=self.config.prompt.num_failure_examples
                 ),
             )
-            parent_id = None
-            generation = 0
+            return prompt, None, None, 0
 
-        # 3. Call LLM
-        logger.info(
-            "[Iter %d] Generating candidate (parent=%s, gen=%d)...",
-            self.iteration,
-            parent_id[:8] if parent_id else "scratch",
-            generation,
-        )
-
+    def _run_single_candidate(
+        self, prompt, parent_code: Optional[str]
+    ) -> Tuple[LLMResponse, Optional[CandidateResult]]:
+        """Worker: LLM call + evaluate. Runs in thread pool."""
         response = self.llm.generate(prompt)
-        self.total_llm_tokens += response.input_tokens + response.output_tokens
 
         if response.code is None:
-            logger.warning(
-                "[Iter %d] LLM returned no code fence, skipping",
-                self.iteration,
-            )
-            return
+            return response, None
 
-        code = response.code
+        result = self.evaluator.evaluate(response.code)
 
-        # 4. Evaluate
-        logger.info("[Iter %d] Evaluating candidate...", self.iteration)
-        result = self.evaluator.evaluate(code)
-        self.total_eval_time += result.eval_time
-
-        # 5. Crash retry — if it crashed, give the LLM one chance to fix it
+        # Crash retry — give the LLM one chance to fix it
         if (
             result.stage == EvalStage.CRASHED
             and self.config.crash_filter.retry_on_crash
         ):
-            result, code = self._retry_after_crash(
-                result, parent_code=parent.code if parent else None
+            retry_prompt = self.prompt_builder.build_prompt(
+                parent_code=result.code,
+                parent_metrics=None,
+                failed_programs=[
+                    {"code": result.code, "crash_result": result.crash_result}
+                ],
+            )
+            retry_response = self.llm.generate(retry_prompt)
+            # Accumulate retry tokens into the original response for bookkeeping
+            response = LLMResponse(
+                text=response.text,
+                code=response.code,
+                input_tokens=response.input_tokens + retry_response.input_tokens,
+                output_tokens=response.output_tokens + retry_response.output_tokens,
+                model=response.model,
             )
 
-        # 6. Store in database
-        program = self.db.add(
-            result,
-            parent_id=parent_id,
-            generation=generation,
-        )
+            if retry_response.code is not None:
+                retry_result = self.evaluator.evaluate(retry_response.code)
+                if retry_result.stage != EvalStage.CRASHED:
+                    result = retry_result
+                    logger.info(
+                        "Retry succeeded: %s return=%.4f",
+                        retry_result.stage.value,
+                        retry_result.fitness,
+                    )
 
-        # 7. Log result
-        self._log_iteration(result, program, response, time.time() - iter_start)
+        return response, result
 
-        # 8. Island management
-        self.db.increment_generation()
+    def _run_batch(self, executor: ThreadPoolExecutor, batch_size: int) -> None:
+        """Prepare, submit, and collect one batch of candidates."""
+        batch_start = time.time()
 
-        if self.iteration % self.config.database.num_islands == 0:
-            self.db.next_island()
+        # 1. Prepare batch on main thread (reads DB)
+        batch = []
+        for _ in range(batch_size):
+            prompt, parent_code, parent_id, generation = self._prepare_candidate()
+            batch.append((prompt, parent_code, parent_id, generation))
 
-        if self.db.should_migrate():
-            n = self.db.migrate()
-            logger.info("[Iter %d] Migrated %d programs", self.iteration, n)
-
-    def _retry_after_crash(
-        self, result: CandidateResult, parent_code: Optional[str] = None
-    ) -> tuple:
-        """Give the LLM one retry with the crash error as feedback."""
         logger.info(
-            "[Iter %d] Retrying after crash: %s",
-            self.iteration,
-            result.crash_result.error_message[:80],
+            "[Iter %d] Submitting batch of %d candidate(s)...",
+            self.iteration + 1,
+            batch_size,
         )
 
-        # Build a prompt with the crashed code as parent + its error
-        retry_prompt = self.prompt_builder.build_prompt(
-            parent_code=result.code,
-            parent_metrics=None,  # crashed, no metrics
-            failed_programs=[
-                {"code": result.code, "crash_result": result.crash_result}
-            ],
-        )
+        # 2. Submit all workers
+        futures = {}
+        for prompt, parent_code, parent_id, generation in batch:
+            f = executor.submit(self._run_single_candidate, prompt, parent_code)
+            futures[f] = (parent_id, generation)
 
-        retry_response = self.llm.generate(retry_prompt)
-        self.total_llm_tokens += retry_response.input_tokens + retry_response.output_tokens
+        # 3. Collect results, store in DB (main thread, sequential)
+        for f in as_completed(futures):
+            parent_id, generation = futures[f]
+            self.iteration += 1
+            iter_time = time.time() - batch_start
 
-        if retry_response.code is None:
-            logger.warning("[Iter %d] Retry returned no code, keeping crash", self.iteration)
-            return result, result.code
+            try:
+                response, result = f.result()
+            except Exception:
+                logger.exception("[Iter %d] Worker failed", self.iteration)
+                continue
 
-        retry_result = self.evaluator.evaluate(retry_response.code)
-        self.total_eval_time += retry_result.eval_time
+            self.total_llm_tokens += response.input_tokens + response.output_tokens
 
-        if retry_result.stage != EvalStage.CRASHED:
-            logger.info(
-                "[Iter %d] Retry succeeded: %s return=%.4f",
-                self.iteration,
-                retry_result.stage.value,
-                retry_result.fitness,
+            if result is None:
+                logger.warning(
+                    "[Iter %d] LLM returned no code fence, skipping",
+                    self.iteration,
+                )
+                continue
+
+            self.total_eval_time += result.eval_time
+
+            # Store in database
+            program = self.db.add(
+                result,
+                parent_id=parent_id,
+                generation=generation,
             )
-            return retry_result, retry_response.code
 
-        # Retry also crashed — record both failures
-        self.db.add_failure(
-            FailedProgram(
-                code=retry_response.code,
-                crash_result=retry_result.crash_result,
-            )
-        )
-        logger.info("[Iter %d] Retry also crashed: %s", self.iteration, retry_result.crash_result.error_message[:80])
-        return result, result.code
+            # Log result
+            self._log_iteration(result, program, response, iter_time)
+
+            # Island management
+            self.db.increment_generation()
+
+            if self.iteration % self.config.database.num_islands == 0:
+                self.db.next_island()
+
+            if self.db.should_migrate():
+                n_migrated = self.db.migrate()
+                logger.info("[Iter %d] Migrated %d programs", self.iteration, n_migrated)
 
     # ------------------------------------------------------------------
     # Logging

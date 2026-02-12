@@ -1,0 +1,26 @@
+{
+  "id": "9ee1c712-5faf-4264-90e5-bd8702d94403",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Local grid patch observation - completely different approach.\"\"\"\n    H, W = state.grid.shape[:2]\n    agent_pos = state.agent.position\n    \n    # Create a 5x5 local view around the agent (padded with walls if needed)\n    view_size = 5\n    half_view = view_size // 2\n    \n    # Initialize local view with walls (tile_id = 2)\n    local_view = jnp.full((view_size, view_size), 2.0, dtype=jnp.float32)\n    \n    # Fill in the actual grid values where they exist\n    for dy in range(-half_view, half_view + 1):\n        for dx in range(-half_view, half_view + 1):\n            grid_y = agent_pos[0] + dy\n            grid_x = agent_pos[1] + dx\n            \n            # Check if position is within grid bounds\n            in_bounds = ((grid_y >= 0) & (grid_y < H) & (grid_x >= 0) & (grid_x < W))\n            \n            # Get tile value (default to wall if out of bounds)\n            tile_val = jax.lax.select(\n                in_bounds,\n                state.grid[jnp.clip(grid_y, 0, H-1), jnp.clip(grid_x, 0, W-1), 0].astype(jnp.float32),\n                2.0  # WALL\n            )\n            \n            local_view = local_view.at[dy + half_view, dx + half_view].set(tile_val)\n    \n    # Flatten the local view and normalize tile IDs\n    local_flat = (local_view.flatten() / 12.0)  # Normalize by max tile ID\n    \n    # Agent direction as one-hot (4 elements)\n    dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # Simple step counter (normalized)\n    step_norm = state.step_num.astype(jnp.float32) / 100.0\n    \n    # Total: 25 (local view) + 4 (direction) + 1 (step) = 30 features\n    observation = jnp.concatenate([\n        local_flat,     # 25: 5x5 local grid view\n        dir_onehot,     # 4: agent facing direction\n        jnp.array([step_norm])  # 1: normalized step count\n    ])\n    \n    return observation\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Extremely simple reward - just Euclidean distance improvement.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Euclidean distance (trying opposite of Manhattan used in best programs)\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.sqrt((prev_pos[0] - goal_y)**2 + (prev_pos[1] - goal_x)**2)\n    curr_dist = jnp.sqrt((curr_pos[0] - goal_y)**2 + (curr_pos[1] - goal_x)**2)\n    \n    # Just distance improvement - no goal bonus to keep it ultra-simple\n    reward = prev_dist - curr_dist\n    \n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 3.0567805767059326,
+    "final_length": 110.4124984741211,
+    "success_rate": 0.32,
+    "learning_curve": [
+      3.0567805767059326
+    ],
+    "success_curve": [
+      0.5375000238418579
+    ],
+    "training_time": 29.22476053237915
+  },
+  "obs_dim": 30,
+  "stage": "full_train",
+  "generation": 3,
+  "parent_id": "33be11ab-9b7e-4ccc-b63e-c3d78e02d826",
+  "island": 0,
+  "timestamp": 1770786797.5028477,
+  "feature_coords": [
+    0,
+    4
+  ]
+}

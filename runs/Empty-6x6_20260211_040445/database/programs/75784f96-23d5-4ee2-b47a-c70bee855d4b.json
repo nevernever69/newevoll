@@ -1,0 +1,26 @@
+{
+  "id": "75784f96-23d5-4ee2-b47a-c70bee855d4b",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Extract observation for navigation task.\"\"\"\n    H, W = state.grid.shape[:2]\n    \n    # Agent position (normalized to [0, 1])\n    agent_pos = state.agent.position.astype(jnp.float32)\n    norm_agent_y = agent_pos[0] / (H - 1)\n    norm_agent_x = agent_pos[1] / (W - 1)\n    \n    # Agent direction (one-hot encoded)\n    agent_dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)  # GOAL tile has ID 6\n    \n    # Get grid coordinates\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    # Goal position (normalized)\n    goal_count = jnp.sum(goal_mask)\n    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(goal_count, 1.0)\n    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(goal_count, 1.0)\n    norm_goal_y = goal_y / (H - 1)\n    norm_goal_x = goal_x / (W - 1)\n    \n    # Distance to goal (normalized by max possible distance)\n    dist_to_goal = jnp.sqrt((agent_pos[0] - goal_y)**2 + (agent_pos[1] - goal_x)**2)\n    max_dist = jnp.sqrt((H - 1)**2 + (W - 1)**2)\n    norm_dist = dist_to_goal / max_dist\n    \n    # Relative position to goal (normalized)\n    rel_y = (goal_y - agent_pos[0]) / (H - 1)\n    rel_x = (goal_x - agent_pos[1]) / (W - 1)\n    \n    # Step count (normalized)\n    norm_step = state.step_num.astype(jnp.float32) / 100.0\n    \n    # Concatenate all features\n    obs = jnp.concatenate([\n        jnp.array([norm_agent_y, norm_agent_x]),  # Agent position (2)\n        agent_dir_onehot,                         # Agent direction (4)\n        jnp.array([norm_goal_y, norm_goal_x]),    # Goal position (2)\n        jnp.array([rel_y, rel_x]),               # Relative position (2)\n        jnp.array([norm_dist]),                  # Distance to goal (1)\n        jnp.array([norm_step])                   # Step count (1)\n    ])\n    \n    return obs.astype(jnp.float32)\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Compute reward for navigation task.\"\"\"\n    H, W = state.grid.shape[:2]\n    \n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.sum(goal_mask)\n    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(goal_count, 1.0)\n    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(goal_count, 1.0)\n    \n    # Current and next distances to goal\n    curr_pos = state.agent.position.astype(jnp.float32)\n    next_pos = next_state.agent.position.astype(jnp.float32)\n    \n    curr_dist = jnp.sqrt((curr_pos[0] - goal_y)**2 + (curr_pos[1] - goal_x)**2)\n    next_dist = jnp.sqrt((next_pos[0] - goal_y)**2 + (next_pos[1] - goal_x)**2)\n    \n    # Distance improvement reward\n    dist_improvement = curr_dist - next_dist\n    \n    # Check if agent reached goal (on goal tile)\n    next_goal_mask = (next_state.grid[:, :, 0] == 6)\n    agent_on_goal = next_goal_mask[next_pos[0].astype(jnp.int32), next_pos[1].astype(jnp.int32)]\n    \n    # Reward components\n    shaping_reward = dist_improvement * 1.0  # Reward for getting closer\n    goal_bonus = jax.lax.select(agent_on_goal, 10.0, 0.0)  # Big bonus for reaching goal\n    step_penalty = -0.01  # Small penalty to encourage efficiency\n    \n    total_reward = shaping_reward + goal_bonus + step_penalty\n    \n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 6.974114894866943,
+    "final_length": 108.51250457763672,
+    "success_rate": 0.32,
+    "learning_curve": [
+      6.974114894866943
+    ],
+    "success_curve": [
+      0.5
+    ],
+    "training_time": 21.338385581970215
+  },
+  "obs_dim": 12,
+  "stage": "full_train",
+  "generation": 0,
+  "parent_id": null,
+  "island": 0,
+  "timestamp": 1770782815.4524796,
+  "feature_coords": [
+    4,
+    4
+  ]
+}

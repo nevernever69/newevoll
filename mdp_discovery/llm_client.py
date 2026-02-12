@@ -7,6 +7,7 @@ Takes prompt dicts from PromptBuilder, calls the model, extracts code.
 from __future__ import annotations
 
 import logging
+import threading
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
@@ -88,16 +89,25 @@ class LLMClient:
 
     def __init__(self, config: LLMConfig):
         self.config = config
-        self.client = boto3.client(
-            "bedrock-runtime",
-            region_name=config.region_name,
-        )
+        self._local = threading.local()
         self._model_info = _resolve_model_id(config.model_name)
         logger.info(
             "LLMClient initialized: model=%s region=%s",
             config.model_name,
             config.region_name,
         )
+
+    @property
+    def client(self):
+        """Return a thread-local boto3 Bedrock client (created lazily)."""
+        c = getattr(self._local, "client", None)
+        if c is None:
+            c = boto3.client(
+                "bedrock-runtime",
+                region_name=self.config.region_name,
+            )
+            self._local.client = c
+        return c
 
     def generate(self, prompt: Dict[str, str]) -> LLMResponse:
         """Call the LLM with a prompt dict from PromptBuilder.

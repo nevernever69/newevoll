@@ -1,0 +1,26 @@
+{
+  "id": "09cd3f0c-fa47-445a-9238-e042e5539a76",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Local grid patch observation - completely different approach.\"\"\"\n    H, W = state.grid.shape[:2]\n    agent_pos = state.agent.position\n    \n    # Extract 5x5 local patch around agent (padded with walls if out of bounds)\n    patch_size = 5\n    half_size = patch_size // 2\n    \n    # Create coordinate grids for the patch\n    patch_y = jnp.arange(patch_size) + agent_pos[0] - half_size\n    patch_x = jnp.arange(patch_size) + agent_pos[1] - half_size\n    yy, xx = jnp.meshgrid(patch_y, patch_x, indexing='ij')\n    \n    # Clip coordinates to grid bounds\n    yy_clipped = jnp.clip(yy, 0, H - 1)\n    xx_clipped = jnp.clip(xx, 0, W - 1)\n    \n    # Check which positions are actually in bounds\n    in_bounds = (yy >= 0) & (yy < H) & (xx >= 0) & (xx < W)\n    \n    # Extract tile IDs from grid\n    tile_ids = state.grid[yy_clipped, xx_clipped, 0]\n    \n    # Set out-of-bounds positions to WALL (2)\n    local_tiles = jnp.where(in_bounds, tile_ids, 2)\n    \n    # Flatten the 5x5 patch to 25 features\n    local_patch = local_tiles.flatten().astype(jnp.float32) / 12.0  # Normalize tile IDs\n    \n    # Add minimal agent state: just direction as one-hot\n    dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # Total: 25 + 4 = 29 features (much more spatial info than position-based approaches)\n    observation = jnp.concatenate([\n        local_patch,  # 25: 5x5 local grid patch\n        dir_onehot    # 4: agent facing direction\n    ])\n    \n    return observation\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Pure Manhattan distance shaping - no goal bonus to keep signal clean.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Manhattan distance before and after\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.abs(prev_pos[0] - goal_y) + jnp.abs(prev_pos[1] - goal_x)\n    curr_dist = jnp.abs(curr_pos[0] - goal_y) + jnp.abs(curr_pos[1] - goal_x)\n    \n    # Pure distance improvement - single clean signal\n    reward = prev_dist - curr_dist\n    \n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 4.599999904632568,
+    "final_length": 110.8375015258789,
+    "success_rate": 0.36,
+    "learning_curve": [
+      4.599999904632568
+    ],
+    "success_curve": [
+      0.5
+    ],
+    "training_time": 18.99614381790161
+  },
+  "obs_dim": 29,
+  "stage": "full_train",
+  "generation": 3,
+  "parent_id": "d2d66be4-3e2a-4bcb-90e6-27fa0d40bb7e",
+  "island": 0,
+  "timestamp": 1770786680.9975724,
+  "feature_coords": [
+    0,
+    4
+  ]
+}

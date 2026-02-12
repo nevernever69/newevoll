@@ -1,0 +1,120 @@
+[
+  {
+    "candidates": 1,
+    "iterations": 4,
+    "wall_time": 286.4,
+    "measured_wall_time": 289.75716948509216,
+    "num_batches": 4,
+    "iter_times": [
+      96.3,
+      62.9,
+      64.5,
+      62.6
+    ],
+    "success_rates": [
+      32.0,
+      32.0,
+      32.0,
+      18.0,
+      18.0,
+      18.0,
+      42.0,
+      42.0,
+      42.0,
+      42.0,
+      42.0,
+      42.0
+    ],
+    "total_eval_time": 231.0,
+    "time_per_iteration": 71.6,
+    "timesteps": 131072
+  },
+  {
+    "candidates": 2,
+    "iterations": 4,
+    "wall_time": 191.3,
+    "measured_wall_time": 194.46492624282837,
+    "num_batches": 2,
+    "iter_times": [
+      120.1,
+      123.6,
+      23.6,
+      67.6
+    ],
+    "success_rates": [
+      36.0,
+      36.0,
+      36.0,
+      36.0,
+      36.0,
+      36.0,
+      0.0,
+      20.0,
+      20.0,
+      20.0
+    ],
+    "total_eval_time": 269.9,
+    "time_per_iteration": 47.825,
+    "timesteps": 131072
+  },
+  {
+    "candidates": 3,
+    "iterations": 4,
+    "wall_time": 223.7,
+    "measured_wall_time": 227.03478407859802,
+    "num_batches": 2,
+    "iter_times": [
+      150.7,
+      154.6,
+      157.6,
+      66.1
+    ],
+    "success_rates": [
+      36.0,
+      36.0,
+      32.0,
+      36.0,
+      36.0,
+      36.0,
+      36.0,
+      32.0,
+      32.0,
+      20.0,
+      20.0,
+      20.0
+    ],
+    "total_eval_time": 471.1,
+    "time_per_iteration": 55.925,
+    "timesteps": 131072
+  },
+  {
+    "candidates": 4,
+    "iterations": 4,
+    "wall_time": 194.6,
+    "measured_wall_time": 197.88117957115173,
+    "num_batches": 1,
+    "iter_times": [
+      183.8,
+      188.7,
+      192.0,
+      194.6
+    ],
+    "success_rates": [
+      40.0,
+      38.0,
+      34.0,
+      32.0,
+      38.0,
+      38.0,
+      40.0,
+      40.0,
+      34.0,
+      34.0,
+      32.0,
+      32.0
+    ],
+    "total_eval_time": 697.8,
+    "time_per_iteration": 48.65,
+    "timesteps": 131072
+  }
+]

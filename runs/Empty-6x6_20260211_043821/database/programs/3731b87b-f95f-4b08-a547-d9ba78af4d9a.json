@@ -1,0 +1,26 @@
+{
+  "id": "3731b87b-f95f-4b08-a547-d9ba78af4d9a",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Simple observation: agent position, direction, and goal direction.\"\"\"\n    H, W = state.grid.shape[:2]\n    \n    # Agent position normalized to [0, 1]\n    agent_pos = state.agent.position.astype(jnp.float32)\n    norm_pos = agent_pos / jnp.array([H - 1, W - 1], dtype=jnp.float32)\n    \n    # Agent direction as one-hot\n    dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Goal position normalized to [0, 1]\n    norm_goal = jnp.array([goal_y, goal_x]) / jnp.array([H - 1, W - 1], dtype=jnp.float32)\n    \n    # Direction vector to goal (normalized)\n    goal_dir = norm_goal - norm_pos\n    \n    # Local 3x3 view around agent\n    local_tiles = jnp.zeros(9, dtype=jnp.float32)\n    \n    for i in range(9):\n        dy = (i // 3) - 1  # -1, 0, 1\n        dx = (i % 3) - 1   # -1, 0, 1\n        \n        y = agent_pos[0].astype(jnp.int32) + dy\n        x = agent_pos[1].astype(jnp.int32) + dx\n        \n        # Check bounds\n        in_bounds = (y >= 0) & (y < H) & (x >= 0) & (x < W)\n        \n        # Get tile ID, treating out-of-bounds as walls\n        safe_y = jnp.clip(y, 0, H - 1)\n        safe_x = jnp.clip(x, 0, W - 1)\n        tile_id = state.grid[safe_y, safe_x, 0].astype(jnp.float32)\n        \n        # Use wall (2) for out of bounds\n        tile_value = jnp.where(in_bounds, tile_id, 2.0)\n        \n        # Normalize tile ID\n        local_tiles = local_tiles.at[i].set(tile_value / 12.0)\n    \n    # Combine features: 2 (pos) + 4 (dir) + 2 (goal_pos) + 2 (goal_dir) + 9 (local) = 19\n    observation = jnp.concatenate([\n        norm_pos,       # 2: where am I?\n        dir_onehot,     # 4: which way am I facing?\n        norm_goal,      # 2: where is the goal?\n        goal_dir,       # 2: which direction to goal?\n        local_tiles     # 9: what's around me?\n    ])\n    \n    return observation\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Simple distance-based reward shaping.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Manhattan distance (simpler than Euclidean)\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.abs(prev_pos[0] - goal_y) + jnp.abs(prev_pos[1] - goal_x)\n    curr_dist = jnp.abs(curr_pos[0] - goal_y) + jnp.abs(curr_pos[1] - goal_x)\n    \n    # Reward for getting closer to goal\n    distance_reward = (prev_dist - curr_dist) * 0.1\n    \n    return distance_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 0.48499998450279236,
+    "final_length": 103.6875,
+    "success_rate": 0.22,
+    "learning_curve": [
+      0.48499998450279236
+    ],
+    "success_curve": [
+      0.5875000357627869
+    ],
+    "training_time": 21.494194507598877
+  },
+  "obs_dim": 19,
+  "stage": "full_train",
+  "generation": 3,
+  "parent_id": "33be11ab-9b7e-4ccc-b63e-c3d78e02d826",
+  "island": 0,
+  "timestamp": 1770786385.7217145,
+  "feature_coords": [
+    0,
+    2
+  ]
+}

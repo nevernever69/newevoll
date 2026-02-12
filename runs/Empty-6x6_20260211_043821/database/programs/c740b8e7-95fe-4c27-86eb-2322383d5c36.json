@@ -1,0 +1,26 @@
+{
+  "id": "c740b8e7-95fe-4c27-86eb-2322383d5c36",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state):\n    \"\"\"Simple but effective observation: agent position, direction, and goal direction.\"\"\"\n    H, W = state.grid.shape[:2]\n    \n    # Agent position normalized to [0, 1]\n    agent_pos = state.agent.position.astype(jnp.float32)\n    norm_pos = agent_pos / jnp.array([H - 1, W - 1], dtype=jnp.float32)\n    \n    # Agent direction as one-hot\n    dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)\n    \n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Goal position normalized\n    norm_goal = jnp.array([goal_y, goal_x]) / jnp.array([H - 1, W - 1], dtype=jnp.float32)\n    \n    # Direction vector to goal (unnormalized)\n    goal_direction = norm_goal - norm_pos\n    \n    # Distance to goal (normalized by max possible distance)\n    max_dist = jnp.sqrt(2.0)  # diagonal of unit square\n    goal_distance = jnp.sqrt(jnp.sum(goal_direction ** 2)) / max_dist\n    \n    # Simple local view: tiles in 4 cardinal directions from agent\n    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)])  # Up, Right, Down, Left\n    local_tiles = jnp.zeros(4, dtype=jnp.float32)\n    \n    for i in range(4):\n        dy, dx = DIRECTIONS[i]\n        neighbor_y = jnp.clip(agent_pos[0] + dy, 0, H - 1).astype(jnp.int32)\n        neighbor_x = jnp.clip(agent_pos[1] + dx, 0, W - 1).astype(jnp.int32)\n        \n        # Check if position is in bounds\n        in_bounds = ((agent_pos[0] + dy >= 0) & (agent_pos[0] + dy < H) & \n                    (agent_pos[1] + dx >= 0) & (agent_pos[1] + dx < W))\n        \n        tile_id = jnp.where(in_bounds, \n                           state.grid[neighbor_y, neighbor_x, 0].astype(jnp.float32),\n                           2.0)  # WALL for out of bounds\n        local_tiles = local_tiles.at[i].set(tile_id / 12.0)  # Normalize tile IDs\n    \n    # Concatenate all features\n    observation = jnp.concatenate([\n        norm_pos,           # 2 elements: normalized agent position\n        dir_onehot,         # 4 elements: agent direction\n        norm_goal,          # 2 elements: normalized goal position  \n        goal_direction,     # 2 elements: direction vector to goal\n        jnp.array([goal_distance]),  # 1 element: distance to goal\n        local_tiles         # 4 elements: neighboring tiles\n    ])\n    \n    return observation\n\ndef compute_reward(state, action, next_state):\n    \"\"\"Simple distance-based reward for navigation.\"\"\"\n    # Find goal position\n    goal_mask = (state.grid[:, :, 0] == 6)\n    H, W = state.grid.shape[:2]\n    ys = jnp.arange(H, dtype=jnp.float32)\n    xs = jnp.arange(W, dtype=jnp.float32)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)\n    goal_y = jnp.sum(yy * goal_mask) / goal_count\n    goal_x = jnp.sum(xx * goal_mask) / goal_count\n    \n    # Manhattan distance progress\n    prev_pos = state.agent.position.astype(jnp.float32)\n    curr_pos = next_state.agent.position.astype(jnp.float32)\n    \n    prev_dist = jnp.abs(prev_pos[0] - goal_y) + jnp.abs(prev_pos[1] - goal_x)\n    curr_dist = jnp.abs(curr_pos[0] - goal_y) + jnp.abs(curr_pos[1] - goal_x)\n    \n    # Reward for getting closer to goal\n    reward = prev_dist - curr_dist\n    \n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 4.837500095367432,
+    "final_length": 101.5999984741211,
+    "success_rate": 0.46,
+    "learning_curve": [
+      4.837500095367432
+    ],
+    "success_curve": [
+      0.574999988079071
+    ],
+    "training_time": 21.281104803085327
+  },
+  "obs_dim": 15,
+  "stage": "full_train",
+  "generation": 1,
+  "parent_id": "6ea0f3d9-f7a8-4be7-b55d-dd8ea064b231",
+  "island": 0,
+  "timestamp": 1770785064.4820344,
+  "feature_coords": [
+    0,
+    4
+  ]
+}

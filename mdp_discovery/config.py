@@ -180,6 +180,7 @@ class Config:
     """Root configuration for MDP Interface Discovery."""
 
     max_iterations: int = 500
+    candidates_per_iteration: int = 1
     checkpoint_interval: int = 50
     log_level: str = "INFO"
     log_dir: Optional[str] = None
