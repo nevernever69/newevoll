@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from mdp_discovery.adapters.base import EnvAdapter
 from mdp_discovery.config import Config
 from mdp_discovery.crash_filter import CrashFilterResult, run_crash_filter
 from mdp_discovery.mdp_interface import MDPInterface
@@ -76,23 +77,43 @@ class CascadeEvaluator:
     after passing the crash filter.
     """
 
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, adapter: EnvAdapter):
         self.config = config
+        self.adapter = adapter
+        self.dummy_state = adapter.get_dummy_state()
+
+    def _get_required_functions(self) -> List[str]:
+        """Return required function names based on evolution mode."""
+        mode = self.config.evolution_mode
+        if mode in ("full", "random"):
+            return ["get_observation", "compute_reward"]
+        elif mode == "reward_only":
+            return ["compute_reward"]
+        elif mode == "obs_only":
+            return ["get_observation"]
+        elif mode == "default":
+            return []
+        else:
+            return ["get_observation", "compute_reward"]
 
     def evaluate(self, code: str) -> CandidateResult:
         """Run the full cascade evaluation on a candidate.
 
         Args:
-            code: Python source code defining get_observation and compute_reward.
+            code: Python source code defining get_observation and/or compute_reward.
 
         Returns:
             CandidateResult with metrics and stage info.
         """
         t_start = time.time()
+        required_functions = self._get_required_functions()
 
         # --- Stage 1: Crash filter ---
         logger.info("Running crash filter...")
-        crash_result = run_crash_filter(code, self.config)
+        crash_result = run_crash_filter(
+            code, self.config, self.dummy_state,
+            required_functions=required_functions,
+        )
 
         if not crash_result.passed:
             logger.info(
@@ -108,11 +129,26 @@ class CascadeEvaluator:
             )
 
         obs_dim = crash_result.obs_dim
-        logger.info("Crash filter passed (obs_dim=%d)", obs_dim)
+        logger.info("Crash filter passed (obs_dim=%s)", obs_dim)
 
         # Load the interface for training
-        interface = MDPInterface.from_code(code)
+        interface = MDPInterface.from_code(code, required_functions=required_functions)
         interface.obs_dim = obs_dim
+
+        # Apply mode-specific overrides
+        mode = self.config.evolution_mode
+        if mode == "reward_only":
+            # Use adapter's default observation
+            default_obs = self.adapter.get_default_obs_fn()
+            interface.get_observation = default_obs
+            # Detect obs_dim from default obs
+            import jax.numpy as jnp
+            test_obs = default_obs(self.dummy_state)
+            obs_dim = int(jnp.asarray(test_obs).shape[0])
+            interface.obs_dim = obs_dim
+        elif mode == "obs_only":
+            # Use env's built-in reward (None signals wrapper to keep default)
+            interface.compute_reward = self.adapter.get_default_reward_fn()
 
         # --- Stage 2: Short training ---
         if self.config.evaluator.cascade_evaluation:
@@ -146,6 +182,7 @@ class CascadeEvaluator:
         try:
             short_metrics = run_training(
                 self.config,
+                self.adapter,
                 interface,
                 obs_dim,
                 total_timesteps=tc.total_timesteps,
@@ -195,6 +232,7 @@ class CascadeEvaluator:
         try:
             full_metrics = run_training(
                 self.config,
+                self.adapter,
                 interface,
                 obs_dim,
                 total_timesteps=tc.total_timesteps_full,
@@ -245,6 +283,7 @@ class CascadeEvaluator:
         try:
             metrics = run_training(
                 self.config,
+                self.adapter,
                 interface,
                 obs_dim,
                 total_timesteps=tc.total_timesteps_full,

@@ -20,6 +20,11 @@ Usage:
     python run.py --task "Navigate to the goal in a large room." \
                   --env MiniGrid-Empty-8x8 \
                   --iterations 50
+
+    # Ablation modes
+    python run.py --task "Navigate to the goal." --mode reward_only
+    python run.py --task "Navigate to the goal." --mode default --iterations 1
+    python run.py --task "Navigate to the goal." --mode random --iterations 10
 """
 
 import argparse
@@ -39,8 +44,9 @@ def parse_args():
     parser.add_argument(
         "--task",
         type=str,
-        required=True,
-        help="Natural language task description for the RL agent.",
+        default=None,
+        help="Natural language task description for the RL agent. "
+             "If not specified, uses config's task_description.",
     )
     parser.add_argument(
         "--config",
@@ -59,6 +65,21 @@ def parse_args():
         type=str,
         default=None,
         help="Resume from a checkpoint directory.",
+    )
+
+    # Mode and context overrides
+    parser.add_argument(
+        "--mode",
+        type=str,
+        choices=["full", "reward_only", "obs_only", "default", "random"],
+        default=None,
+        help="Evolution mode override (default: from config).",
+    )
+    parser.add_argument(
+        "--context",
+        type=str,
+        default=None,
+        help="Path to context file override.",
     )
 
     # Common overrides
@@ -134,13 +155,21 @@ def main():
         config.evaluator.cascade_evaluation = False
     if args.log_level:
         config.log_level = args.log_level
+    if args.mode:
+        config.evolution_mode = args.mode
+    if args.context:
+        config.environment.context_file = args.context
+
+    # Resolve task: CLI arg overrides config
+    task_description = args.task  # may be None; controller falls back to config
 
     # Auto-generate checkpoint dir if not specified
     checkpoint_dir = args.checkpoint_dir
     if checkpoint_dir is None and args.resume is None:
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         env_short = config.environment.env_id.replace("MiniGrid-", "").replace("XLand-MiniGrid-", "")
-        checkpoint_dir = f"runs/{env_short}_{timestamp}"
+        mode_suffix = f"_{config.evolution_mode}" if config.evolution_mode != "full" else ""
+        checkpoint_dir = f"runs/{env_short}{mode_suffix}_{timestamp}"
 
     run_dir = checkpoint_dir or args.resume
 
@@ -150,7 +179,7 @@ def main():
     # Create controller
     controller = EvolutionController(
         config=config,
-        task_description=args.task,
+        task_description=task_description,
         checkpoint_dir=run_dir,
     )
 
@@ -162,13 +191,15 @@ def main():
     print(f"{'=' * 60}")
     print(f"MDP Interface Discovery")
     print(f"{'=' * 60}")
-    print(f"  Task:        {args.task}")
+    print(f"  Task:        {controller.task_description}")
     print(f"  Environment: {config.environment.env_id}")
+    print(f"  Mode:        {config.evolution_mode}")
     print(f"  Model:       {config.llm.model_name} ({config.llm.region_name})")
     print(f"  Iterations:  {config.max_iterations}")
     print(f"  Candidates:  {config.candidates_per_iteration} per batch")
     print(f"  Training:    {config.training.total_timesteps:,} short / {config.training.total_timesteps_full:,} full steps")
     print(f"  Cascade:     {'ON' if config.evaluator.cascade_evaluation else 'OFF'} (thresholds={config.evaluator.cascade_thresholds})")
+    print(f"  Context:     {config.environment.context_file}")
     print(f"  Run dir:     {run_dir}")
     print(f"  Log file:    {log_file}")
     print(f"{'=' * 60}")

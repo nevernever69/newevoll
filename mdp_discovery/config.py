@@ -43,13 +43,15 @@ def _resolve_env_var(value: Optional[str]) -> Optional[str]:
 
 @dataclass
 class EnvironmentConfig:
-    """Configuration for the xland-minigrid environment."""
+    """Configuration for the environment."""
 
     env_id: str = "MiniGrid-Empty-6x6"
     benchmark_id: Optional[str] = None
     ruleset_id: Optional[int] = None
     view_size: int = 7
     max_steps: Optional[int] = None
+    adapter_type: str = "xminigrid"
+    context_file: str = "contexts/xminigrid_context.md"
 
 
 @dataclass
@@ -185,6 +187,8 @@ class Config:
     log_level: str = "INFO"
     log_dir: Optional[str] = None
     random_seed: int = 42
+    evolution_mode: str = "full"
+    task_description: Optional[str] = None
 
     environment: EnvironmentConfig = field(default_factory=EnvironmentConfig)
     training: TrainingConfig = field(default_factory=TrainingConfig)

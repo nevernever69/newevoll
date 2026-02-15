@@ -27,16 +27,64 @@ STAGE_NAMES: Dict[int, str] = {
 _CODE_FENCE_RE = re.compile(r"```python\s*\n(.*?)```", re.DOTALL)
 
 # ---------------------------------------------------------------------------
+# Mode-dependent content helpers
+# ---------------------------------------------------------------------------
+
+_FUNCTION_DESC = {
+    "full": (
+        "Your task is to write two JAX-compatible Python functions:\n"
+        "1. `get_observation(state)` — extracts a 1D float32 observation vector from the environment state\n"
+        "2. `compute_reward(state, action, next_state)` — computes a scalar float32 reward signal"
+    ),
+    "reward_only": (
+        "Your task is to write one JAX-compatible Python function:\n"
+        "- `compute_reward(state, action, next_state)` — computes a scalar float32 reward signal\n\n"
+        "The observation function is fixed (provided by the system). You only design the reward."
+    ),
+    "obs_only": (
+        "Your task is to write one JAX-compatible Python function:\n"
+        "- `get_observation(state)` — extracts a 1D float32 observation vector from the environment state\n\n"
+        "The reward function uses the environment's built-in reward. You only design the observation."
+    ),
+    "random": (
+        "Your task is to write two JAX-compatible Python functions:\n"
+        "1. `get_observation(state)` — extracts a 1D float32 observation vector from the environment state\n"
+        "2. `compute_reward(state, action, next_state)` — computes a scalar float32 reward signal"
+    ),
+}
+
+_OUTPUT_CONSTRAINTS = {
+    "full": (
+        "The code must define both `get_observation` and `compute_reward` with the exact "
+        "signatures shown above. You may define helper constants or functions above them.\n"
+        "Only `import jax` and `import jax.numpy as jnp` are allowed."
+    ),
+    "reward_only": (
+        "The code must define `compute_reward(state, action, next_state)` returning a scalar jnp.float32.\n"
+        "You may define helper constants or functions above it.\n"
+        "Only `import jax` and `import jax.numpy as jnp` are allowed."
+    ),
+    "obs_only": (
+        "The code must define `get_observation(state)` returning a 1D jnp.float32 array (max 512 elements).\n"
+        "You may define helper constants or functions above it.\n"
+        "Only `import jax` and `import jax.numpy as jnp` are allowed."
+    ),
+    "random": (
+        "The code must define both `get_observation` and `compute_reward` with the exact "
+        "signatures shown above. You may define helper constants or functions above them.\n"
+        "Only `import jax` and `import jax.numpy as jnp` are allowed."
+    ),
+}
+
+# ---------------------------------------------------------------------------
 # Prompt templates
 # ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT = """\
 You are an expert reinforcement learning engineer. You design MDP interfaces \
-for RL agents in grid-world environments.
+for RL agents in reinforcement learning environments.
 
-Your task is to write two JAX-compatible Python functions:
-1. `get_observation(state)` — extracts a 1D float32 observation vector from the environment state
-2. `compute_reward(state, action, next_state)` — computes a scalar float32 reward signal
+{function_description}
 
 The RL agent sees ONLY what get_observation returns and is trained ONLY on what \
 compute_reward provides. Your design of these functions determines whether the \
@@ -48,8 +96,8 @@ agent can learn the task.
 
 Observation design:
 - The observation should give the neural network the RAW INFORMATION it needs \
-to learn a good policy — positions, distances, directions, grid contents.
-- Do NOT pre-compute "action values", "optimal directions", "turn scores", \
+to learn a good policy. Refer to the library reference below for available state fields.
+- Do NOT pre-compute "action values", "optimal decisions", \
 or anything that tries to solve the RL problem inside the observation. That is \
 the neural network's job. Pre-computing policy hints creates brittle, hard-to-learn \
 features that often hurt more than they help.
@@ -61,8 +109,8 @@ Reward design:
 - The reward should provide a SMOOTH LEARNING SIGNAL that guides the agent \
 toward the goal. The agent is evaluated on whether it actually reaches the \
 goal, NOT on reward magnitude.
-- Distance-based shaping (reward for getting closer) is the most reliable \
-dense signal for navigation tasks.
+- Progress-based shaping (reward for making progress toward the objective) \
+is a reliable dense signal.
 - Keep reward components few and well-scaled. Many competing reward terms \
 with different magnitudes confuse learning.
 - Do NOT inflate reward magnitudes to "hack" higher returns — the fitness \
@@ -79,9 +127,7 @@ need more training to learn.
 ## Output Format
 
 Return your code inside a single Python markdown fence (```python ... ```).
-The code must define both `get_observation` and `compute_reward` with the exact \
-signatures shown above. You may define helper constants or functions above them.
-Only `import jax` and `import jax.numpy as jnp` are allowed."""
+{output_constraints}"""
 
 USER_PROMPT_FROM_SCRATCH = """\
 ## Task
@@ -92,31 +138,18 @@ USER_PROMPT_FROM_SCRATCH = """\
 
 ## Instructions
 
-Design `get_observation` and `compute_reward` functions that will allow a PPO \
-agent to learn the task described above.
+{function_instructions}
 
-**Observation design** — give the neural network what it needs to learn:
-- Agent position (normalized), agent direction (one-hot)
-- Goal/target position (normalized), distance to goal
-- Keep it simple: 8-15 features is usually plenty. Every extra feature is \
-another dimension the neural network must learn to interpret.
-- Do NOT pre-compute "action scores" or "optimal directions" — let the NN learn the policy.
-
-**Reward design** — shape learning, not the score:
-- Distance-based shaping: reward for getting closer to the goal each step
-- Small per-step penalty to encourage efficiency
-- Keep reward scale moderate (e.g., distance improvement * 1.0, goal bonus * 5-10)
-- Fewer reward components is better. 2-3 clean terms beat 6 competing ones.
-
+{obs_instructions}\
+{reward_instructions}\
 Common JAX pitfalls to avoid:
 - jax.lax.select requires both branches to have the SAME dtype (cast explicitly)
 - Array indices must be integers, not floats (use .astype(jnp.int32))
 - No Python if/else on JAX arrays (use jax.lax.select or jnp.where)
-- state.grid values are uint8 — cast to float32 before arithmetic
+- Cast integer state values to float32 before arithmetic
 
 Constraints:
-- get_observation must return a 1D jnp.float32 array (max 512 elements)
-- compute_reward must return a scalar jnp.float32
+{constraints}
 - All code must be JAX-traceable (no Python if/else on JAX arrays)
 - Only jax and jax.numpy imports are allowed"""
 
@@ -141,14 +174,13 @@ Based on the feedback above, write an improved version of the MDP interface.
 
 Key principles:
 - The observation provides RAW information for the neural network to learn from — \
-do NOT pre-compute policy decisions (action values, optimal turns) in the observation.
-- The reward shapes LEARNING — the agent is evaluated on goal success rate, not reward magnitude.
+do NOT pre-compute policy decisions (action values, optimal actions) in the observation.
+- The reward shapes LEARNING — the agent is evaluated on task success rate, not reward magnitude.
 - Simpler designs train faster with limited compute. Remove features/reward terms that \
 don't clearly help.
 
 Constraints:
-- get_observation must return a 1D jnp.float32 array (max 512 elements)
-- compute_reward must return a scalar jnp.float32
+{constraints}
 - All code must be JAX-traceable (no Python if/else on JAX arrays)
 - Only jax and jax.numpy imports are allowed"""
 
@@ -246,7 +278,8 @@ class PromptBuilder:
     """Builds prompts for the LLM generation engine.
 
     Usage:
-        builder = PromptBuilder(config, library_context, task_description)
+        builder = PromptBuilder(config, library_context, task_description,
+                                evolution_mode="full")
 
         # From scratch (iteration 1 or new island):
         prompt = builder.build_prompt()
@@ -270,12 +303,80 @@ class PromptBuilder:
         config: PromptConfig,
         library_context: str,
         task_description: str,
+        evolution_mode: str = "full",
     ):
         self.config = config
         self.task_description = task_description
-        self._system_prompt = SYSTEM_PROMPT.format(
-            library_context=library_context,
+        self.evolution_mode = evolution_mode
+
+        # Build mode-dependent content
+        function_description = _FUNCTION_DESC.get(
+            evolution_mode, _FUNCTION_DESC["full"]
         )
+        output_constraints = _OUTPUT_CONSTRAINTS.get(
+            evolution_mode, _OUTPUT_CONSTRAINTS["full"]
+        )
+
+        self._system_prompt = SYSTEM_PROMPT.format(
+            function_description=function_description,
+            library_context=library_context,
+            output_constraints=output_constraints,
+        )
+
+    def _get_obs_instructions(self) -> str:
+        """Return observation instructions based on mode."""
+        if self.evolution_mode == "reward_only":
+            return ""
+        return (
+            "**Observation design** — give the neural network what it needs to learn:\n"
+            "- Include the state features most relevant to the task. Refer to the "
+            "library reference above for available state fields.\n"
+            "- Keep it simple: 8-15 features is usually plenty. Every extra feature is "
+            "another dimension the neural network must learn to interpret.\n"
+            "- Do NOT pre-compute \"action scores\" or \"optimal directions\" "
+            "— let the NN learn the policy.\n\n"
+        )
+
+    def _get_reward_instructions(self) -> str:
+        """Return reward instructions based on mode."""
+        if self.evolution_mode == "obs_only":
+            return ""
+        return (
+            "**Reward design** — shape learning, not the score:\n"
+            "- Progress-based shaping: reward for making measurable progress each step\n"
+            "- Small per-step penalty to encourage efficiency\n"
+            "- Keep reward scale moderate (e.g., progress improvement * 1.0, task completion bonus * 5-10)\n"
+            "- Fewer reward components is better. 2-3 clean terms beat 6 competing ones.\n\n"
+        )
+
+    def _get_function_instructions(self) -> str:
+        """Return top-level function instructions based on mode."""
+        if self.evolution_mode == "reward_only":
+            return (
+                "Design a `compute_reward` function that will provide a dense learning "
+                "signal to help a PPO agent learn the task described above.\n"
+                "The observation is handled by the system — you only need to design the reward."
+            )
+        elif self.evolution_mode == "obs_only":
+            return (
+                "Design a `get_observation` function that will give a PPO agent "
+                "the information it needs to learn the task described above.\n"
+                "The reward uses the environment's built-in signal — you only need to design the observation."
+            )
+        else:
+            return (
+                "Design `get_observation` and `compute_reward` functions that will allow a PPO "
+                "agent to learn the task described above."
+            )
+
+    def _get_constraints(self) -> str:
+        """Return constraint lines based on mode."""
+        lines = []
+        if self.evolution_mode != "reward_only":
+            lines.append("- get_observation must return a 1D jnp.float32 array (max 512 elements)")
+        if self.evolution_mode != "obs_only":
+            lines.append("- compute_reward must return a scalar jnp.float32")
+        return "\n".join(lines)
 
     def build_prompt(
         self,
@@ -332,6 +433,10 @@ class PromptBuilder:
         return USER_PROMPT_FROM_SCRATCH.format(
             task_description=self.task_description,
             failure_section=failure_section,
+            function_instructions=self._get_function_instructions(),
+            obs_instructions=self._get_obs_instructions(),
+            reward_instructions=self._get_reward_instructions(),
+            constraints=self._get_constraints(),
         )
 
     # ------------------------------------------------------------------
@@ -392,6 +497,7 @@ class PromptBuilder:
             parent_section=parent_section,
             feedback_sections=feedback_sections,
             improvement_guidance=improvement_guidance,
+            constraints=self._get_constraints(),
         )
 
     # ------------------------------------------------------------------
@@ -504,7 +610,8 @@ class PromptBuilder:
             parts.append(
                 "- The agent NEVER reached the goal. The reward is not "
                 "providing a useful learning signal. Try a simple, strong "
-                "distance-based shaping reward (reward = prev_dist - curr_dist)."
+                "dense progress-based shaping reward that provides a learning "
+                "signal on every step."
             )
         elif success_rate < 0.3:
             parts.append(
@@ -533,7 +640,7 @@ class PromptBuilder:
                 "suggesting the current approach may be plateauing. Consider "
                 "trying a STRUCTURALLY DIFFERENT design rather than minor "
                 "tweaks — e.g., different observation features, a simpler "
-                "reward, or a different distance metric."
+                "reward, or a different progress metric."
             )
 
         # Success curve trend
@@ -596,25 +703,24 @@ class PromptBuilder:
         if parent_metrics:
             sr = parent_metrics.get("success_rate", 0.0)
             best_sr = best_metrics.get("success_rate", 0.0) if best_metrics else 0.0
-            obs_dim = parent_metrics.get("obs_dim", 0)
 
             if sr == 0:
                 hints.append(
                     "The agent never reaches the goal. Start with the "
                     "simplest possible design:\n"
-                    "  - Observation: agent position + direction + goal "
-                    "position + distance (~8 features)\n"
-                    "  - Reward: (prev_distance - curr_distance) + small "
-                    "goal bonus + tiny step penalty\n"
+                    "  - Observation: the most task-relevant state features "
+                    "(~8 features). See the library reference for what's available.\n"
+                    "  - Reward: progress shaping + small "
+                    "task completion bonus + tiny step penalty\n"
                     "Strip everything else away and see if learning starts."
                 )
             elif sr < 0.3:
                 hints.append(
                     "The agent learns slowly. Possible causes:\n"
                     "  - Observation has too many features — reduce to "
-                    "the essential ones (position, direction, goal, distance)\n"
+                    "the essential ones\n"
                     "  - Reward has too many competing terms — simplify to "
-                    "distance shaping + goal bonus + step penalty\n"
+                    "progress shaping + task completion bonus + step penalty\n"
                     "  - Reward magnitudes are unbalanced — keep all terms "
                     "in a similar range (0.01 to 1.0)"
                 )
@@ -635,8 +741,7 @@ class PromptBuilder:
                     "starting positions (corner cases)\n"
                     "  - Slightly increase the step penalty to push for "
                     "faster solutions\n"
-                    "  - Check if the reward ever gives misleading signal "
-                    "(e.g., facing bonus when agent should turn)"
+                    "  - Check if the reward ever gives misleading signal"
                 )
             else:
                 hints.append(
@@ -655,12 +760,10 @@ class PromptBuilder:
                     "through. Try something STRUCTURALLY DIFFERENT:\n"
                     "  - If using many observation features, try drastically "
                     "fewer (e.g., just 6-8)\n"
-                    "  - If using many reward terms, try just distance "
-                    "shaping + goal bonus\n"
-                    "  - Try Manhattan distance instead of Euclidean (or "
-                    "vice versa)\n"
-                    "  - Try a completely different observation encoding "
-                    "(e.g., local grid patch instead of positions)\n"
+                    "  - If using many reward terms, try just progress "
+                    "shaping + task completion bonus\n"
+                    "  - Try a fundamentally different observation structure "
+                    "or progress metric\n"
                     "The key is to be BOLD — small changes won't escape "
                     "this plateau."
                 )
@@ -668,8 +771,8 @@ class PromptBuilder:
             # Anti-patterns
             hints.append(
                 "Avoid these common anti-patterns:\n"
-                "  - Do NOT compute 'action values', 'turn scores', or "
-                "'optimal direction' in get_observation — that is trying to "
+                "  - Do NOT compute 'action values' or "
+                "'optimal decisions' in get_observation — that is trying to "
                 "solve the RL problem yourself and makes learning HARDER\n"
                 "  - Do NOT use reward magnitudes >10 for any single term — "
                 "this causes gradient instability\n"
@@ -682,7 +785,7 @@ class PromptBuilder:
                 "Design for learnability:\n"
                 "- Keep the observation small (8-15 features) with raw, "
                 "well-normalized information\n"
-                "- Keep the reward simple: distance shaping + goal bonus "
+                "- Keep the reward simple: progress shaping + task completion bonus "
                 "+ step penalty\n"
                 "- The neural network will learn the policy — your job is "
                 "to give it good inputs and a clear signal"

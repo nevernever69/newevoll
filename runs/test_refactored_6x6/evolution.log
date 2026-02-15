@@ -1,0 +1,143 @@
+2026-02-15 05:02:42 INFO mdp_discovery.llm_client: LLMClient initialized: model=claude-4-sonnet region=us-east-1
+2026-02-15 05:02:42 INFO mdp_discovery.controller: Starting evolution: 3 iterations, 1 candidates/batch, env=MiniGrid-Empty-6x6, model=claude-4-sonnet, mode=full
+2026-02-15 05:02:42 INFO mdp_discovery.controller: [Iter 1] Submitting batch of 1 candidate(s)...
+2026-02-15 05:02:56 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-15 05:02:57 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=11)
+2026-02-15 05:02:57 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-15 05:03:52 INFO mdp_discovery.evaluator: Short training done: success=100%, length=13.8, time=38.1s
+2026-02-15 05:03:52 INFO mdp_discovery.evaluator: Passed threshold (100% >= 5%). Running full training (5,000,000 steps)...
+2026-02-15 05:04:23 INFO mdp_discovery.evaluator: Full training done: success=100%, length=7.0, time=24.9s
+2026-02-15 05:04:23 DEBUG mdp_discovery.database: Added program 27b9d42b to island 0 cell 2-2 (fitness=1.0000)
+2026-02-15 05:04:23 INFO mdp_discovery.controller: [Iter 1] full_train success=100% length=7.0 | best=100% | 101.2s *** NEW BEST ***
+2026-02-15 05:04:23 INFO mdp_discovery.controller: [Iter 2] Submitting batch of 1 candidate(s)...
+2026-02-15 05:04:38 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-15 05:04:38 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=9)
+2026-02-15 05:04:38 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-15 05:05:06 INFO mdp_discovery.evaluator: Short training done: success=100%, length=11.1, time=21.2s
+2026-02-15 05:05:06 INFO mdp_discovery.evaluator: Passed threshold (100% >= 5%). Running full training (5,000,000 steps)...
+2026-02-15 05:05:37 INFO mdp_discovery.evaluator: Full training done: success=100%, length=7.0, time=24.8s
+2026-02-15 05:05:37 DEBUG mdp_discovery.database: Added program fd7b1a52 to island 0 cell 0-0 (fitness=1.0000)
+2026-02-15 05:05:37 INFO mdp_discovery.controller: [Iter 2] full_train success=100% length=7.0 | best=100% | 73.6s
+2026-02-15 05:05:37 INFO mdp_discovery.controller: [Iter 3] Submitting batch of 1 candidate(s)...
+2026-02-15 05:05:56 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-15 05:05:56 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=7)
+2026-02-15 05:05:56 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-15 05:06:23 INFO mdp_discovery.evaluator: Short training done: success=100%, length=10.3, time=20.7s
+2026-02-15 05:06:23 INFO mdp_discovery.evaluator: Passed threshold (100% >= 5%). Running full training (5,000,000 steps)...
+2026-02-15 05:06:54 INFO mdp_discovery.evaluator: Full training done: success=100%, length=7.0, time=24.9s
+2026-02-15 05:06:54 INFO mdp_discovery.controller: [Iter 3] full_train success=100% length=7.0 | best=100% | 77.5s
+2026-02-15 05:06:54 INFO mdp_discovery.database: Database saved to runs/test_refactored_6x6/database (3 programs)
+2026-02-15 05:06:54 INFO mdp_discovery.controller: [Iter 3] Checkpoint saved to runs/test_refactored_6x6
+2026-02-15 05:06:54 INFO mdp_discovery.controller: ============================================================
+2026-02-15 05:06:54 INFO mdp_discovery.controller: Evolution complete
+2026-02-15 05:06:54 INFO mdp_discovery.controller:   Mode: full
+2026-02-15 05:06:54 INFO mdp_discovery.controller:   Iterations: 3
+2026-02-15 05:06:54 INFO mdp_discovery.controller:   Wall time: 252.4s
+2026-02-15 05:06:54 INFO mdp_discovery.controller:   Total programs: 3
+2026-02-15 05:06:54 INFO mdp_discovery.controller:   Total eval time: 204.0s
+2026-02-15 05:06:54 INFO mdp_discovery.controller:   Total LLM tokens: 31274
+2026-02-15 05:06:54 INFO mdp_discovery.controller:   Recent failures: 0
+2026-02-15 05:06:54 INFO mdp_discovery.controller:   Grid cells filled: [2, 0, 0]
+2026-02-15 05:06:54 INFO mdp_discovery.controller:   Island sizes: [3, 0, 0]
+2026-02-15 05:06:54 INFO mdp_discovery.controller:   Best success rate: 100%
+2026-02-15 05:06:54 INFO mdp_discovery.controller:   Best obs_dim: 11
+2026-02-15 05:06:54 INFO mdp_discovery.controller:   Best program:
+import jax
+import jax.numpy as jnp
+
+def get_observation(state):
+    """Extract observation for navigation task."""
+    H, W = state.grid.shape[:2]
+    
+    # Agent position (normalized to [0, 1])
+    agent_pos = state.agent.position.astype(jnp.float32)
+    norm_agent_y = agent_pos[0] / (H - 1)
+    norm_agent_x = agent_pos[1] / (W - 1)
+    
+    # Agent direction (one-hot encoded)
+    direction_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)
+    
+    # Find goal position
+    goal_mask = (state.grid[:, :, 0] == 6)  # GOAL tile type
+    
+    # Get goal coordinates using meshgrid
+    ys = jnp.arange(H, dtype=jnp.float32)
+    xs = jnp.arange(W, dtype=jnp.float32)
+    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
+    
+    # Calculate goal position (weighted average if multiple goals)
+    goal_count = jnp.sum(goal_mask)
+    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(goal_count, 1.0)
+    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(goal_count, 1.0)
+    
+    # Normalize goal position
+    norm_goal_y = goal_y / (H - 1)
+    norm_goal_x = goal_x / (W - 1)
+    
+    # Distance to goal (Manhattan distance, normalized)
+    manhattan_dist = jnp.abs(agent_pos[0] - goal_y) + jnp.abs(agent_pos[1] - goal_x)
+    max_dist = (H - 1) + (W - 1)  # Maximum possible Manhattan distance
+    norm_manhattan_dist = manhattan_dist / max_dist
+    
+    # Euclidean distance (normalized)
+    euclidean_dist = jnp.sqrt((agent_pos[0] - goal_y)**2 + (agent_pos[1] - goal_x)**2)
+    max_euclidean = jnp.sqrt((H - 1)**2 + (W - 1)**2)
+    norm_euclidean_dist = euclidean_dist / max_euclidean
+    
+    # Step count (normalized)
+    norm_step = state.step_num.astype(jnp.float32) / 100.0
+    
+    # Concatenate all features
+    obs = jnp.concatenate([
+        jnp.array([norm_agent_y, norm_agent_x]),  # Agent position (2)
+        direction_onehot,                         # Agent direction (4)
+        jnp.array([norm_goal_y, norm_goal_x]),    # Goal position (2)
+        jnp.array([norm_manhattan_dist]),         # Manhattan distance (1)
+        jnp.array([norm_euclidean_dist]),         # Euclidean distance (1)
+        jnp.array([norm_step])                    # Step count (1)
+    ])
+    
+    return obs
+
+def compute_reward(state, action, next_state):
+    """Compute reward for navigation task."""
+    # Check if goal is reached in next state
+    agent_pos = next_state.agent.position
+    goal_tile = next_state.grid[agent_pos[0], agent_pos[1], 0]
+    goal_reached = (goal_tile == 6).astype(jnp.float32)
+    
+    # Calculate distances for progress shaping
+    H, W = state.grid.shape[:2]
+    
+    # Find goal position
+    goal_mask = (state.grid[:, :, 0] == 6)
+    ys = jnp.arange(H, dtype=jnp.float32)
+    xs = jnp.arange(W, dtype=jnp.float32)
+    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
+    
+    goal_count = jnp.sum(goal_mask)
+    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(goal_count, 1.0)
+    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(goal_count, 1.0)
+    
+    # Previous distance (before action)
+    prev_pos = state.agent.position.astype(jnp.float32)
+    prev_dist = jnp.sqrt((prev_pos[0] - goal_y)**2 + (prev_pos[1] - goal_x)**2)
+    
+    # Current distance (after action)
+    curr_pos = next_state.agent.position.astype(jnp.float32)
+    curr_dist = jnp.sqrt((curr_pos[0] - goal_y)**2 + (curr_pos[1] - goal_x)**2)
+    
+    # Progress reward (positive for getting closer, negative for moving away)
+    progress_reward = (prev_dist - curr_dist) * 1.0
+    
+    # Small step penalty to encourage efficiency
+    step_penalty = -0.01
+    
+    # Large completion bonus
+    completion_bonus = goal_reached * 10.0
+    
+    # Total reward
+    reward = progress_reward + step_penalty + completion_bonus
+    
+    return reward
+2026-02-15 05:06:54 INFO mdp_discovery.controller: ============================================================

@@ -1,4 +1,4 @@
-# MDP Interface Discovery via LLM-Guided Evolutionary Search
+# PureEvol: MDP Interface Discovery via LLM-Guided Evolutionary Search
 
 ## 1. Research Question
 
@@ -6,30 +6,43 @@ Can the MDP interface — the observation mapping, action mapping, and reward fu
 
 ### Sub-Questions
 
-1. Does jointly discovering the full interface (obs + action + reward) outperform discovering reward alone?
+1. Does jointly discovering the full interface (obs + reward) outperform discovering reward alone (Eureka-style)?
 2. What structural properties do discovered interfaces exhibit compared to human-designed ones?
-3. Do discovered interfaces generalize to held-out environment configurations, noise, and layout changes?
-4. Which interface components (observation, action, reward) contribute most to task performance?
+3. Which interface components (observation vs. reward) contribute most to task performance?
+4. Does evolutionary search outperform random LLM sampling?
 
 ---
 
-## 2. System Overview
+## 2. Core Design Principle
 
-### What the System Does
+**The context document is the single, complete source of all environment-specific knowledge.**
 
-Given:
-- A **task description** in natural language (e.g., "navigate to a hidden goal in a grid with obstacles")
-- A **library context document** (curated API reference for the environment framework — state variables, action spaces, wrapper conventions, code patterns)
-- A **ground-truth evaluator** (a script that runs a trained policy and returns a task-completion metric the LLM never sees)
+The system code (prompts, crash filter, training loop, evaluator) contains **zero** environment-specific hints, constants, or patterns. All env knowledge — state fields, tile constants, action spaces, API patterns, code examples — lives in the user-provided context doc, which is a "condensed codebase" of the target environment framework.
 
-The system produces:
-- A complete **MDP interface** — three functions that define how the RL agent perceives, acts in, and is rewarded by the environment — discovered entirely by the system with no human-designed starting point.
+This means:
+- The system prompts are generic RL engineering prompts with no env-specific vocabulary
+- The template defines only the interface contract (function signatures + type constraints + JAX rules)
+- The context doc is injected verbatim as a "Library Reference" in the system prompt
+- To support a new environment, you write a context doc + an adapter — no system code changes
 
-### What Makes This Different From Prior Work
+### User Inputs
 
-- **EUREKA, Text2Reward, L2R**: These systems evolve or generate reward functions starting from existing code or structured reward templates. Our system generates the **full MDP interface from scratch** — not just reward, but also observation processing and action transformation.
-- **No seed program**: The system does not receive a baseline MDP to mutate. It constructs the first candidate from nothing but the task description and library knowledge.
-- **Joint optimization**: Observation, action, and reward are co-evolved, allowing the system to discover synergies between interface components that reward-only methods cannot find.
+| Input | What it contains | Example |
+|-------|-----------------|---------|
+| **Task description** | Natural language goal | "Navigate to the goal tile in a 6x6 empty room." |
+| **Context document** | Condensed env framework reference — state fields, constants, action space, API patterns, code examples | `contexts/xminigrid_context.md` |
+| **Config file** | Training hyperparameters, env ID, adapter type, evolution mode | `configs/default.yaml` |
+
+### System Components (env-agnostic)
+
+| Component | What it does | Env-specific content |
+|-----------|-------------|---------------------|
+| `prompts.py` | Builds LLM prompts | None — generic RL engineering advice |
+| `crash_filter.py` | 3-stage code validation | None — takes `dummy_state` as parameter |
+| `train.py` | PPO training loop | None — takes wrapped env from adapter |
+| `evaluator.py` | Cascade evaluation pipeline | None — delegates to adapter |
+| `controller.py` | Main evolution loop | None — creates adapter from config |
+| `templates/` | Interface contract | None — function signatures + JAX rules only |
 
 ---
 
@@ -38,970 +51,523 @@ The system produces:
 ### 3.1 High-Level Pipeline
 
 ```
+                        USER INPUTS
+   ┌──────────────┐  ┌──────────────────┐  ┌───────────────┐
+   │ Task          │  │ Context Doc      │  │ Config        │
+   │ Description   │  │ (condensed       │  │ (YAML)        │
+   │ (natural lang)│  │  codebase)       │  │               │
+   └──────┬───────┘  └────────┬─────────┘  └───────┬───────┘
+          │                   │                     │
+          ▼                   ▼                     ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                        INPUTS                                │
-│  ┌──────────────┐  ┌──────────────────┐  ┌───────────────┐  │
-│  │ Task          │  │ Library Context  │  │ Ground-Truth  │  │
-│  │ Description   │  │ Document         │  │ Evaluator     │  │
-│  └──────┬───────┘  └────────┬─────────┘  └───────┬───────┘  │
-└─────────┼──────────────────┼─────────────────────┼──────────┘
-          │                  │                     │
-          ▼                  ▼                     │
-┌─────────────────────────────────────┐            │
-│       LLM GENERATION ENGINE         │            │
-│                                     │            │
-│  Prompt = task_desc + lib_context   │            │
-│        + population feedback        │            │
-│        + error artifacts            │            │
-│                                     │            │
-│  Output = MDP Interface Code        │            │
-│    - get_observation(state)         │            │
-│    - transform_action(action)       │            │
-│    - compute_reward(state, action,  │            │
-│                     next_state)     │            │
-└──────────────┬──────────────────────┘            │
-               │                                   │
-               ▼                                   │
-┌──────────────────────────────────┐               │
-│        CRASH FILTER              │               │
-│                                  │               │
-│  Stage 0: Syntax check           │               │
-│  Stage 1: Import/dependency check│               │
-│  Stage 2: Dry-run with dummy     │               │
-│           state (no RL training) │               │
-│                                  │               │
-│  FAIL → error artifacts fed back │               │
-│         to LLM for next attempt  │               │
-└──────────────┬───────────────────┘               │
-               │ (only code that runs)             │
-               ▼                                   │
-┌──────────────────────────────────┐               │
-│     CASCADE RL TRAINING          │               │
-│                                  │               │
-│  Stage 1: Short training         │               │
-│    (~500k env steps)             │               │
-│    Threshold: must show learning │               │
-│                                  │               │
-│  Stage 2: Full training          │               │
-│    (~5-10M env steps)            │               │
-│    Only for candidates that      │               │
-│    passed Stage 1                │               │
-└──────────────┬───────────────────┘               │
-               │ (trained policy)                  │
-               ▼                                   ▼
-┌──────────────────────────────────────────────────────┐
-│           GROUND-TRUTH EVALUATION                     │
-│                                                       │
-│  Run trained policy in environment                    │
-│  Measure: success rate, distance-to-goal,             │
-│           path optimality, task completion             │
-│                                                       │
-│  This score is the evolutionary FITNESS.              │
-│  The LLM and RL agent NEVER see this metric.          │
-└──────────────┬────────────────────────────────────────┘
-               │ (fitness score + evaluation artifacts)
-               ▼
-┌──────────────────────────────────────────────────┐
-│        EVOLUTIONARY DATABASE (MAP-Elites)         │
-│                                                   │
-│  Population of MDP interfaces mapped to feature   │
-│  grid (reward complexity, obs dimensionality,     │
-│  action transform type, etc.)                     │
-│                                                   │
-│  Island-based evolution:                          │
-│    - Multiple isolated populations                │
-│    - Periodic migration between islands           │
-│    - Maintains diversity                          │
-│                                                   │
-│  Stores per program:                              │
-│    - MDP interface code                           │
-│    - Fitness score                                │
-│    - Training artifacts (learning curves, errors) │
-│    - Feature coordinates                          │
-└──────────────┬────────────────────────────────────┘
-               │
-               │ (top programs + diverse programs
-               │  + failure artifacts)
-               │
-               └──────────► back to LLM GENERATION ENGINE
-                            (next evolutionary iteration)
+│                    EVOLUTION CONTROLLER                       │
+│                                                               │
+│  1. Creates Environment Adapter (from config.adapter_type)   │
+│  2. Loads context doc (from config.context_file)             │
+│  3. Initializes PromptBuilder, Evaluator, Database           │
+│  4. Runs evolution loop or baseline mode                     │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+          ┌────────────────┼────────────────┐
+          ▼                ▼                ▼
+   ┌──────────┐    ┌──────────────┐   ┌──────────────┐
+   │   LLM    │    │  Cascade     │   │  MAP-Elites  │
+   │Generation│───▶│  Evaluator   │──▶│  Database     │
+   │ Engine   │    │              │   │  + Islands    │
+   └──────────┘    └──────────────┘   └──────┬───────┘
+                                              │
+                              feedback loop ──┘
 ```
 
-### 3.2 MDP Interface Template
-
-The LLM generates a single Python file containing three functions with fixed signatures. This is the exact interface the system expects:
-
-```python
-"""
-MDP Interface for: {task_description}
-Generated by evolutionary iteration {iteration_number}
-"""
-
-import jax
-import jax.numpy as jnp
-from typing import Any
-
-# Type alias for environment state (provided by library)
-State = Any
-
-
-def get_observation(state: State) -> jnp.ndarray:
-    """
-    Extract and transform observations from the raw environment state.
-
-    The RL agent sees ONLY what this function returns.
-    You decide what information to include, exclude, transform, or combine.
-
-    Args:
-        state: Raw environment state object (see library context for available fields)
-
-    Returns:
-        observation: 1D JAX array of floats that the policy network receives as input
-    """
-    # LLM generates this implementation
-    pass
-
-
-def transform_action(action: jnp.ndarray) -> jnp.ndarray:
-    """
-    Transform the policy's output action before applying it to the environment.
-
-    The policy outputs a raw action vector. This function can scale, clip,
-    remap, or otherwise transform it before it reaches the environment.
-
-    Args:
-        action: Raw action vector from the policy network
-
-    Returns:
-        transformed_action: Action vector to apply to the environment
-    """
-    # LLM generates this implementation
-    pass
-
-
-def compute_reward(
-    state: State,
-    action: jnp.ndarray,
-    next_state: State
-) -> float:
-    """
-    Compute the reward signal for the RL agent.
-
-    This is the ONLY reward the agent sees during training.
-    Design this to induce the desired behavior described in the task.
-
-    Args:
-        state: Environment state before the action
-        action: Action that was taken
-        next_state: Environment state after the action
-
-    Returns:
-        reward: Scalar reward value
-    """
-    # LLM generates this implementation
-    pass
-```
-
-**Design decisions:**
-- Fixed function signatures eliminate structural errors and make outputs pluggable.
-- The LLM has full freedom WITHIN each function — arbitrary Python/JAX logic, helper variables, conditionals, mathematical expressions.
-- The LLM can add helper functions above the three main functions if needed.
-- All functions must be JAX-compatible (no Python control flow on traced values, use jnp not np, etc.) — this constraint is stated in the library context document.
-
-### 3.3 Library Context Document
-
-One curated document per environment framework. Written manually. Contains:
-
-**Section 1: Framework Overview**
-- What the framework is (Brax, custom GridWorld engine)
-- How environments work at a high level
-- JAX constraints and conventions
-
-**Section 2: State Object Reference**
-- Every field accessible on the state object
-- Data types and shapes
-- Value ranges where known
-- Example: `state.pipeline_state.q` — joint positions, shape (n_joints,), range [-pi, pi]
-
-**Section 3: Action Space**
-- Action vector dimensionality
-- What each action dimension controls
-- Valid ranges
-- How actions are applied to the environment
-
-**Section 4: Wrapper Pattern**
-- How the MDP interface plugs into the training loop
-- Import conventions
-- How get_observation output connects to the policy network input
-- How compute_reward output is used by PPO
-
-**Section 5: Code Conventions**
-- JAX-compatible patterns (jnp.where instead of if/else, etc.)
-- Common pitfalls
-- Valid imports
-
-**Section 6: Available Utilities**
-- Math functions available
-- State access helpers
-- Normalization utilities
-
-The document does NOT contain:
-- Any reward function examples
-- Any description of what "good" behavior looks like
-- The ground-truth evaluation metric
-- Hints about what observations matter for any specific task
-
-### 3.4 LLM Generation Engine
-
-#### Prompt Structure — Iteration 1 (From Scratch)
+### 3.2 Detailed Flow Per Iteration
 
 ```
-SYSTEM: You are an expert RL engineer. You design MDP interfaces —
-observation functions, action transforms, and reward functions —
-for reinforcement learning agents.
-
-CONTEXT:
-{library_context_document}
-
-TASK:
-{task_description}
-
-INSTRUCTIONS:
-Generate a complete MDP interface (get_observation, transform_action,
-compute_reward) that will allow a PPO agent to learn the described task.
-
-You must output a single Python file following this exact template:
-{mDP_interface_template}
-
-Think carefully about:
-- What observations the agent needs to solve this task
-- Whether the action space needs transformation
-- What reward signal will guide the agent toward the desired behavior
-
-Output ONLY the Python file. No explanation.
+1. Sample parent from database (or generate from scratch)
+       │
+2. Build prompt:
+   - System: generic RL prompt + context doc as Library Reference
+   - User: task + parent code + training feedback + top/diverse programs + failures
+       │
+3. Call LLM (AWS Bedrock Claude) → extract code from ```python``` fence
+       │
+4. Crash Filter (3 stages):
+   - Stage 0: ast.parse + verify required functions exist
+   - Stage 1: importlib load (catches bad imports)
+   - Stage 2: dry-run with adapter.get_dummy_state() (catches shape/type errors)
+       │  FAIL → store error artifact, feed back to LLM
+       │
+5. Cascade Training:
+   - Short training (1M steps) → threshold check (5% success)
+   - If passed → Full training (5M steps)
+   - Final dedicated success evaluation (50 episodes)
+       │
+6. Store in MAP-Elites database
+   - Feature dimensions: reward_complexity × obs_dimensionality
+   - Island assignment + migration management
+       │
+7. Checkpoint (every N iterations)
 ```
-
-#### Prompt Structure — Iteration N (Evolutionary)
-
-```
-SYSTEM: You are an expert RL engineer designing MDP interfaces.
-
-CONTEXT:
-{library_context_document}
-
-TASK:
-{task_description}
-
-PREVIOUS BEST INTERFACES:
---- Interface #{id} (fitness: {score}) ---
-{code}
---- END ---
-
---- Interface #{id} (fitness: {score}) ---
-{code}
---- END ---
-
-DIVERSE INTERFACES (different approaches):
---- Interface #{id} (fitness: {score}) ---
-{code}
---- END ---
-
-RECENT FAILURES:
---- Interface #{id} (error) ---
-{code}
-Error: {stack_trace_or_error_message}
---- END ---
-
-ARTIFACTS FROM BEST PROGRAMS:
-- Training curve showed reward plateauing at step 200k
-- Agent learned to move but never reached the goal
-- {other_feedback_from_evaluation}
-
-INSTRUCTIONS:
-Based on the above attempts and their results, generate an improved
-MDP interface. Consider:
-- What worked in high-scoring interfaces
-- What failed and why
-- Novel approaches not yet tried
-
-Output ONLY the Python file. No explanation.
-```
-
-#### Prompt Sampling Strategy (from OpenEvolve)
-
-For each generation:
-- **Top K programs** (K=2-3): Highest fitness scores in the population. Always includes the absolute best.
-- **Diverse D programs** (D=1-2): Selected from different MAP-Elites cells to encourage exploration of different approaches.
-- **Recent failures** (F=1-2): Programs that crashed or scored poorly, with their error messages. Teaches the LLM what NOT to do.
-- **Artifacts**: Qualitative feedback from evaluation (training curves, behavioral observations).
-
-### 3.5 Crash Filter
-
-Before any RL training (which is expensive even with JAX), candidate MDP interfaces pass through a multi-stage filter:
-
-**Stage 0 — Syntax Check**
-- Parse the generated Python file
-- Check for syntax errors
-- Verify all three functions are defined with correct signatures
-- Cost: ~0ms
-
-**Stage 1 — Import & Dependency Check**
-- Attempt to import the module
-- Verify all imports resolve
-- Check JAX compatibility (no numpy where jnp is needed)
-- Cost: ~1s
-
-**Stage 2 — Dry Run**
-- Create a dummy environment state
-- Call get_observation(dummy_state) — verify it returns a valid array
-- Call transform_action(dummy_action) — verify shape compatibility
-- Call compute_reward(dummy_state, dummy_action, dummy_state) — verify it returns a scalar
-- Cost: ~2-5s
-
-**On failure at any stage:**
-- Record the error message and stack trace
-- Store as artifact in the database
-- Feed back to LLM in next generation prompt
-- Do NOT proceed to RL training
-
-**Retry logic:**
-- On crash, optionally give the LLM one immediate retry with the error message before moving to the next evolutionary candidate
-- This helps with simple fixes (wrong attribute name, shape mismatch) without wasting an evolutionary iteration
-
-### 3.6 Cascade RL Training
-
-Candidates that pass the crash filter enter RL training in stages:
-
-**Stage 1 — Short Training Run**
-- PPO training for ~500k environment steps
-- Single random seed
-- Timeout: environment-dependent (seconds for JAX-compiled Brax)
-- Threshold: must show non-zero learning signal (reward increasing over time, or ground-truth metric above random baseline)
-- Purpose: filter out reward functions that produce no learning signal
-
-**Stage 2 — Full Training Run**
-- PPO training for 5-10M environment steps (environment-dependent)
-- 3 random seeds for statistical reliability
-- Ground-truth evaluator runs on the final trained policy (averaged across seeds)
-- Full training artifacts collected (learning curves, final behavior)
-
-**Score computation:**
-- Fitness = mean ground-truth metric across seeds
-- Variance across seeds recorded as metadata (high variance = unreliable interface)
-
-### 3.7 Evolutionary Database
-
-Adapted from OpenEvolve's MAP-Elites + island-based evolution.
-
-**Feature Dimensions for MAP-Elites Grid:**
-- **Reward complexity**: Number of terms/components in compute_reward (simple scalar vs multi-component shaped reward)
-- **Observation dimensionality**: Size of the observation vector returned by get_observation (minimal vs rich)
-- **Action transform type**: Identity / linear scaling / nonlinear remapping
-- **Fitness score**: The ground-truth evaluation metric
-
-This creates a 2D or 3D grid where each cell stores the best MDP interface with those characteristics. This maintains diversity — the system keeps both simple and complex approaches alive.
-
-**Island-Based Evolution:**
-- 3-5 islands, each with its own MAP-Elites grid
-- Islands evolve independently
-- Every N generations, top programs migrate between islands (ring topology)
-- Prevents premature convergence on one approach
-
-**What's stored per program:**
-- Full MDP interface code
-- Fitness score (ground-truth metric)
-- Feature coordinates (where it sits in MAP-Elites grid)
-- Training artifacts (learning curves, behavioral notes)
-- Error artifacts (if crashed or performed poorly)
-- Parent ID (which program inspired this one)
-- Iteration number
-- Island ID
-
-### 3.8 Ground-Truth Evaluator
-
-A separate script per environment that the LLM NEVER sees. Takes a trained policy and evaluates it on the actual task objective.
-
-**GridWorld Example:**
-```python
-def evaluate(policy, env, n_episodes=100):
-    successes = 0
-    total_path_length = 0
-    optimal_path_length = compute_optimal(env)  # BFS/A*
-
-    for episode in range(n_episodes):
-        state = env.reset()
-        path_length = 0
-        for step in range(max_steps):
-            action = policy(state)
-            state, _, done, _ = env.step(action)
-            path_length += 1
-            if done and state.at_goal:
-                successes += 1
-                total_path_length += path_length
-                break
-
-    return {
-        "success_rate": successes / n_episodes,
-        "path_optimality_gap": (total_path_length / successes) / optimal_path_length - 1.0,
-    }
-```
-
-**Brax Example:**
-```python
-def evaluate(policy, env, n_episodes=100):
-    total_distance = 0
-    successes = 0
-
-    for episode in range(n_episodes):
-        state = env.reset()
-        for step in range(max_steps):
-            action = policy(get_default_obs(state))  # uses RAW state, not discovered obs
-            state = env.step(state, action)
-
-        final_dist = jnp.linalg.norm(state.pos - target_pos)
-        total_distance += final_dist
-        if final_dist < success_threshold:
-            successes += 1
-
-    return {
-        "success_rate": successes / n_episodes,
-        "mean_distance_to_goal": total_distance / n_episodes,
-    }
-```
-
-**Important:** The ground-truth evaluator uses the trained policy but evaluates on the RAW task metric. The evolved reward function shaped training, but the evaluation measures actual task completion.
 
 ---
 
-## 4. Environments
-
-### 4.1 Phase 1: Custom JAX-Based GridWorld
-
-All GridWorld environments are implemented in JAX for fast training in the inner loop.
-
-#### Environment 1: Hidden Goal Navigation
-
-**Description:** Agent must navigate a grid to find a hidden goal. Distractor objects are placed throughout the grid. The agent has partial observability (can only see a local window around itself).
-
-**Properties:**
-- Grid size: 10x10 (in-distribution), 15x15 and 20x20 (generalization tests)
-- Partial observability: 5x5 local view
-- Distractor objects: 3-5 per grid (look different from goal but are visible)
-- Hidden goal: Not visible until agent is adjacent or on top of it
-- Stochastic initial layouts: Agent start position, goal position, distractor positions, wall positions randomized each episode
-- Episode length: 200 steps
-
-**State available to MDP interface:**
-- agent_position: (x, y)
-- local_view: 5x5 grid of cell types (wall, empty, distractor, goal-if-adjacent)
-- step_count: current timestep
-- visited_cells: boolean grid of where agent has been
-- distractor_positions: list of (x, y)
-
-**Action space:**
-- 4 discrete actions: up, down, left, right
-
-**Ground-truth metric:**
-- Success rate (goal reached within episode length)
-- Path optimality gap (actual path length / optimal path length - 1)
-
-**Why this is hard without a good MDP interface:**
-- Sparse reward (goal reached = +1) provides almost no learning signal in a 10x10 grid with partial observability
-- The agent needs to learn exploration behavior, which requires reward shaping for visiting new cells, moving toward unexplored areas, etc.
-- Good observation processing might include: encoding visited cells as features, distance to nearest unexplored area, relative distractor positions
-- The system must discover these structures from scratch
-
-#### Environment 2: Multi-Key Door Navigation
-
-**Description:** Agent must collect keys in a specific order to unlock doors and reach the final goal. Requires sequential reasoning.
-
-**Properties:**
-- Grid size: 12x12
-- 2-3 keys of different colors, corresponding locked doors
-- Keys must be collected in order (key A opens door A, which leads to key B, etc.)
-- Partial observability: 5x5 local view
-- Stochastic key/door placement
-
-**State available to MDP interface:**
-- agent_position: (x, y)
-- local_view: 5x5 grid
-- keys_collected: boolean array [has_key_A, has_key_B, ...]
-- doors_unlocked: boolean array
-- step_count: current timestep
-
-**Action space:**
-- 4 discrete actions: up, down, left, right
-- Pickup/unlock is automatic when agent is on key/door
-
-**Ground-truth metric:**
-- Task completion rate (reached final goal)
-- Partial completion (fraction of keys collected)
-- Step efficiency
-
-**Why this is hard:**
-- Requires hierarchical reward shaping (reward for each key, each door, final goal)
-- Observation function must encode key/door state meaningfully
-- Wrong reward structure (e.g., rewarding proximity to final goal before having keys) actively hurts learning
-
-#### Environment 3: Predator Evasion with Resource Collection
-
-**Description:** Agent must collect resources scattered across the grid while avoiding a predator that follows a deterministic pursuit policy. Episode ends if caught.
-
-**Properties:**
-- Grid size: 10x10
-- 5-8 resources randomly placed
-- 1 predator with deterministic chase behavior (moves toward agent each step with 80% probability)
-- Full observability (agent sees entire grid)
-- Episode length: 150 steps or until caught
-
-**State available to MDP interface:**
-- agent_position: (x, y)
-- predator_position: (x, y)
-- resource_positions: list of (x, y)
-- resources_collected: int
-- full_grid: 10x10 cell types
-- step_count: current timestep
-
-**Action space:**
-- 4 discrete actions: up, down, left, right
-
-**Ground-truth metric:**
-- Resources collected per episode (mean)
-- Survival rate (not caught)
-- Combined: resources_collected * survival_bonus
-
-**Why this is hard:**
-- Conflicting objectives: collect resources (approach them) vs. avoid predator (flee)
-- Reward must balance risk/reward tradeoff
-- Observation function should encode relative threat level, nearest safe resource, escape routes
-- Action remapping could encode "move toward nearest safe resource" as a macro
-
-### 4.2 Phase 2: Custom Brax Continuous Control
-
-All environments built using Brax with JAX compilation.
-
-#### Environment 4: Target Reaching with Obstacles
-
-**Description:** A simple articulated robot arm (or point-mass with dynamics) must reach a target position while avoiding obstacles. No predefined reward.
-
-**Properties:**
-- 2D or 3D workspace
-- Robot: articulated arm with 2-3 joints OR point-mass with momentum
-- Target: fixed or randomized position
-- Obstacles: 2-3 static obstacles that the agent must navigate around
-- Continuous state and action spaces
-- Randomized target and obstacle positions per episode
-
-**State available to MDP interface:**
-- joint_positions: array of joint angles
-- joint_velocities: array of joint angular velocities
-- end_effector_position: (x, y, z) position of the tip
-- target_position: (x, y, z)
-- obstacle_positions: list of (x, y, z, radius)
-- contact_forces: array of contact sensor readings
-- timestep: current step
-
-**Action space:**
-- Joint torques: continuous array, one per joint
-- Range: [-1, 1] normalized
-
-**Ground-truth metric:**
-- Distance from end-effector to target at episode end
-- Success rate (within threshold distance)
-- Collision count (number of obstacle contacts)
-
-**Why this is hard:**
-- Continuous control with dynamics — reward shaping must account for velocity, not just position
-- Obstacle avoidance requires negative reward components that must be balanced with reaching reward
-- Observation function must decide: raw joint angles? relative target vector? obstacle proximity features?
-- Action transform might need to scale torques or add damping
-
-#### Environment 5: Object Pushing to Target Region
-
-**Description:** A robot must push an object (box/sphere) to a target region on the floor. Requires contact-rich manipulation.
-
-**Properties:**
-- Robot: simple 2-joint pusher or point-mass with collision body
-- Object: box or sphere with physics
-- Target region: marked area on the ground
-- Randomized initial object and target positions
-
-**State available to MDP interface:**
-- robot_position, robot_velocity
-- object_position, object_velocity
-- target_region_center, target_region_radius
-- contact_between_robot_and_object: boolean + force
-- timestep
-
-**Action space:**
-- Robot movement forces: continuous 2D or 3D
-- Range: [-1, 1] normalized
-
-**Ground-truth metric:**
-- Distance from object to target center at episode end
-- Success rate (object within target region)
-- Efficiency (steps to success)
-
-**Why this is hard:**
-- Indirect control — agent must manipulate object through contact
-- Reward must incentivize approach-object, contact-object, push-toward-target as sequential subgoals
-- Observation function must encode robot-object-target geometric relationships
-- Naive reward (distance from robot to target) fails because agent goes to target without the object
-
-#### Environment 6: Balanced Locomotion
-
-**Description:** A simple multi-legged creature must learn to walk forward while maintaining balance. No predefined gait or reward.
-
-**Properties:**
-- Robot: 4-legged simple creature (ant-like but custom, not standard Ant)
-- Task: move forward (positive x direction) without falling
-- Terrain: flat
-- Randomized initial joint positions (small perturbations)
-
-**State available to MDP interface:**
-- torso_position: (x, y, z)
-- torso_orientation: quaternion
-- torso_velocity: (vx, vy, vz)
-- torso_angular_velocity: (wx, wy, wz)
-- joint_positions: array per joint
-- joint_velocities: array per joint
-- foot_contacts: boolean array per foot
-- timestep
-
-**Action space:**
-- Joint torques: continuous array
-- Range: [-1, 1] normalized
-
-**Ground-truth metric:**
-- Forward distance traveled (x displacement)
-- Survival time (didn't fall over)
-- Combined: distance * survival_bonus
-
-**Why this is hard:**
-- High-dimensional continuous control
-- Reward must balance forward progress, balance, energy efficiency, gait regularity
-- Many possible observation encodings (relative joint angles, velocity features, contact patterns)
-- Action transform could impose symmetry (left-right leg coupling) or scale torques
-- Naive reward (just x-velocity) produces unstable, energy-wasteful gaits
-
----
-
-## 5. Baselines
-
-### 5.1 Sparse Reward Baseline
-
-For each environment, train PPO with the most minimal possible reward:
-- GridWorld: +1 on goal reached, 0 otherwise
-- Brax reaching: -distance_to_target at final step only
-- Brax pushing: -distance_object_to_target at final step only
-- Brax locomotion: x_velocity (raw, unscaled)
-
-Default observations: full raw state vector, no processing.
-Default actions: raw policy output, no transformation.
-
-This represents the "no reward engineering" baseline.
-
-### 5.2 Human-Designed Baseline
-
-For each environment, a human (you) designs a reasonable MDP interface:
-- Shaped reward with 3-5 components (progress, penalties, bonuses)
-- Sensible observation selection (relevant features, normalized)
-- Appropriate action scaling
-
-This should be what a competent RL engineer would write in 30-60 minutes. Document the time spent. This represents "standard practice."
-
-### 5.3 Reward-Only Evolution Baseline
-
-Use the full evolutionary system but only evolve compute_reward. Observations and action transforms are fixed to the same defaults as the sparse baseline.
-
-This isolates the contribution of reward discovery and directly compares with EUREKA-style approaches (which only evolve reward).
-
-### 5.4 Random Search Baseline
-
-Generate N random MDP interfaces (same LLM, no evolutionary selection — just independent samples) and report the best one found. Same total LLM budget as the evolutionary system.
-
-This tests whether evolution actually helps or if the LLM is good enough that random sampling works.
-
----
-
-## 6. Ablation Studies
-
-### 6.1 Interface Component Ablations
-
-Run in all environments:
-
-| Ablation | Observation | Action | Reward | Purpose |
-|---|---|---|---|---|
-| Full system | Evolved | Evolved | Evolved | Complete system |
-| Reward-only | Default | Default | Evolved | Is reward alone sufficient? |
-| Obs-only | Evolved | Default | Default (sparse) | Does obs processing help with sparse reward? |
-| Action-only | Default | Evolved | Default (sparse) | Does action remapping help? |
-| Obs + Reward | Evolved | Default | Evolved | Is action remapping needed? |
-| Reward + Action | Default | Evolved | Evolved | Is obs processing needed? |
-
-**Key hypothesis:** Full system > Reward-only > any single component. If Obs+Reward ≈ Full, action remapping doesn't matter (and that's a valid finding).
-
-### 6.2 Generalization Ablations
-
-Test discovered MDP interfaces on configurations NOT seen during evolution:
-
-**GridWorld:**
-- Larger grid sizes (15x15, 20x20 — trained on 10x10)
-- More distractor objects (8-10 — trained with 3-5)
-- Different wall layouts (held-out random seed)
-- Observation corruption (random noise added to local view)
-- Action stochasticity (10% random action instead of chosen)
-
-**Brax:**
-- Different target positions (held-out distribution)
-- Added sensor noise (Gaussian noise on joint readings)
-- Action noise (torque perturbations)
-- Minor dynamics variation (±10% gravity, ±10% friction)
-- Different initial conditions
-
-**Protocol:**
-1. Evolve MDP interface on the standard configuration
-2. Freeze the discovered interface (no further evolution)
-3. Retrain a fresh policy using the frozen interface on each generalization condition
-4. Evaluate with ground-truth metric
-5. Compare degradation across baselines
-
-### 6.3 Evolutionary Method Ablations
-
-| Ablation | Description | Purpose |
-|---|---|---|
-| No evolution (random) | Random LLM samples, no selection | Does evolution help? |
-| No islands | Single population, no islands | Do islands help diversity? |
-| No MAP-Elites | Standard best-only selection | Does quality-diversity help? |
-| No error feedback | Don't show failures to LLM | Does error feedback help? |
-| No cascade | Full training for all candidates | Does cascade save compute without hurting quality? |
-| Smaller LLM | Use a weaker/smaller model | How much does LLM capability matter? |
-| No artifact feedback | Don't show training curves/behavior | Does qualitative feedback help? |
-
-### 6.4 Cold Start Analysis
-
-Track across all environments:
-- Iteration at which first runnable MDP interface is generated
-- Iteration at which first positive-fitness MDP is found
-- Iteration at which performance exceeds sparse reward baseline
-- Iteration at which performance exceeds human-designed baseline (if ever)
-
-Plot learning curves: fitness vs. evolutionary iteration. This shows how quickly the system bootstraps from nothing.
-
----
-
-## 7. Evaluation Protocol
-
-### 7.1 Metrics Reported
-
-For each environment × method combination:
-
-**Primary Metrics:**
-- Final ground-truth score (mean ± std across 5 outer seeds)
-- Learning speed: evolutionary iterations to reach 50% of human baseline performance
-- Success rate (task completion)
-
-**Secondary Metrics:**
-- Path optimality gap (GridWorld)
-- Energy efficiency (Brax locomotion)
-- Collision count (Brax obstacle environments)
-- Sample efficiency: total environment steps to reach threshold performance
-
-**Per outer seed:** Run the full evolutionary process independently. Report mean ± std across outer seeds to capture variance from LLM stochasticity and evolutionary randomness.
-
-**Per inner evaluation:** 3 RL training seeds per candidate evaluation in the full training stage. Report mean across inner seeds as the fitness score.
-
-### 7.2 Statistical Rigor
-
-- 5 independent evolutionary runs (outer seeds) per method per environment
-- 3 RL training seeds per candidate evaluation
-- Report mean ± standard deviation
-- Paired t-test or Wilcoxon signed-rank test for significance between methods
-- Effect size (Cohen's d) for key comparisons
-
-### 7.3 Qualitative Analysis
-
-For the best-discovered MDP interfaces:
-
-**Reward Structure Visualization:**
-- Plot reward components and their relative magnitudes
-- Compare structure to human-designed baseline
-- Identify novel reward terms the system discovered
-
-**Observation Analysis:**
-- What features does the discovered observation function include/exclude?
-- Are there computed features (e.g., relative positions, velocities) not in the raw state?
-- Does observation processing correlate with task requirements?
-
-**Action Transform Analysis:**
-- Does the system learn meaningful action scaling?
-- Are there symmetry patterns (e.g., left-right leg coupling)?
-- Or does it converge to identity (i.e., action remapping doesn't matter)?
-
-**Evolution Trajectory:**
-- Tree visualization of parent-child relationships
-- How does the population diversify over time?
-- When do qualitative shifts in strategy occur?
-
----
-
-## 8. Implementation Plan
-
-### 8.1 New Repository Structure
+## 4. Repository Structure
 
 ```
-mdp-discovery/
-├── mdp_discovery/                    # Core system
+pureevol/
+├── run.py                              # CLI entry point
+├── configs/
+│   └── default.yaml                    # Default config (MiniGrid-Empty-6x6)
+├── contexts/
+│   └── xminigrid_context.md            # XLand-MiniGrid library reference
+├── templates/
+│   └── mdp_interface_template.py       # Interface contract (signatures + constraints)
+├── mdp_discovery/
 │   ├── __init__.py
-│   ├── controller.py                 # Main evolution loop (adapted from OpenEvolve)
-│   ├── database.py                   # MAP-Elites + islands (from OpenEvolve)
-│   ├── evaluator.py                  # Crash filter + cascade RL training
-│   ├── generator.py                  # LLM generation engine (NEW)
-│   ├── config.py                     # Configuration (adapted from OpenEvolve)
-│   ├── interface_template.py         # MDP interface template definition
-│   ├── training/
-│   │   ├── ppo.py                    # JAX PPO implementation
-│   │   └── trainer.py                # Training loop wrapper
-│   ├── llm/
-│   │   ├── provider.py              # LLM API client (from OpenEvolve)
-│   │   └── prompts.py               # Prompt templates (NEW)
-│   └── utils/
-│       ├── crash_filter.py           # Syntax/import/dry-run checks
-│       └── artifacts.py              # Artifact collection
-│
-├── environments/                     # Custom environments
-│   ├── gridworld/
-│   │   ├── engine.py                 # JAX GridWorld engine
-│   │   ├── hidden_goal.py            # Environment 1
-│   │   ├── multi_key_door.py         # Environment 2
-│   │   ├── predator_evasion.py       # Environment 3
-│   │   └── ground_truth.py           # Ground-truth evaluators
-│   └── brax/
-│       ├── target_reaching.py        # Environment 4
-│       ├── object_pushing.py         # Environment 5
-│       ├── balanced_locomotion.py    # Environment 6
-│       └── ground_truth.py           # Ground-truth evaluators
-│
-├── contexts/                         # Library context documents
-│   ├── gridworld_context.md          # GridWorld API reference
-│   └── brax_context.md              # Brax API reference
-│
-├── configs/                          # Experiment configurations
-│   ├── default.yaml
-│   ├── gridworld_hidden_goal.yaml
-│   ├── gridworld_multi_key.yaml
-│   ├── gridworld_predator.yaml
-│   ├── brax_reaching.yaml
-│   ├── brax_pushing.yaml
-│   └── brax_locomotion.yaml
-│
-├── baselines/                        # Baseline MDP interfaces
-│   ├── sparse/                       # Sparse reward baselines
-│   └── human/                        # Human-designed baselines
-│
-├── experiments/                      # Experiment scripts
-│   ├── run_evolution.py              # Main evolution runner
-│   ├── run_baseline.py               # Run baselines
-│   ├── run_ablation.py               # Run ablation studies
-│   ├── run_generalization.py         # Run generalization tests
-│   └── analyze_results.py            # Generate tables and figures
-│
-├── tests/                            # Test suite
-│   ├── test_crash_filter.py
-│   ├── test_evaluator.py
-│   ├── test_generator.py
-│   ├── test_environments.py
-│   └── test_pipeline.py
-│
-├── results/                          # Output directory
-│   ├── checkpoints/
-│   ├── figures/
-│   └── tables/
-│
-├── SYSTEM_DESIGN.md                  # This document
-├── README.md
-├── requirements.txt
-└── setup.py
+│   ├── config.py                       # Hierarchical dataclass config + YAML loading
+│   ├── controller.py                   # Main evolution loop + baseline modes
+│   ├── evaluator.py                    # Cascade evaluator pipeline
+│   ├── crash_filter.py                 # 3-stage code validation
+│   ├── train.py                        # PPO training (JAX pmap)
+│   ├── train_utils.py                  # Rollout, GAE, PPO update functions
+│   ├── nn.py                           # ActorCriticMLP with GRU
+│   ├── mdp_interface.py                # Interface loader + validator
+│   ├── prompts.py                      # Prompt templates + PromptBuilder
+│   ├── llm_client.py                   # AWS Bedrock Claude client
+│   ├── database.py                     # MAP-Elites + island evolution
+│   └── adapters/
+│       ├── __init__.py                 # Factory: get_adapter(type, config)
+│       ├── base.py                     # EnvAdapter ABC
+│       └── xminigrid_adapter.py        # XMinigrid implementation + MDPInterfaceWrapper
+└── SYSTEM_DESIGN.MD                    # This document
 ```
 
-### 8.2 Build Order
+### Key Isolation Property
 
-**Step 1: Foundation**
-- Set up new repository
-- Port MAP-Elites database from OpenEvolve
-- Port cascade evaluation framework from OpenEvolve
-- Implement MDP interface template
-- Implement crash filter
+```bash
+# Only ONE file imports xminigrid:
+$ grep -r "import xminigrid" mdp_discovery/
+mdp_discovery/adapters/xminigrid_adapter.py
 
-**Step 2: Environments**
-- Build JAX GridWorld engine
-- Implement Environment 1 (Hidden Goal)
-- Implement ground-truth evaluator for Environment 1
-- Write GridWorld library context document
-- Verify: can a hand-written MDP interface train a working policy?
-
-**Step 3: Generation Engine**
-- Implement from-scratch generation prompts
-- Implement evolutionary generation prompts
-- Implement LLM API client
-- Test: does the LLM produce runnable code from the context document?
-
-**Step 4: Core Loop**
-- Wire everything together: generation → crash filter → training → evaluation → database → next generation
-- Run first end-to-end evolution on Environment 1
-- Debug and tune cascade thresholds
-- Validate cold start behavior
-
-**Step 5: Remaining Environments**
-- Build remaining GridWorld environments (2, 3)
-- Build Brax environments (4, 5, 6)
-- Write Brax library context document
-- Verify each environment works end-to-end
-
-**Step 6: Baselines**
-- Implement sparse reward baselines for all environments
-- Design and implement human baselines for all environments
-- Implement reward-only evolution baseline
-- Implement random search baseline
-
-**Step 7: Experiments**
-- Run main experiments (all environments × all methods × 5 seeds)
-- Run ablation studies
-- Run generalization tests
-- Collect results
-
-**Step 8: Analysis**
-- Generate figures and tables
-- Qualitative analysis of discovered interfaces
-- Statistical significance tests
-- Write paper
+# Core modules have ZERO env-specific imports:
+$ grep -r "import xminigrid" mdp_discovery/*.py
+(no results)
+```
 
 ---
 
-## 9. Key Design Decisions & Rationale
+## 5. Component Details
+
+### 5.1 Environment Adapter (`mdp_discovery/adapters/`)
+
+The adapter is the **only** place environment-specific code lives. All other modules interact with the environment through this interface.
+
+**Abstract interface** (`base.py`):
+
+```python
+class EnvAdapter(ABC):
+    def make_env(get_obs_fn, reward_fn) -> (env, env_params)
+    def make_eval_env(get_obs_fn, reward_fn, max_steps) -> (env, env_params)
+    def get_dummy_state() -> state
+    def compute_success(rollout_stats, env_params) -> jax.Array
+    def get_default_obs_fn() -> Callable
+    def get_default_reward_fn() -> Optional[Callable]  # None = env built-in
+    def num_actions(env_params) -> int
+```
+
+**XMinigrid implementation** (`xminigrid_adapter.py`):
+- Contains `MDPInterfaceWrapper(Wrapper)` — replaces obs and/or reward in the env step
+- Wrapper supports partial wrapping: if `get_obs_fn is None`, passes through default obs; if `reward_fn is None`, keeps env reward
+- `make_env`: creates base env → MDPInterfaceWrapper → GymAutoResetWrapper
+- `compute_success`: `(episode_length < max_steps)` — xminigrid terminates early on goal
+- `get_default_obs_fn`: flattened grid (normalized) + position + one-hot direction + pocket + step count
+
+**Factory** (`__init__.py`):
+```python
+def get_adapter(adapter_type: str, config) -> EnvAdapter:
+    if adapter_type == "xminigrid":
+        return XMinigridAdapter(config)
+    raise ValueError(...)
+```
+
+### 5.2 Configuration (`config.py`)
+
+Hierarchical dataclass config with YAML loading via `dacite`:
+
+```python
+@dataclass
+class Config:
+    max_iterations: int = 500
+    candidates_per_iteration: int = 1
+    evolution_mode: str = "full"          # full | reward_only | obs_only | default | random
+    task_description: Optional[str] = None
+
+    environment: EnvironmentConfig        # env_id, adapter_type, context_file
+    training: TrainingConfig              # PPO hyperparameters
+    mdp_interface: MDPInterfaceConfig     # max_obs_dim
+    crash_filter: CrashFilterConfig       # stage timeouts
+    evaluator: EvaluatorConfig            # cascade thresholds
+    llm: LLMConfig                        # model, region, temperature
+    database: DatabaseConfig              # MAP-Elites params, island config
+    prompt: PromptConfig                  # num_top/diverse/failure programs
+```
+
+Key config fields for env-agnosticism:
+- `environment.adapter_type`: which adapter to use (e.g., `"xminigrid"`)
+- `environment.context_file`: path to context doc (e.g., `"contexts/xminigrid_context.md"`)
+- `evolution_mode`: controls what the LLM generates and what defaults are used
+
+### 5.3 Prompts (`prompts.py`)
+
+**System prompt** — assembled at init, env-agnostic:
+```
+You are an expert RL engineer. You design MDP interfaces for RL agents
+in reinforcement learning environments.
+
+{function_description}           ← mode-dependent (full: both functions, reward_only: just reward, etc.)
+
+[Design philosophy — generic RL advice about obs/reward design]
+
+## Library Reference
+{library_context}                ← context doc injected verbatim
+
+## Output Format
+{output_constraints}             ← mode-dependent constraints
+```
+
+**User prompt — from scratch**:
+```
+## Task
+{task_description}
+
+## Instructions
+{function_instructions}          ← mode-dependent
+{obs_instructions}               ← omitted in reward_only mode
+{reward_instructions}            ← omitted in obs_only mode
+[JAX pitfalls]
+[Constraints]
+```
+
+**User prompt — evolutionary**:
+```
+## Task
+## Parent Program (code + metrics)
+## Training Feedback (success analysis, plateau detection, curve trends)
+## Best Known Programs
+## Diverse Approaches
+## Recent Failures (crashes + low-fitness)
+## Improvement Guidance (mode-aware, success-level-dependent)
+```
+
+All guidance is generic: "progress-based shaping", "task-relevant state features", "refer to the library reference". No env-specific vocabulary (no "grid", "Manhattan", "tiles", etc.).
+
+### 5.4 MDP Interface (`mdp_interface.py`)
+
+Loads LLM-generated code via tempfile + importlib:
+
+```python
+@dataclass
+class MDPInterface:
+    get_observation: Optional[Callable]   # None if not required by mode
+    compute_reward: Optional[Callable]    # None if not required by mode
+    obs_dim: Optional[int]
+    source_code: Optional[str]
+```
+
+- `from_code(code, required_functions=["get_observation", "compute_reward"])` — load from string
+- `validate(dummy_state, max_obs_dim)` — dry-run, check shapes/types, detect obs_dim
+- Supports partial loading: `required_functions=["compute_reward"]` in reward_only mode
+
+### 5.5 Crash Filter (`crash_filter.py`)
+
+Three stages, fully parameterized (no env imports):
+
+| Stage | What it checks | Input needed |
+|-------|---------------|-------------|
+| 0 | `ast.parse` + required function names exist | `code`, `required_functions` |
+| 1 | `importlib` load — catches bad imports, JAX errors | `code`, `required_functions` |
+| 2 | Dry-run with real state — catches shape/attribute/tracing errors | `interface`, `dummy_state` |
+
+```python
+def run_crash_filter(code, config, dummy_state, required_functions=None) -> CrashFilterResult
+```
+
+### 5.6 Training (`train.py`)
+
+PPO with GRU, adapted from xland-minigrid's reference implementation:
+
+- `make_states(config, adapter, interface, obs_dim, total_timesteps)` — builds env via `adapter.make_env()`, creates network + optimizer
+- `make_train(env, env_params, config, total_timesteps, compute_success_fn)` — returns JIT-compiled pmap'd training function
+- `run_training(config, adapter, interface, obs_dim, total_timesteps)` — full pipeline: make_states → replicate → train → final eval → return metrics
+- `_run_success_eval(config, adapter, interface, obs_dim, train_state)` — dedicated final evaluation using `adapter.make_eval_env()` and `adapter.compute_success()`
+
+Key: success is computed via `adapter.compute_success()`, not hardcoded. The `compute_success_fn` is passed into the pmap'd function so it works inside JIT.
+
+### 5.7 Cascade Evaluator (`evaluator.py`)
+
+Pipeline: crash filter → short training → threshold → full training.
+
+```python
+class CascadeEvaluator:
+    def __init__(self, config, adapter: EnvAdapter):
+        self.adapter = adapter
+        self.dummy_state = adapter.get_dummy_state()
+
+    def evaluate(self, code: str) -> CandidateResult:
+        required_functions = self._get_required_functions()  # mode-dependent
+        # Stage 1: crash filter (with dummy_state from adapter)
+        # Mode overrides: reward_only → inject adapter.get_default_obs_fn()
+        #                 obs_only → inject adapter.get_default_reward_fn()
+        # Stage 2+3: short train → threshold → full train
+```
+
+### 5.8 Controller (`controller.py`)
+
+Main evolution loop with 3 dispatch modes:
+
+```python
+class EvolutionController:
+    def run(self):
+        if mode == "default":   → self._run_default_baseline()   # no LLM, adapter defaults
+        if mode == "random":    → self._run_random_baseline()    # LLM from scratch each time, no evolution
+        else:                   → standard evolution loop         # full, reward_only, obs_only
+```
+
+- Creates adapter via `get_adapter(config.environment.adapter_type, config)`
+- Loads context from `config.environment.context_file`
+- Passes `evolution_mode` to `PromptBuilder` for mode-aware prompt generation
+- Handles checkpointing, crash retries, island rotation, migration
+
+### 5.9 Template (`templates/mdp_interface_template.py`)
+
+Pure interface contract — no env-specific content:
+
+```python
+"""
+Constraints:
+  - get_observation must return 1D jnp.float32 (max 512 elements)
+  - compute_reward must return scalar jnp.float32
+  - JAX-traceable only
+  - Only jax/jax.numpy imports
+"""
+def get_observation(state) -> jnp.ndarray: ...
+def compute_reward(state, action, next_state) -> jnp.ndarray: ...
+```
+
+### 5.10 CLI (`run.py`)
+
+```bash
+# Basic run
+python run.py --task "Navigate to the goal tile." --iterations 50
+
+# Ablation modes
+python run.py --task "..." --mode reward_only
+python run.py --task "..." --mode obs_only
+python run.py --task "..." --mode default --iterations 1
+python run.py --task "..." --mode random --iterations 10
+
+# Overrides
+python run.py --task "..." --env MiniGrid-Empty-8x8 --context contexts/custom.md
+python run.py --task "..." --config configs/doorkey.yaml --model claude-4-sonnet
+python run.py --task "..." --no-cascade --timesteps-full 10000000
+
+# Resume from checkpoint
+python run.py --task "..." --resume runs/previous_run/
+```
+
+---
+
+## 6. Evolution Modes
+
+| Mode | LLM generates | Crash filter checks | Obs fn used | Reward fn used | Purpose |
+|------|--------------|-------------------|-------------|---------------|---------|
+| `full` | obs + reward | both | LLM-generated | LLM-generated | Main experiment |
+| `reward_only` | reward only | compute_reward only | adapter default | LLM-generated | Eureka-style baseline |
+| `obs_only` | obs only | get_observation only | LLM-generated | env built-in | Obs contribution ablation |
+| `default` | nothing | nothing | adapter default | env built-in | No-design-effort baseline |
+| `random` | obs + reward | both | LLM-generated | LLM-generated | No-evolution baseline |
+
+### Mode Behavior in Each Component
+
+**PromptBuilder**: `_FUNCTION_DESC` and `_OUTPUT_CONSTRAINTS` dicts select mode-specific instructions. Obs design instructions omitted in `reward_only`. Reward design instructions omitted in `obs_only`.
+
+**CascadeEvaluator.evaluate()**: After loading the interface:
+- `reward_only` → `interface.get_observation = adapter.get_default_obs_fn()`
+- `obs_only` → `interface.compute_reward = adapter.get_default_reward_fn()` (None → wrapper keeps env reward)
+
+**Controller.run()**: `default` → train once with adapter defaults, no LLM. `random` → generate from scratch every iteration, no parent/feedback.
+
+---
+
+## 7. Evolutionary Database
+
+### MAP-Elites Grid
+
+Feature dimensions:
+- **reward_complexity**: Character count of `compute_reward` function body (proxy for structural complexity)
+- **obs_dimensionality**: Size of observation vector returned by `get_observation`
+
+Each cell stores the best program with those feature coordinates. This maintains diversity — simple 6-feature observations coexist with complex 50-feature ones.
+
+### Island Model
+
+- 3 islands, each with its own MAP-Elites grid
+- Islands evolve independently for `migration_interval` generations
+- Migration: top programs from each island copy to neighbors (ring topology)
+- Prevents premature convergence on one observation/reward strategy
+
+### Per-Program Storage
+
+- Full source code
+- Fitness (success rate)
+- Training metrics (learning curves, episode lengths, training time)
+- Feature coordinates
+- Parent ID + generation number
+- Island ID + timestamp
+
+---
+
+## 8. Context Document
+
+The context document (`contexts/xminigrid_context.md`) is a comprehensive, manually written reference covering:
+
+1. **State Object** — every field with types, shapes, and descriptions
+2. **Tile Constants** — all 13 tile types with IDs and categories
+3. **Color Constants** — all 12 colors with IDs
+4. **Action Space** — 6 discrete actions with effects
+5. **Direction Vectors** — direction IDs, delta vectors, front-position calculation
+6. **Goal Encoding** — 15 goal types with encoding format and conditions
+7. **Rule Encoding** — 12 rule types with encoding format and effects
+8. **Step Execution Order** — action → rules → step_num → goal check → truncation → reward → obs
+9. **Coordinate System** — (row, col) indexing, y-down convention
+10. **JAX Constraints** — do's and don'ts with code examples
+11. **Available Imports** — only `jax` and `jax.numpy`
+12. **Useful Patterns** — distance calculations, tile counting, position finding, normalization
+13. **Registered Environments** — env IDs, grid sizes, descriptions
+
+The context doc contains **no reward design hints** and **no observation design suggestions**. It is purely an API reference.
+
+---
+
+## 9. Baselines and Ablations
+
+### 9.1 Baselines
+
+| Baseline | Method | What it tests |
+|----------|--------|--------------|
+| **Default** (`--mode default`) | No LLM. Adapter's default obs + env built-in reward | "No design effort" lower bound |
+| **Random** (`--mode random`) | LLM generates from scratch each iteration, no evolution | Does evolutionary feedback matter? |
+| **Human-designed** | Hand-written obs + reward by RL engineer | Standard practice upper bound |
+
+### 9.2 Ablation Modes
+
+| Ablation | Mode flag | What it isolates |
+|----------|-----------|-----------------|
+| **Full system** | `--mode full` | Joint obs + reward discovery |
+| **Reward only** | `--mode reward_only` | Reward discovery with fixed obs (Eureka-style) |
+| **Obs only** | `--mode obs_only` | Obs discovery with env default reward |
+
+### 9.3 Experimental Protocol
+
+For each environment × mode × seed:
+```
+experiments/
+  main/{env}/seed_{s}/              # full mode
+  ablation/{mode}/{env}/seed_{s}/   # reward_only, obs_only
+  baseline/{mode}/{env}/seed_{s}/   # default, random
+```
+
+---
+
+## 10. Environments
+
+### 10.1 Current: XLand-MiniGrid
+
+All environments use the xminigrid adapter. JAX-compiled, stateless, vectorized.
+
+| Environment | Grid | Description | Difficulty |
+|-------------|------|-------------|------------|
+| MiniGrid-Empty-6x6 | 6x6 | Navigate to goal in empty room | Easy |
+| MiniGrid-Empty-5x5 | 5x5 | Smaller empty room | Easy |
+| MiniGrid-Empty-8x8 | 8x8 | Larger empty room | Easy-Medium |
+| MiniGrid-DoorKey-5x5 | 5x5 | Pick up key, unlock door, reach goal | Medium |
+| MiniGrid-DoorKey-6x6 | 6x6 | Larger door-key puzzle | Medium-Hard |
+| MiniGrid-FourRooms | 19x19 | Navigate through connected rooms | Hard |
+| MiniGrid-Unlock | 11x11 | Find key and unlock door | Medium-Hard |
+
+### 10.2 Adding New Environments
+
+To support a new environment framework:
+
+1. **Write a context doc** — comprehensive API reference for the framework
+2. **Write an adapter** — implement `EnvAdapter` ABC in `mdp_discovery/adapters/`
+3. **Register in factory** — add to `get_adapter()` in `adapters/__init__.py`
+4. **Create config** — YAML with `adapter_type`, `context_file`, training hyperparams
+
+No changes needed to prompts, crash filter, training loop, evaluator, or controller.
+
+---
+
+## 11. Validated Results
+
+### Test Run: Empty-6x6 (3 iterations, post-refactor)
+
+All 3 iterations achieved **100% success rate** with optimal episode length 7.0.
+
+| Iter | Gen | obs_dim | Obs Strategy | Reward Strategy | Success | Converge |
+|------|-----|---------|-------------|----------------|---------|----------|
+| 1 | 0 | 11 | pos + one-hot dir + goal pos + manhattan + euclidean + step | euclidean shaping ×1.0 + penalty -0.01 + bonus ×10 | 100% | Update 3/38 |
+| 2 | 1 | 9 | pos + one-hot dir + relative goal + manhattan | manhattan shaping ×0.1 + bonus ×1.0 | 100% | Update 4/38 |
+| 3 | 1 | 7 | pos + sin/cos dir + goal direction + euclidean | euclidean shaping ×0.5 + bonus ×2.0 | 100% | Update 3/38 |
+
+**Key observations:**
+- The LLM correctly uses the context doc (meshgrid goal-finding, proper casting, JAX-compatible code)
+- Evolution produces meaningful diversity: Iter 2 and 3 are structurally different from Iter 1
+- MAP-Elites fills different cells: (2,2) for Iter 1, (0,0) for Iter 2 and 3
+- Empty-6x6 is saturated — harder environments needed for meaningful comparison
+
+---
+
+## 12. Key Design Decisions
 
 | Decision | Choice | Rationale |
-|---|---|---|
-| Library context delivery | Manual document | Reproducible, controlled, no exploration variance. Agentic exploration is future work. |
-| MDP interface format | Three fixed-signature functions | Constrains structure enough that code runs, flexible enough for real discovery. |
-| Inner-loop algorithm | PPO | Standard, well-understood, fast in JAX. Not the variable under study. |
-| Evolutionary method | MAP-Elites + islands | Maintains diversity of approaches. From OpenEvolve, proven to work. |
-| Environments | All custom, JAX-based | Avoids LLM training data bias. JAX for fast inner loop. |
-| Ground-truth metric | Task-completion based | Clear, unambiguous, not gameable by reward hacking. |
-| Evaluation seeds | 3 inner, 5 outer | Balances statistical reliability with compute cost. |
-| Cascade training | 500k short / 5-10M full | Filters bad candidates cheaply. Thresholds validated empirically. |
-| Crash filter | 3-stage pre-training check | Most LLM outputs won't run. Fail fast and cheap. |
+|----------|--------|-----------|
+| Context doc delivery | Manual, user-provided | Reproducible, controlled. No agentic exploration variance. |
+| Env-specific isolation | Adapter pattern | Single file per env. Core system is 100% env-agnostic. |
+| Interface format | Two fixed-signature functions | Constrains structure enough to run, flexible enough for discovery. |
+| Template content | Pure contract (no env content) | Context doc is the sole source of env knowledge. |
+| Inner-loop algorithm | PPO with GRU | Standard, well-understood, fast in JAX. Not the variable under study. |
+| Evolutionary method | MAP-Elites + islands | Maintains diversity of approaches. Prevents premature convergence. |
+| Cascade evaluation | 1M short / 5M full | Filters bad candidates cheaply. 5% threshold empirically validated. |
+| Success metric | Task completion rate | Clear, unambiguous, not gameable by reward hacking. |
+| LLM backend | AWS Bedrock Claude | Strong code generation, handles JAX well. |
+| Evolution modes | 5 modes (full/reward_only/obs_only/default/random) | Covers all ablations needed for paper experiments. |
 
 ---
 
-## 10. Risks and Mitigations
+## 13. Comparison with Eureka
+
+| Aspect | PureEvol | Eureka |
+|--------|----------|--------|
+| What's evolved | Observation + Reward (joint) | Reward only |
+| Starting point | From scratch (no seed) | Environment source code as context |
+| Env framework | XLand-MiniGrid (JAX) | IsaacGym (PyTorch) |
+| Training backend | PPO with GRU (JAX pmap) | rl_games PPO (PyTorch) |
+| Environments | 7 grid-world tasks | 35 dexterous manipulation tasks |
+| Diversity mechanism | MAP-Elites + islands | Top-K sampling |
+| Env-agnostic | Yes (adapter pattern) | Partially (prompts are generic, training is IsaacGym-locked) |
+| Context source | Manual context doc | Raw env source code passed to LLM |
+| Action transform | Not yet (planned) | Not supported |
+
+**Key differentiator**: PureEvol discovers the **full MDP interface** (obs + reward), not just reward. The hypothesis is that joint optimization discovers synergies between observation design and reward shaping that reward-only methods cannot.
+
+---
+
+## 14. Risks and Mitigations
 
 | Risk | Impact | Mitigation |
-|---|---|---|
-| Cold start failure (LLM can't generate runnable code) | System never bootstraps | Retry with error feedback. Simplify template if needed. Test early. |
-| RL training noise masks evolutionary signal | Evolution selects randomly | Multiple inner seeds. Longer short-training stage. |
-| Action remapping shows no benefit | Lose 1/3 of contribution | This is a valid negative result. Paper frames it as "reward + obs sufficient." |
-| Custom environments too easy | Sparse baseline already works | Test difficulty during environment design. Add complexity until sparse fails. |
-| Custom environments too hard | Nothing works including human baseline | Verify human baseline achieves reasonable performance before running evolution. |
-| LLM generates memorized reward functions | Undermines "from scratch" claim | Custom environments not in training data. Analyze generated code for novelty. |
-| Evolutionary search doesn't beat random LLM sampling | Evolution component unnecessary | Report honestly. Contribution becomes "LLM-based MDP generation" without evolution. |
+|------|--------|-----------|
+| Joint discovery shows no benefit over reward-only | Weakens main contribution | Valid negative result. Paper pivots to analysis of when joint helps vs. hurts. |
+| Empty-6x6 too easy (all methods hit 100%) | No differentiation between approaches | Test on harder envs (DoorKey, FourRooms, Unlock). |
+| LLM generates memorized patterns | Undermines "discovery" claim | Analyze code diversity. Custom envs reduce memorization risk. |
+| Evolution doesn't beat random sampling | Evolution component unnecessary | Report honestly. Contribution becomes "LLM-based MDP generation." |
+| Adapter abstraction has performance overhead | Slower training | Adapter just creates envs at init — no per-step overhead. Validated: ~25s per 5M steps. |

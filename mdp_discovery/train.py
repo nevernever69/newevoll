@@ -15,9 +15,7 @@ import optax
 from flax.jax_utils import replicate, unreplicate
 from flax.training.train_state import TrainState
 
-import xminigrid
-from xminigrid.wrappers import GymAutoResetWrapper
-
+from mdp_discovery.adapters.base import EnvAdapter
 from mdp_discovery.config import Config
 from mdp_discovery.mdp_interface import MDPInterface
 from mdp_discovery.nn import ActorCriticMLP
@@ -27,7 +25,6 @@ from mdp_discovery.train_utils import (
     ppo_update_networks,
     rollout,
 )
-from mdp_discovery.wrapper import MDPInterfaceWrapper
 
 jax.config.update("jax_threefry_partitionable", True)
 
@@ -51,7 +48,13 @@ def _compute_device_splits(config: Config, total_timesteps: int):
     return num_envs_per_device, total_timesteps_per_device, eval_episodes_per_device, num_updates
 
 
-def make_states(config: Config, mdp_interface: MDPInterface, obs_dim: int, total_timesteps: int):
+def make_states(
+    config: Config,
+    adapter: EnvAdapter,
+    mdp_interface: MDPInterface,
+    obs_dim: int,
+    total_timesteps: int,
+):
     """Set up environment, network, and training state."""
     tc = config.training
     num_envs_per_device, _, _, num_updates = _compute_device_splits(config, total_timesteps)
@@ -62,29 +65,17 @@ def make_states(config: Config, mdp_interface: MDPInterface, obs_dim: int, total
         return tc.lr * frac
 
     # --- Environment with MDP interface wrapper ---
-    env, env_params = xminigrid.make(config.environment.env_id)
-
-    if config.environment.benchmark_id is not None:
-        assert config.environment.ruleset_id is not None
-        benchmark = xminigrid.load_benchmark(config.environment.benchmark_id)
-        env_params = env_params.replace(
-            ruleset=benchmark.get_ruleset(config.environment.ruleset_id)
-        )
-
-    # Wrapper order: MDPInterface first, then AutoReset
-    env = MDPInterfaceWrapper(
-        env,
+    env, env_params = adapter.make_env(
         mdp_interface.get_observation,
         mdp_interface.compute_reward,
     )
-    env = GymAutoResetWrapper(env)
 
     # --- Network ---
     rng = jax.random.key(tc.seed)
     rng, _rng = jax.random.split(rng)
 
     network = ActorCriticMLP(
-        num_actions=env.num_actions(env_params),
+        num_actions=adapter.num_actions(env_params),
         hidden_dim=tc.hidden_dim,
         action_emb_dim=tc.action_emb_dim,
         rnn_hidden_dim=tc.rnn_hidden_dim,
@@ -114,8 +105,16 @@ def make_states(config: Config, mdp_interface: MDPInterface, obs_dim: int, total
     return rng, env, env_params, init_hstate, train_state
 
 
-def make_train(env, env_params, config: Config, total_timesteps: int):
-    """Create the JIT-compiled, pmap'd training function."""
+def make_train(env, env_params, config: Config, total_timesteps: int, compute_success_fn):
+    """Create the JIT-compiled, pmap'd training function.
+
+    Args:
+        env: Wrapped environment.
+        env_params: Environment parameters.
+        config: System configuration.
+        total_timesteps: Total training timesteps.
+        compute_success_fn: Pure JAX function (rollout_stats, env_params) -> float array.
+    """
     tc = config.training
     num_envs_per_device, _, eval_episodes_per_device, num_updates = _compute_device_splits(
         config, total_timesteps
@@ -260,7 +259,7 @@ def make_train(env, env_params, config: Config, total_timesteps: int):
                 1,
             )
             # Compute success rate per device before pmean
-            per_ep_success = (eval_stats.length < env_params.max_steps).astype(jnp.float32)
+            per_ep_success = compute_success_fn(eval_stats, env_params)
             success_rate = per_ep_success.mean(0)
             success_rate = jax.lax.pmean(success_rate, axis_name="devices")
 
@@ -289,6 +288,7 @@ def make_train(env, env_params, config: Config, total_timesteps: int):
 
 def _run_success_eval(
     config: Config,
+    adapter: EnvAdapter,
     mdp_interface: MDPInterface,
     obs_dim: int,
     train_state: TrainState,
@@ -297,11 +297,12 @@ def _run_success_eval(
     """Run final evaluation: percentage of episodes where the agent reaches the goal.
 
     Uses the full MDPInterfaceWrapper (so the agent sees the same observations
-    and prev_reward it was trained with), but measures success via episode
-    length: an episode that terminates before max_steps means the goal was reached.
+    and prev_reward it was trained with), but measures success via the adapter's
+    compute_success method.
 
     Args:
         config: Full system configuration.
+        adapter: Environment adapter.
         mdp_interface: Loaded MDP interface.
         obs_dim: Observation dimension.
         train_state: Trained agent (unreplicated, single-device).
@@ -313,23 +314,13 @@ def _run_success_eval(
     tc = config.training
 
     # Create env with full wrapper (agent needs evolved obs + reward for prev_reward)
-    env, env_params = xminigrid.make(config.environment.env_id)
-    if config.environment.benchmark_id is not None:
-        assert config.environment.ruleset_id is not None
-        benchmark = xminigrid.load_benchmark(config.environment.benchmark_id)
-        env_params = env_params.replace(
-            ruleset=benchmark.get_ruleset(config.environment.ruleset_id)
-        )
-
-    # Use tighter step budget for eval (agents must solve efficiently)
     eval_max_steps = tc.eval_max_steps
-    env_params = env_params.replace(max_steps=eval_max_steps)
-    max_steps = eval_max_steps
-
-    env = MDPInterfaceWrapper(
-        env, mdp_interface.get_observation, mdp_interface.compute_reward,
+    env, env_params = adapter.make_eval_env(
+        mdp_interface.get_observation,
+        mdp_interface.compute_reward,
+        max_steps=eval_max_steps,
     )
-    env = GymAutoResetWrapper(env)
+    max_steps = eval_max_steps
 
     rng = jax.random.key(tc.seed + 99999)
     eval_rngs = jax.random.split(rng, num_episodes)
@@ -346,12 +337,13 @@ def _run_success_eval(
         )
 
     stats = jax.block_until_ready(_eval_batch(eval_rngs))
-    successes = int((stats.length < max_steps).sum())
+    successes = int(adapter.compute_success(stats, env_params).sum())
     return successes / num_episodes
 
 
 def run_training(
     config: Config,
+    adapter: EnvAdapter,
     mdp_interface: MDPInterface,
     obs_dim: int,
     total_timesteps: Optional[int] = None,
@@ -360,7 +352,8 @@ def run_training(
 
     Args:
         config: Full system configuration.
-        mdp_interface: Loaded MDP interface with get_observation and compute_reward.
+        adapter: Environment adapter for env creation and success computation.
+        mdp_interface: Loaded MDP interface with get_observation and/or compute_reward.
         obs_dim: Observation dimension (detected by crash filter).
         total_timesteps: Override total timesteps (for cascade evaluation stages).
 
@@ -375,7 +368,7 @@ def run_training(
         total_timesteps = config.training.total_timesteps
 
     rng, env, env_params, init_hstate, train_state = make_states(
-        config, mdp_interface, obs_dim, total_timesteps
+        config, adapter, mdp_interface, obs_dim, total_timesteps
     )
 
     # Replicate across devices
@@ -383,8 +376,11 @@ def run_training(
     train_state = replicate(train_state, jax.local_devices())
     init_hstate = replicate(init_hstate, jax.local_devices())
 
+    # Extract a pure JAX success function from the adapter
+    compute_success_fn = adapter.compute_success
+
     # Build pmap'd training function
-    train_fn = make_train(env, env_params, config, total_timesteps)
+    train_fn = make_train(env, env_params, config, total_timesteps, compute_success_fn)
 
     # Train (JIT compilation happens on first call)
     t = time.time()
@@ -400,7 +396,7 @@ def run_training(
     # Final dedicated success rate evaluation
     final_train_state = unreplicate(train_info["runner_state"][1])
     final_success_rate = _run_success_eval(
-        config, mdp_interface, obs_dim, final_train_state,
+        config, adapter, mdp_interface, obs_dim, final_train_state,
         num_episodes=config.training.eval_episodes_for_fitness,
     )
 

@@ -3,12 +3,12 @@
 Adapted from xland-minigrid's training/utils.py with flat observation support.
 """
 
+from typing import Any
+
 import jax
 import jax.numpy as jnp
 from flax import struct
 from flax.training.train_state import TrainState
-
-from xminigrid.environment import Environment, EnvParams
 
 
 # ---------------------------------------------------------------------------
@@ -136,8 +136,8 @@ class RolloutStats(struct.PyTreeNode):
 
 def rollout(
     rng: jax.Array,
-    env: Environment,
-    env_params: EnvParams,
+    env: Any,
+    env_params: Any,
     train_state: TrainState,
     init_hstate: jax.Array,
     num_consecutive_episodes: int = 1,
