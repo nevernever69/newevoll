@@ -25,6 +25,7 @@ import xminigrid
 from mdp_discovery.config import Config
 from mdp_discovery.mdp_interface import MDPInterface
 from mdp_discovery.train import run_training
+from mdp_discovery.adapters.xminigrid_adapter import XMinigridAdapter
 
 # ---------------------------------------------------------------------------
 # Sparse baseline: full grid obs, task-completion reward only
@@ -42,7 +43,10 @@ def get_observation(state):
     agent_pos = state.agent.position.astype(jnp.float32)
     agent_dir = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)
 
-    return jnp.concatenate([flat_grid, agent_pos, agent_dir])
+    # Pocket contents
+    pocket = state.agent.pocket.astype(jnp.float32)
+
+    return jnp.concatenate([flat_grid, agent_pos, agent_dir, pocket])
 
 def compute_reward(state, action, next_state):
     """Sparse reward: +1.0 when agent reaches the goal tile, 0.0 otherwise."""
@@ -60,85 +64,144 @@ import jax
 import jax.numpy as jnp
 
 def get_observation(state):
-    """Simple but effective observation: agent position, direction, and goal direction."""
+    """Extract observation for DoorKey task."""
     H, W = state.grid.shape[:2]
 
-    # Agent position normalized to [0, 1]
-    agent_pos = state.agent.position.astype(jnp.float32)
-    norm_pos = agent_pos / jnp.array([H - 1, W - 1], dtype=jnp.float32)
+    # Agent state (normalized)
+    agent_y = state.agent.position[0].astype(jnp.float32) / (H - 1)
+    agent_x = state.agent.position[1].astype(jnp.float32) / (W - 1)
+    agent_dir = jax.nn.one_hot(state.agent.direction, 4).astype(jnp.float32)
 
-    # Agent direction as one-hot
-    dir_onehot = jax.nn.one_hot(state.agent.direction, 4, dtype=jnp.float32)
+    # Pocket state
+    has_key = (state.agent.pocket[0] == 7).astype(jnp.float32)
+    pocket_empty = (state.agent.pocket[0] == 0).astype(jnp.float32)
 
-    # Find goal position
-    goal_mask = (state.grid[:, :, 0] == 6)
-    ys = jnp.arange(H, dtype=jnp.float32)
-    xs = jnp.arange(W, dtype=jnp.float32)
+    # Grid encoding - flatten and normalize
+    grid_tiles = state.grid[:, :, 0].astype(jnp.float32) / 12.0
+    grid_colors = state.grid[:, :, 1].astype(jnp.float32) / 11.0
+
+    # Key position
+    key_mask = (state.grid[:, :, 0] == 7)
+    ys = jnp.arange(H).astype(jnp.float32)
+    xs = jnp.arange(W).astype(jnp.float32)
     yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
 
-    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)
-    goal_y = jnp.sum(yy * goal_mask) / goal_count
-    goal_x = jnp.sum(xx * goal_mask) / goal_count
+    key_exists = jnp.sum(key_mask) > 0
+    key_y = jnp.sum(yy * key_mask) / jnp.maximum(jnp.sum(key_mask), 1)
+    key_x = jnp.sum(xx * key_mask) / jnp.maximum(jnp.sum(key_mask), 1)
+    key_y_norm = key_y / (H - 1)
+    key_x_norm = key_x / (W - 1)
 
-    # Goal position normalized
-    norm_goal = jnp.array([goal_y, goal_x]) / jnp.array([H - 1, W - 1], dtype=jnp.float32)
+    # Goal position
+    goal_mask = (state.grid[:, :, 0] == 6)
+    goal_exists = jnp.sum(goal_mask) > 0
+    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(jnp.sum(goal_mask), 1)
+    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(jnp.sum(goal_mask), 1)
+    goal_y_norm = goal_y / (H - 1)
+    goal_x_norm = goal_x / (W - 1)
 
-    # Direction vector to goal (unnormalized)
-    goal_direction = norm_goal - norm_pos
+    # Locked door position
+    door_mask = (state.grid[:, :, 0] == 8)
+    door_exists = jnp.sum(door_mask) > 0
+    door_y = jnp.sum(yy * door_mask) / jnp.maximum(jnp.sum(door_mask), 1)
+    door_x = jnp.sum(xx * door_mask) / jnp.maximum(jnp.sum(door_mask), 1)
+    door_y_norm = door_y / (H - 1)
+    door_x_norm = door_x / (W - 1)
 
-    # Distance to goal (normalized by max possible distance)
-    max_dist = jnp.sqrt(2.0)
-    goal_distance = jnp.sqrt(jnp.sum(goal_direction ** 2)) / max_dist
+    # Distances
+    key_dist = (jnp.abs(agent_y * (H - 1) - key_y) + jnp.abs(agent_x * (W - 1) - key_x)) / (H + W - 2)
+    door_dist = (jnp.abs(agent_y * (H - 1) - door_y) + jnp.abs(agent_x * (W - 1) - door_x)) / (H + W - 2)
+    goal_dist = (jnp.abs(agent_y * (H - 1) - goal_y) + jnp.abs(agent_x * (W - 1) - goal_x)) / (H + W - 2)
 
-    # Simple local view: tiles in 4 cardinal directions from agent
+    step_norm = state.step_num.astype(jnp.float32) / 100.0
+
+    # What is in front of agent
     DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)])
-    local_tiles = jnp.zeros(4, dtype=jnp.float32)
+    dy, dx = DIRECTIONS[state.agent.direction]
+    front_y = jnp.clip(state.agent.position[0] + dy, 0, H - 1)
+    front_x = jnp.clip(state.agent.position[1] + dx, 0, W - 1)
+    front_tile = state.grid[front_y, front_x, 0].astype(jnp.float32) / 12.0
+    front_color = state.grid[front_y, front_x, 1].astype(jnp.float32) / 11.0
 
-    for i in range(4):
-        dy, dx = DIRECTIONS[i]
-        neighbor_y = jnp.clip(agent_pos[0] + dy, 0, H - 1).astype(jnp.int32)
-        neighbor_x = jnp.clip(agent_pos[1] + dx, 0, W - 1).astype(jnp.int32)
+    basic_features = jnp.array([
+        agent_y, agent_x, has_key, pocket_empty,
+        key_y_norm, key_x_norm, key_exists.astype(jnp.float32),
+        goal_y_norm, goal_x_norm, goal_exists.astype(jnp.float32),
+        door_y_norm, door_x_norm, door_exists.astype(jnp.float32),
+        key_dist, door_dist, goal_dist,
+        step_norm, front_tile, front_color
+    ])
 
-        in_bounds = ((agent_pos[0] + dy >= 0) & (agent_pos[0] + dy < H) &
-                    (agent_pos[1] + dx >= 0) & (agent_pos[1] + dx < W))
-
-        tile_id = jnp.where(in_bounds,
-                           state.grid[neighbor_y, neighbor_x, 0].astype(jnp.float32),
-                           2.0)
-        local_tiles = local_tiles.at[i].set(tile_id / 12.0)
+    grid_flat = jnp.concatenate([grid_tiles.flatten(), grid_colors.flatten()])
 
     observation = jnp.concatenate([
-        norm_pos,
-        dir_onehot,
-        norm_goal,
-        goal_direction,
-        jnp.array([goal_distance]),
-        local_tiles
-    ])
+        basic_features,
+        agent_dir,
+        grid_flat
+    ]).astype(jnp.float32)
 
     return observation
 
 def compute_reward(state, action, next_state):
-    """Simple distance-based reward for navigation."""
-    goal_mask = (state.grid[:, :, 0] == 6)
+    """Compute reward for DoorKey task."""
     H, W = state.grid.shape[:2]
-    ys = jnp.arange(H, dtype=jnp.float32)
-    xs = jnp.arange(W, dtype=jnp.float32)
+
+    agent_pos = next_state.agent.position
+    goal_tile = next_state.grid[agent_pos[0], agent_pos[1], 0]
+    goal_reached = (goal_tile == 6).astype(jnp.float32)
+
+    goal_reward = goal_reached * 10.0
+
+    had_key = (state.agent.pocket[0] == 7).astype(jnp.float32)
+    has_key = (next_state.agent.pocket[0] == 7).astype(jnp.float32)
+    key_pickup_reward = (has_key - had_key) * 3.0
+
+    door_was_locked = jnp.sum(state.grid[:, :, 0] == 8) > 0
+    door_is_locked = jnp.sum(next_state.grid[:, :, 0] == 8) > 0
+    door_unlocked = (door_was_locked & ~door_is_locked).astype(jnp.float32)
+    unlock_reward = door_unlocked * 5.0
+
+    step_penalty = -0.01
+
+    key_mask = (next_state.grid[:, :, 0] == 7)
+    goal_mask = (next_state.grid[:, :, 0] == 6)
+    door_mask = (next_state.grid[:, :, 0] == 8)
+
+    ys = jnp.arange(H).astype(jnp.float32)
+    xs = jnp.arange(W).astype(jnp.float32)
     yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
 
-    goal_count = jnp.maximum(jnp.sum(goal_mask), 1.0)
-    goal_y = jnp.sum(yy * goal_mask) / goal_count
-    goal_x = jnp.sum(xx * goal_mask) / goal_count
+    key_y = jnp.sum(yy * key_mask) / jnp.maximum(jnp.sum(key_mask), 1)
+    key_x = jnp.sum(xx * key_mask) / jnp.maximum(jnp.sum(key_mask), 1)
+    key_dist = jnp.abs(agent_pos[0] - key_y) + jnp.abs(agent_pos[1] - key_x)
+    key_shaping = jax.lax.select(
+        (has_key == 0) & (jnp.sum(key_mask) > 0),
+        -0.1 * key_dist / (H + W),
+        0.0
+    )
 
-    prev_pos = state.agent.position.astype(jnp.float32)
-    curr_pos = next_state.agent.position.astype(jnp.float32)
+    door_y = jnp.sum(yy * door_mask) / jnp.maximum(jnp.sum(door_mask), 1)
+    door_x = jnp.sum(xx * door_mask) / jnp.maximum(jnp.sum(door_mask), 1)
+    door_dist = jnp.abs(agent_pos[0] - door_y) + jnp.abs(agent_pos[1] - door_x)
+    door_shaping = jax.lax.select(
+        (has_key == 1) & (jnp.sum(door_mask) > 0),
+        -0.1 * door_dist / (H + W),
+        0.0
+    )
 
-    prev_dist = jnp.abs(prev_pos[0] - goal_y) + jnp.abs(prev_pos[1] - goal_x)
-    curr_dist = jnp.abs(curr_pos[0] - goal_y) + jnp.abs(curr_pos[1] - goal_x)
+    goal_y = jnp.sum(yy * goal_mask) / jnp.maximum(jnp.sum(goal_mask), 1)
+    goal_x = jnp.sum(xx * goal_mask) / jnp.maximum(jnp.sum(goal_mask), 1)
+    goal_dist = jnp.abs(agent_pos[0] - goal_y) + jnp.abs(agent_pos[1] - goal_x)
+    goal_shaping = jax.lax.select(
+        (jnp.sum(door_mask) == 0) & (goal_reached == 0),
+        -0.1 * goal_dist / (H + W),
+        0.0
+    )
 
-    reward = prev_dist - curr_dist
+    total_reward = (goal_reward + key_pickup_reward + unlock_reward +
+                   step_penalty + key_shaping + door_shaping + goal_shaping)
 
-    return reward.astype(jnp.float32)
+    return total_reward.astype(jnp.float32)
 '''
 
 
@@ -155,7 +218,8 @@ def run_at_timestep(code: str, config: Config, obs_dim: int, timesteps: int) -> 
     """Train one interface for a given number of timesteps, return metrics."""
     interface = MDPInterface.from_code(code)
     interface.obs_dim = obs_dim
-    metrics = run_training(config, interface, obs_dim, total_timesteps=timesteps)
+    adapter = XMinigridAdapter(config)
+    metrics = run_training(config, adapter, interface, obs_dim, total_timesteps=timesteps)
     return metrics
 
 
@@ -166,9 +230,12 @@ def main():
     parser.add_argument("--seeds", type=int, default=3, help="Number of seeds per configuration")
     parser.add_argument("--output", type=str, default="benchmark_evolved_vs_sparse.png", help="Output plot")
     parser.add_argument("--config", type=str, default="configs/default.yaml", help="Config file")
+    parser.add_argument("--env", type=str, default=None, help="Override environment ID")
     args = parser.parse_args()
 
     config = Config.from_yaml(args.config)
+    if args.env:
+        config.environment.env_id = args.env
 
     # Compute valid timestep checkpoints (must produce at least 1 update)
     tc = config.training
@@ -198,7 +265,7 @@ def main():
     print(f"Evolved obs_dim: {evolved_obs_dim}\n")
 
     interfaces = {
-        "Evolved (shaped reward + compact obs)": (EVOLVED_CODE, evolved_obs_dim),
+        "Evolved (shaped reward + grid obs)": (EVOLVED_CODE, evolved_obs_dim),
         "Sparse (full grid obs + completion reward)": (SPARSE_CODE, sparse_obs_dim),
     }
 
@@ -248,7 +315,7 @@ def main():
     fig, axes = plt.subplots(1, 2, figsize=(14, 5.5))
     fig.suptitle("Evolved MDP Interface vs Sparse Baseline", fontsize=14, fontweight="bold")
 
-    colors = {"Evolved (shaped reward + compact obs)": "#2196F3",
+    colors = {"Evolved (shaped reward + grid obs)": "#2196F3",
               "Sparse (full grid obs + completion reward)": "#F44336"}
 
     # --- Panel 1: Success rate vs timesteps ---

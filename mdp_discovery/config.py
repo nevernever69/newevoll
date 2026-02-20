@@ -48,6 +48,7 @@ class EnvironmentConfig:
     env_id: str = "MiniGrid-Empty-6x6"
     benchmark_id: Optional[str] = None
     ruleset_id: Optional[int] = None
+    ruleset_file: Optional[str] = None
     view_size: int = 7
     max_steps: Optional[int] = None
     adapter_type: str = "xminigrid"
@@ -129,6 +130,17 @@ class EvaluatorConfig:
 
 
 @dataclass
+class LLMModelConfig:
+    """Configuration for a single model in an LLM ensemble."""
+
+    name: str = "claude-4-sonnet"
+    weight: float = 1.0
+    region_name: Optional[str] = None   # None = inherit from LLMConfig
+    temperature: Optional[float] = None  # None = inherit from LLMConfig
+    max_tokens: Optional[int] = None     # None = inherit from LLMConfig
+
+
+@dataclass
 class LLMConfig:
     """AWS Bedrock LLM configuration."""
 
@@ -138,6 +150,7 @@ class LLMConfig:
     max_tokens: int = 4096
     retries: int = 3
     retry_delay: float = 1.0
+    models: List[LLMModelConfig] = field(default_factory=list)
 
 
 @dataclass
@@ -170,6 +183,18 @@ class PromptConfig:
     num_failure_examples: int = 2
     include_artifacts: bool = True
     max_artifact_bytes: int = 20 * 1024  # 20 KB
+    use_stochasticity: bool = True
+    num_inspiration_programs: int = 2
+
+
+@dataclass
+class EvolutionTraceConfig:
+    """Configuration for evolution event tracing."""
+
+    enabled: bool = True
+    include_code: bool = False      # full source in traces (big)
+    include_prompts: bool = False   # prompt text in traces (big)
+    buffer_size: int = 10
 
 
 # ---------------------------------------------------------------------------
@@ -198,6 +223,7 @@ class Config:
     llm: LLMConfig = field(default_factory=LLMConfig)
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
     prompt: PromptConfig = field(default_factory=PromptConfig)
+    evolution_trace: EvolutionTraceConfig = field(default_factory=EvolutionTraceConfig)
 
     @classmethod
     def from_yaml(cls, path: Union[str, Path]) -> "Config":

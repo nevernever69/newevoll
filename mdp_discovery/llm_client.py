@@ -7,6 +7,7 @@ Takes prompt dicts from PromptBuilder, calls the model, extracts code.
 from __future__ import annotations
 
 import logging
+import random
 import threading
 import time
 from dataclasses import dataclass
@@ -40,6 +41,7 @@ MODELS: Dict[str, ModelInfo] = {
     "claude-3-haiku": ModelInfo("anthropic.claude-3-haiku-20240307-v1:0", 4096),
     "claude-3.5-sonnet": ModelInfo("anthropic.claude-3-5-sonnet-20241022-v2:0", 8192),
     "claude-4-sonnet": ModelInfo("us.anthropic.claude-sonnet-4-20250514-v1:0", 8192),
+    "claude-sonnet-4-6": ModelInfo("us.anthropic.claude-sonnet-4-6", 8192),
     "claude-4-opus": ModelInfo("us.anthropic.claude-opus-4-20250514-v1:0", 8192),
     # Llama
     "llama3.1-8b": ModelInfo("us.meta.llama3-1-8b-instruct-v1:0", 2048),
@@ -136,7 +138,6 @@ class LLMClient:
             "inferenceConfig": {
                 "maxTokens": max_tokens,
                 "temperature": self.config.temperature,
-                "topP": 0.9,
             },
         }
 
@@ -207,3 +208,68 @@ class LLMClient:
         """
         response = self.generate(prompt)
         return response.code
+
+
+class LLMEnsemble:
+    """Weighted ensemble of LLM clients with random model selection.
+
+    When config.models is empty, behaves as a single-model wrapper around
+    LLMClient (full backward compatibility). When populated, selects a model
+    per generate() call using weighted random sampling.
+
+    Usage:
+        ensemble = LLMEnsemble(config)
+        response = ensemble.generate(prompt)  # same interface as LLMClient
+    """
+
+    def __init__(self, config: LLMConfig):
+        self.config = config
+
+        if not config.models:
+            # Single model mode — backward compatible
+            self._clients = [LLMClient(config)]
+            self._weights = [1.0]
+            self._names = [config.model_name]
+        else:
+            self._clients = []
+            self._weights = []
+            self._names = []
+
+            for model_cfg in config.models:
+                # Create per-model LLMConfig inheriting defaults
+                model_config = LLMConfig(
+                    region_name=model_cfg.region_name or config.region_name,
+                    model_name=model_cfg.name,
+                    temperature=(
+                        model_cfg.temperature
+                        if model_cfg.temperature is not None
+                        else config.temperature
+                    ),
+                    max_tokens=(
+                        model_cfg.max_tokens
+                        if model_cfg.max_tokens is not None
+                        else config.max_tokens
+                    ),
+                    retries=config.retries,
+                    retry_delay=config.retry_delay,
+                )
+                self._clients.append(LLMClient(model_config))
+                self._weights.append(model_cfg.weight)
+                self._names.append(model_cfg.name)
+
+            # Normalize weights
+            total = sum(self._weights)
+            if total > 0:
+                self._weights = [w / total for w in self._weights]
+
+        logger.info(
+            "LLMEnsemble initialized: %s",
+            ", ".join(
+                f"{n} (w={w:.2f})" for n, w in zip(self._names, self._weights)
+            ),
+        )
+
+    def generate(self, prompt: Dict[str, str]) -> LLMResponse:
+        """Generate using a weighted-random selected model."""
+        selected = random.choices(self._clients, weights=self._weights, k=1)[0]
+        return selected.generate(prompt)

@@ -33,7 +33,7 @@ import sys
 import time
 from pathlib import Path
 
-from mdp_discovery.config import Config
+from mdp_discovery.config import Config, LLMModelConfig
 from mdp_discovery.controller import EvolutionController
 
 
@@ -91,6 +91,7 @@ def parse_args():
     parser.add_argument("--timesteps-full", type=int, default=None, help="Full training timesteps override.")
     parser.add_argument("--cascade-threshold", type=float, default=None, help="Cascade threshold override.")
     parser.add_argument("--candidates", type=int, default=None, help="Number of candidates to evaluate in parallel per batch.")
+    parser.add_argument("--num-seeds", type=int, default=None, help="Number of seeds for multi-seed averaging.")
     parser.add_argument("--no-cascade", action="store_true", help="Disable cascade (go straight to full training).")
     parser.add_argument("--log-level", type=str, default=None, help="Logging level (DEBUG, INFO, WARNING).")
 
@@ -138,7 +139,27 @@ def main():
     if args.env:
         config.environment.env_id = args.env
     if args.model:
-        config.llm.model_name = args.model
+        if "," in args.model:
+            # Ensemble format: "model1:weight1,model2:weight2"
+            models = []
+            for entry in args.model.split(","):
+                entry = entry.strip()
+                if ":" in entry:
+                    name, weight_str = entry.rsplit(":", 1)
+                    try:
+                        weight = float(weight_str)
+                    except ValueError:
+                        # Not a weight, treat whole string as model name
+                        name = entry
+                        weight = 1.0
+                else:
+                    name = entry
+                    weight = 1.0
+                models.append(LLMModelConfig(name=name.strip(), weight=weight))
+            config.llm.models = models
+            config.llm.model_name = models[0].name  # default for logging
+        else:
+            config.llm.model_name = args.model
     if args.region:
         config.llm.region_name = args.region
     if args.iterations:
@@ -151,6 +172,8 @@ def main():
         config.evaluator.cascade_thresholds = [args.cascade_threshold]
     if args.candidates:
         config.candidates_per_iteration = args.candidates
+    if args.num_seeds is not None:
+        config.training.num_seeds = args.num_seeds
     if args.no_cascade:
         config.evaluator.cascade_evaluation = False
     if args.log_level:
@@ -194,11 +217,19 @@ def main():
     print(f"  Task:        {controller.task_description}")
     print(f"  Environment: {config.environment.env_id}")
     print(f"  Mode:        {config.evolution_mode}")
-    print(f"  Model:       {config.llm.model_name} ({config.llm.region_name})")
+    if config.llm.models:
+        ensemble_str = ", ".join(
+            f"{m.name} (w={m.weight:.1f})" for m in config.llm.models
+        )
+        print(f"  Ensemble:    {ensemble_str}")
+    else:
+        print(f"  Model:       {config.llm.model_name} ({config.llm.region_name})")
     print(f"  Iterations:  {config.max_iterations}")
     print(f"  Candidates:  {config.candidates_per_iteration} per batch")
     print(f"  Training:    {config.training.total_timesteps:,} short / {config.training.total_timesteps_full:,} full steps")
     print(f"  Cascade:     {'ON' if config.evaluator.cascade_evaluation else 'OFF'} (thresholds={config.evaluator.cascade_thresholds})")
+    print(f"  Stochastic:  {'ON' if config.prompt.use_stochasticity else 'OFF'}")
+    print(f"  Tracing:     {'ON' if config.evolution_trace.enabled else 'OFF'}")
     print(f"  Context:     {config.environment.context_file}")
     print(f"  Run dir:     {run_dir}")
     print(f"  Log file:    {log_file}")

@@ -5,6 +5,7 @@ All xminigrid-specific code lives in this single file.
 
 from __future__ import annotations
 
+import importlib.util
 from typing import Any, Callable, Optional, Tuple
 
 import jax
@@ -78,11 +79,24 @@ class XMinigridAdapter(EnvAdapter):
         self.config = config
         self._env_cfg = config.environment
 
+    @staticmethod
+    def _load_ruleset_file(path: str):
+        """Load a RuleSet from a Python file that defines build_ruleset()."""
+        spec = importlib.util.spec_from_file_location("_custom_ruleset", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        if not hasattr(mod, "build_ruleset"):
+            raise ValueError(f"Ruleset file {path} must define a build_ruleset() function")
+        return mod.build_ruleset()
+
     def _make_base_env(self) -> Tuple[Any, Any]:
         """Create the base (unwrapped) environment and params."""
         env, env_params = xminigrid.make(self._env_cfg.env_id)
 
-        if (
+        if self._env_cfg.ruleset_file is not None:
+            ruleset = self._load_ruleset_file(self._env_cfg.ruleset_file)
+            env_params = env_params.replace(ruleset=ruleset)
+        elif (
             self._env_cfg.benchmark_id is not None
             and self._env_cfg.ruleset_id is not None
         ):

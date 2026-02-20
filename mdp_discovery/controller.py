@@ -24,7 +24,8 @@ from mdp_discovery.config import Config
 from mdp_discovery.crash_filter import CrashFilterResult
 from mdp_discovery.database import ProgramDatabase
 from mdp_discovery.evaluator import CandidateResult, CascadeEvaluator, EvalStage
-from mdp_discovery.llm_client import LLMClient, LLMResponse
+from mdp_discovery.evolution_trace import EvolutionTracer
+from mdp_discovery.llm_client import LLMEnsemble, LLMResponse
 from mdp_discovery.mdp_interface import MDPInterface
 from mdp_discovery.prompts import PromptBuilder
 from mdp_discovery.train import run_training
@@ -80,12 +81,23 @@ class EvolutionController:
         # Initialize components
         self.db = ProgramDatabase(config.database)
         self.evaluator = CascadeEvaluator(config, self.adapter)
-        self.llm = LLMClient(config.llm)
+        self.llm = LLMEnsemble(config.llm)
         self.prompt_builder = PromptBuilder(
             config=config.prompt,
             library_context=library_context,
             task_description=self.task_description,
             evolution_mode=config.evolution_mode,
+        )
+
+        # Evolution tracer
+        trace_cfg = config.evolution_trace
+        trace_path = Path(checkpoint_dir) / "evolution_trace.jsonl" if checkpoint_dir else Path("evolution_trace.jsonl")
+        self.tracer = EvolutionTracer(
+            output_path=trace_path,
+            include_code=trace_cfg.include_code,
+            include_prompts=trace_cfg.include_prompts,
+            buffer_size=trace_cfg.buffer_size,
+            enabled=trace_cfg.enabled,
         )
 
         # Tracking
@@ -153,6 +165,7 @@ class EvolutionController:
         if self.checkpoint_dir:
             self._checkpoint()
 
+        self.tracer.close()
         self._log_summary()
 
     # ------------------------------------------------------------------
@@ -315,6 +328,11 @@ class EvolutionController:
 
         if parent is not None:
             best = self.db.get_best_program()
+            inspiration_programs = self.db.get_inspiration_programs(
+                n=self.config.prompt.num_inspiration_programs,
+                parent_coords=parent.feature_coords,
+                exclude_ids={parent.id},
+            )
             prompt = self.prompt_builder.build_prompt(
                 parent_code=parent.code,
                 parent_metrics=parent.metrics,
@@ -328,6 +346,7 @@ class EvolutionController:
                     n=self.config.prompt.num_failure_examples
                 ),
                 best_metrics=best.metrics if best else None,
+                inspiration_programs=inspiration_programs,
             )
             return prompt, parent.code, parent.id, parent.generation + 1
         else:
@@ -345,7 +364,34 @@ class EvolutionController:
         response = self.llm.generate(prompt)
 
         if response.code is None:
-            return response, None
+            # Retry once: ask the model to wrap its answer in a code fence
+            logger.debug(
+                "No code fence in response (first 200 chars): %s",
+                response.text[:200],
+            )
+            retry_prompt = {
+                "system": prompt["system"],
+                "user": (
+                    prompt["user"]
+                    + "\n\nIMPORTANT: Your previous response did not contain a "
+                    "```python code fence. You MUST return your complete code "
+                    "inside a single ```python ... ``` fence."
+                ),
+            }
+            retry_resp = self.llm.generate(retry_prompt)
+            response = LLMResponse(
+                text=retry_resp.text,
+                code=retry_resp.code,
+                input_tokens=response.input_tokens + retry_resp.input_tokens,
+                output_tokens=response.output_tokens + retry_resp.output_tokens,
+                model=response.model,
+            )
+            if response.code is None:
+                logger.debug(
+                    "Retry also failed (first 200 chars): %s",
+                    response.text[:200],
+                )
+                return response, None
 
         result = self.evaluator.evaluate(response.code)
 
@@ -435,6 +481,26 @@ class EvolutionController:
                 generation=generation,
             )
 
+            # Trace evolution event
+            if program is not None:
+                parent_metrics = None
+                if parent_id and parent_id in self.db.programs:
+                    parent_metrics = self.db.programs[parent_id].metrics
+                self.tracer.log_event(
+                    iteration=self.iteration,
+                    parent_id=parent_id,
+                    child_id=program.id,
+                    parent_metrics=parent_metrics,
+                    child_metrics=program.metrics,
+                    obs_dim=program.obs_dim,
+                    island=program.island,
+                    generation=generation,
+                    stage=result.stage.value,
+                    model=response.model,
+                    parent_code=self.db.programs[parent_id].code if parent_id and parent_id in self.db.programs else None,
+                    child_code=program.code,
+                )
+
             # Log result
             self._log_iteration(result, program, response, iter_time)
 
@@ -515,6 +581,10 @@ class EvolutionController:
             logger.info("  Best success rate: %.0f%%", best.fitness * 100)
             logger.info("  Best obs_dim: %s", best.obs_dim)
             logger.info("  Best program:\n%s", best.code)
+        trace_summary = self.tracer.get_summary()
+        if trace_summary["total_events"] > 0:
+            logger.info("  Trace events: %d", trace_summary["total_events"])
+            logger.info("  Improvements: %d (%.0f%%)", trace_summary["improvement_count"], trace_summary["improvement_rate"] * 100)
         logger.info("=" * 60)
 
     # ------------------------------------------------------------------
@@ -525,6 +595,8 @@ class EvolutionController:
         """Save database, controller state, and best program to disk."""
         if not self.checkpoint_dir:
             return
+
+        self.tracer.flush()
 
         import json
 

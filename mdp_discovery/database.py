@@ -426,6 +426,65 @@ class ProgramDatabase:
             for p in selected
         ]
 
+    def get_inspiration_programs(
+        self,
+        n: int = 2,
+        parent_coords: Optional[List[int]] = None,
+        exclude_ids: Optional[Set[str]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Get N programs maximally distant in MAP-Elites space for exploration.
+
+        Different from get_diverse_programs(): this method prioritizes maximum
+        distance from the parent's cell to encourage structural exploration.
+
+        Returns list of {"code": str, "metrics": dict}.
+        """
+        if not self.programs:
+            return []
+
+        exclude = exclude_ids or set()
+
+        # Collect best program per unique MAP-Elites cell across all islands
+        cell_programs: Dict[str, Program] = {}
+        for island_grid in self.grid:
+            for key, pid in island_grid.items():
+                if pid in self.programs and pid not in exclude:
+                    p = self.programs[pid]
+                    if key not in cell_programs or p.fitness > cell_programs[key].fitness:
+                        cell_programs[key] = p
+
+        if not cell_programs:
+            return []
+
+        if parent_coords is not None and len(cell_programs) > n:
+            # Score cells by Manhattan distance from parent, pick most distant
+            def manhattan_distance(program: Program) -> int:
+                if not program.feature_coords or len(program.feature_coords) != len(parent_coords):
+                    return 0
+                return sum(
+                    abs(a - b) for a, b in zip(program.feature_coords, parent_coords)
+                )
+
+            scored = sorted(
+                cell_programs.values(),
+                key=manhattan_distance,
+                reverse=True,
+            )
+            selected = scored[:n]
+        else:
+            # Fallback: evenly-spaced sampling (same as get_diverse_programs)
+            items = sorted(cell_programs.items(), key=lambda x: x[0])
+            if len(items) <= n:
+                selected = [p for _, p in items]
+            else:
+                step = len(items) / n
+                selected = [items[int(i * step)][1] for i in range(n)]
+
+        return [
+            {"code": p.code, "metrics": p.metrics}
+            for p in selected
+        ]
+
     def get_recent_failures(self, n: int = 2) -> List[Dict[str, Any]]:
         """Get N most recent failures, formatted for PromptBuilder.
 

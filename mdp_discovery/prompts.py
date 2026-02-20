@@ -7,6 +7,7 @@ Assembles system/user message pairs for two scenarios:
 
 from __future__ import annotations
 
+import random
 import re
 from typing import Any, Dict, List, Optional
 
@@ -24,7 +25,13 @@ STAGE_NAMES: Dict[int, str] = {
     2: "Dry-Run (stage 2) — runtime error when calling functions with a real environment state",
 }
 
-_CODE_FENCE_RE = re.compile(r"```python\s*\n(.*?)```", re.DOTALL)
+# Extraction patterns, ordered by specificity (most → least specific).
+_FENCE_PYTHON_RE = re.compile(r"```[Pp]ython\s*\n(.*?)```", re.DOTALL)
+_FENCE_ANY_RE = re.compile(r"```\w*\s*\n(.*?)```", re.DOTALL)
+_BARE_CODE_RE = re.compile(
+    r"(import jax\b.*?(?:def get_observation|def compute_reward).*)",
+    re.DOTALL,
+)
 
 # ---------------------------------------------------------------------------
 # Mode-dependent content helpers
@@ -95,30 +102,24 @@ agent can learn the task.
 **The goal is to help a neural network LEARN, not to solve the task yourself.**
 
 Observation design:
-- The observation should give the neural network the RAW INFORMATION it needs \
-to learn a good policy. Refer to the library reference below for available state fields.
-- Do NOT pre-compute "action values", "optimal decisions", \
-or anything that tries to solve the RL problem inside the observation. That is \
-the neural network's job. Pre-computing policy hints creates brittle, hard-to-learn \
-features that often hurt more than they help.
-- Simpler observations with fewer, well-normalized features often outperform \
-complex ones. A small observation trains faster and generalizes better.
-- Normalize all features to similar ranges (e.g., [0, 1] or [-1, 1]).
+- The observation must give the agent ALL the information it needs to learn \
+the task. Think carefully about what the agent needs to perceive — positions, \
+spatial layout, object states, progress indicators, etc.
+- Include raw spatial or structural information when the task involves \
+navigating around obstacles, interacting with objects, or any situation where \
+the environment layout matters.
+- Normalize features to similar ranges (e.g., [0, 1] or [-1, 1]).
+- The observation can be anywhere from a handful of features to hundreds — \
+use whatever the task requires. The max is 512 elements.
 
 Reward design:
-- The reward should provide a SMOOTH LEARNING SIGNAL that guides the agent \
-toward the goal. The agent is evaluated on whether it actually reaches the \
-goal, NOT on reward magnitude.
-- Progress-based shaping (reward for making progress toward the objective) \
-is a reliable dense signal.
-- Keep reward components few and well-scaled. Many competing reward terms \
-with different magnitudes confuse learning.
-- Do NOT inflate reward magnitudes to "hack" higher returns — the fitness \
-metric is success rate (% of episodes reaching the goal), not total reward.
-
-Training budget: The agent trains on a limited number of environment steps. \
-Simpler designs that converge quickly are preferred over complex ones that \
-need more training to learn.
+- The reward should provide a learning signal that guides the agent toward \
+completing the task. The agent is evaluated on task success rate (% of episodes \
+where the goal is reached), NOT on reward magnitude.
+- Consider what sub-objectives or milestones exist in the task, and whether \
+rewarding progress toward them would help learning.
+- The reward can use any structure — dense shaping, sparse bonuses, \
+milestone rewards, or combinations. Use what fits the task.
 
 ## Library Reference
 
@@ -142,7 +143,7 @@ USER_PROMPT_FROM_SCRATCH = """\
 
 {obs_instructions}\
 {reward_instructions}\
-Common JAX pitfalls to avoid:
+JAX pitfalls to avoid:
 - jax.lax.select requires both branches to have the SAME dtype (cast explicitly)
 - Array indices must be integers, not floats (use .astype(jnp.int32))
 - No Python if/else on JAX arrays (use jax.lax.select or jnp.where)
@@ -172,32 +173,27 @@ Based on the feedback above, write an improved version of the MDP interface.
 
 {improvement_guidance}
 
-Key principles:
-- The observation provides RAW information for the neural network to learn from — \
-do NOT pre-compute policy decisions (action values, optimal actions) in the observation.
-- The reward shapes LEARNING — the agent is evaluated on task success rate, not reward magnitude.
-- Simpler designs train faster with limited compute. Remove features/reward terms that \
-don't clearly help.
-
 Constraints:
 {constraints}
 - All code must be JAX-traceable (no Python if/else on JAX arrays)
-- Only jax and jax.numpy imports are allowed"""
+- Only jax and jax.numpy imports are allowed
+
+**Output your improved code inside a single ```python ... ``` fence. No text outside the fence.**"""
 
 # ---------------------------------------------------------------------------
 # Section templates
 # ---------------------------------------------------------------------------
 
 SECTION_PARENT_CODE = """\
-```python
+--- BEGIN CODE ---
 {code}
-```
+--- END CODE ---
 Success rate: {success_rate}  |  Episode length: {episode_length}"""
 
 SECTION_PARENT_CODE_CRASHED = """\
-```python
+--- BEGIN CODE ---
 {code}
-```
+--- END CODE ---
 (This program crashed before training — see failures below.)"""
 
 SECTION_TOP_PROGRAMS = """\
@@ -207,9 +203,9 @@ SECTION_TOP_PROGRAMS = """\
 
 SECTION_TOP_PROGRAM_ENTRY = """\
 ### Program #{rank} (success rate: {success_rate})
-```python
+--- BEGIN CODE ---
 {code}
-```"""
+--- END CODE ---"""
 
 SECTION_DIVERSE_PROGRAMS = """\
 ## Diverse Approaches (different strategies worth considering)
@@ -218,9 +214,9 @@ SECTION_DIVERSE_PROGRAMS = """\
 
 SECTION_DIVERSE_PROGRAM_ENTRY = """\
 ### Approach #{rank} (success rate: {success_rate})
-```python
+--- BEGIN CODE ---
 {code}
-```"""
+--- END CODE ---"""
 
 SECTION_FAILURES = """\
 ## Recent Failures (avoid these mistakes)
@@ -229,27 +225,164 @@ SECTION_FAILURES = """\
 
 SECTION_FAILURE_CRASH = """\
 ### Failed Program #{rank}
-```python
+--- BEGIN CODE ---
 {code}
-```
+--- END CODE ---
 **Crashed at: {stage_name}**
 Error: {error_message}
 Traceback (last {tb_lines} lines):
-```
-{traceback}
-```"""
+{traceback}"""
 
 SECTION_FAILURE_LOW_FITNESS = """\
 ### Low-Performing Program #{rank} (success rate: {success_rate})
-```python
+--- BEGIN CODE ---
 {code}
-```
+--- END CODE ---
 This program ran but the agent rarely or never reached the goal."""
 
 SECTION_TRAINING_FEEDBACK = """\
 ## Training Feedback for Parent
 
 {analysis}"""
+
+SECTION_INSPIRATION_PROGRAMS = """\
+## Inspiration Programs (structurally different strategies)
+
+Consider borrowing ideas from these, even if their success rates differ.
+
+{entries}"""
+
+SECTION_INSPIRATION_PROGRAM_ENTRY = """\
+### Alternative Strategy #{rank} (success rate: {success_rate})
+--- BEGIN CODE ---
+{code}
+--- END CODE ---"""
+
+
+# ---------------------------------------------------------------------------
+# Improvement guidance variants (for prompt stochasticity)
+# ---------------------------------------------------------------------------
+
+_IMPROVEMENT_VARIANTS = {
+    "zero": [
+        # Strategy A: rethink observation — maybe the agent is blind
+        (
+            "Zero success — the interface is not working at all.\n"
+            "Focus on the OBSERVATION: the agent may lack the information "
+            "it needs to learn. Consider what state features are critical "
+            "for the task and whether the agent can perceive them. "
+            "Keep the reward simple and revisit it later."
+        ),
+        # Strategy B: rethink reward — maybe the agent has no learning signal
+        (
+            "Zero success — the interface is not working at all.\n"
+            "Focus on the REWARD: the agent may have no useful learning "
+            "signal. Consider whether the reward is too sparse or always "
+            "near-zero. A denser reward that changes on every step — even "
+            "approximately — may be needed. The observation might be fine."
+        ),
+        # Strategy C: scrap both, try something structurally opposite
+        (
+            "Zero success — the interface is not working at all.\n"
+            "Try the OPPOSITE approach to what the parent did. If the "
+            "observation was complex, try minimal. If the reward was dense, "
+            "try sparse milestones. If both were simple, try richer "
+            "representations. Break out of the current design direction."
+        ),
+    ],
+    "low": [
+        # Strategy A: observation is the bottleneck
+        (
+            "Low success rate — the agent struggles to learn.\n"
+            "The observation may be the bottleneck. Is it missing "
+            "information the agent needs? Does it contain redundant or "
+            "misleading features? Try changing what the agent perceives."
+        ),
+        # Strategy B: reward is the bottleneck
+        (
+            "Low success rate — the agent struggles to learn.\n"
+            "The reward may be the bottleneck. Are reward components "
+            "conflicting with each other? Is the magnitude appropriate? "
+            "Try simplifying the reward to a single clear signal."
+        ),
+        # Strategy C: representation mismatch
+        (
+            "Low success rate — the agent struggles to learn.\n"
+            "The observation and reward may be individually reasonable but "
+            "mismatched. Does the reward incentivize behavior that the "
+            "observation can actually distinguish? Ensure they work together."
+        ),
+    ],
+    "medium": [
+        # Strategy A: diagnose the failure mode
+        (
+            "Moderate success — partially working.\n"
+            "Identify what causes the remaining failures. Is the agent "
+            "failing in specific states? Add observation features or reward "
+            "signals that address those failure modes specifically."
+        ),
+        # Strategy B: simplify
+        (
+            "Moderate success — partially working.\n"
+            "The design may be overfit to easy cases. Try simplifying — "
+            "remove observation features or reward terms that might be "
+            "adding noise, and see if a cleaner interface generalizes better."
+        ),
+        # Strategy C: enrich
+        (
+            "Moderate success — partially working.\n"
+            "The agent may need more information to handle harder cases. "
+            "Consider adding state features it currently cannot perceive, "
+            "or adding reward terms for sub-goals it currently ignores."
+        ),
+    ],
+    "good": [
+        # Strategy A: analyze failure margin
+        (
+            "Good performance with room to improve.\n"
+            "Focus on the remaining failure cases. What distinguishes them "
+            "from successes? Target those specific scenarios with observation "
+            "or reward adjustments."
+        ),
+        # Strategy B: reduce and stabilize
+        (
+            "Good performance with room to improve.\n"
+            "Consider whether the interface can be simplified without "
+            "losing performance. Fewer observation features or simpler "
+            "reward logic may improve learning stability."
+        ),
+        # Strategy C: push reward refinement
+        (
+            "Good performance with room to improve.\n"
+            "The observation is likely sufficient. Focus on whether the "
+            "reward signal has the right relative magnitudes across its "
+            "components, and whether it properly incentivizes completing "
+            "the task efficiently."
+        ),
+    ],
+    "excellent": [
+        # Strategy A: polish edges
+        (
+            "Excellent performance. Small refinements only.\n"
+            "Analyze the rare failure cases and make targeted changes. "
+            "Avoid large structural changes that might destabilize what works."
+        ),
+        # Strategy B: compress
+        (
+            "Excellent performance. Consider compressing the interface.\n"
+            "Can the observation dimensionality be reduced without losing "
+            "performance? Can the reward be simplified? A simpler interface "
+            "that maintains this success rate is strictly better."
+        ),
+        # Strategy C: robustness
+        (
+            "Excellent performance. Focus on robustness.\n"
+            "The remaining failures may be edge cases in the environment. "
+            "Check if the observation handles all possible states correctly "
+            "and if the reward avoids any degenerate values."
+        ),
+    ],
+}
 
 
 # ---------------------------------------------------------------------------
@@ -258,14 +391,30 @@ SECTION_TRAINING_FEEDBACK = """\
 
 
 def extract_code(response: str) -> Optional[str]:
-    """Extract Python code from a markdown fence in the LLM response.
+    """Extract Python code from the LLM response.
 
-    Searches for the first ```python ... ``` block and returns its content.
-    Returns None if no fence is found.
+    Multi-tier extraction (most specific → least):
+      1. ```python ... ``` fence
+      2. Any ``` ... ``` fence whose content looks like Python
+      3. Bare code starting with ``import jax`` (no fence at all)
+    Returns None only if all tiers fail.
     """
-    match = _CODE_FENCE_RE.search(response)
+    # Tier 1: explicit ```python fence
+    match = _FENCE_PYTHON_RE.search(response)
     if match:
         return match.group(1).strip()
+
+    # Tier 2: any ``` fence containing Python-ish code
+    for match in _FENCE_ANY_RE.finditer(response):
+        code = match.group(1).strip()
+        if "import jax" in code or "def get_observation" in code or "def compute_reward" in code:
+            return code
+
+    # Tier 3: bare code (model forgot the fence entirely)
+    match = _BARE_CODE_RE.search(response)
+    if match:
+        return match.group(1).strip()
+
     return None
 
 
@@ -328,13 +477,11 @@ class PromptBuilder:
         if self.evolution_mode == "reward_only":
             return ""
         return (
-            "**Observation design** — give the neural network what it needs to learn:\n"
-            "- Include the state features most relevant to the task. Refer to the "
-            "library reference above for available state fields.\n"
-            "- Keep it simple: 8-15 features is usually plenty. Every extra feature is "
-            "another dimension the neural network must learn to interpret.\n"
-            "- Do NOT pre-compute \"action scores\" or \"optimal directions\" "
-            "— let the NN learn the policy.\n\n"
+            "**Observation design:**\n"
+            "- Decide what information from the environment state the agent needs "
+            "to solve this task. Consider positions, spatial structure, object states, "
+            "and any other relevant features.\n"
+            "- Refer to the library reference above for all available state fields.\n\n"
         )
 
     def _get_reward_instructions(self) -> str:
@@ -342,19 +489,19 @@ class PromptBuilder:
         if self.evolution_mode == "obs_only":
             return ""
         return (
-            "**Reward design** — shape learning, not the score:\n"
-            "- Progress-based shaping: reward for making measurable progress each step\n"
-            "- Small per-step penalty to encourage efficiency\n"
-            "- Keep reward scale moderate (e.g., progress improvement * 1.0, task completion bonus * 5-10)\n"
-            "- Fewer reward components is better. 2-3 clean terms beat 6 competing ones.\n\n"
+            "**Reward design:**\n"
+            "- Design a reward signal that will help the agent learn the task. "
+            "Consider what milestones, progress measures, or completion signals "
+            "are appropriate for this task.\n"
+            "- The agent is evaluated on task success rate, not reward magnitude.\n\n"
         )
 
     def _get_function_instructions(self) -> str:
         """Return top-level function instructions based on mode."""
         if self.evolution_mode == "reward_only":
             return (
-                "Design a `compute_reward` function that will provide a dense learning "
-                "signal to help a PPO agent learn the task described above.\n"
+                "Design a `compute_reward` function that will help a PPO "
+                "agent learn the task described above.\n"
                 "The observation is handled by the system — you only need to design the reward."
             )
         elif self.evolution_mode == "obs_only":
@@ -387,6 +534,7 @@ class PromptBuilder:
         diverse_programs: Optional[List[Dict[str, Any]]] = None,
         failed_programs: Optional[List[Dict[str, Any]]] = None,
         best_metrics: Optional[Dict[str, Any]] = None,
+        inspiration_programs: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, str]:
         """Build a system/user prompt pair for the LLM.
 
@@ -401,6 +549,8 @@ class PromptBuilder:
                 Each: {"code": str, "crash_result": CrashFilterResult} for crashes,
                 or {"code": str, "metrics": {"final_return": float, ...}} for low-fitness.
             best_metrics: Metrics of the overall best program, for comparison.
+            inspiration_programs: Structurally distant programs for exploration.
+                Same format as top_programs.
 
         Returns:
             {"system": str, "user": str} ready for the LLM API.
@@ -415,6 +565,7 @@ class PromptBuilder:
                 diverse_programs=diverse_programs,
                 failed_programs=failed_programs,
                 best_metrics=best_metrics,
+                inspiration_programs=inspiration_programs,
             )
         return {"system": self._system_prompt, "user": user_msg}
 
@@ -452,7 +603,10 @@ class PromptBuilder:
         diverse_programs: Optional[List[Dict[str, Any]]],
         failed_programs: Optional[List[Dict[str, Any]]],
         best_metrics: Optional[Dict[str, Any]],
+        inspiration_programs: Optional[List[Dict[str, Any]]] = None,
     ) -> str:
+        stochastic = self.config.use_stochasticity
+
         # Parent section
         parent_section = self._format_parent(parent_code, parent_metrics)
 
@@ -467,23 +621,36 @@ class PromptBuilder:
                 sections.append(s)
 
         if top_programs:
-            s = self._format_top_programs(
-                top_programs[: self.config.num_top_programs]
-            )
+            progs = list(top_programs[: self.config.num_top_programs])
+            if stochastic:
+                random.shuffle(progs)
+            s = self._format_top_programs(progs)
             if s:
                 sections.append(s)
 
         if diverse_programs:
-            s = self._format_diverse_programs(
-                diverse_programs[: self.config.num_diverse_programs]
-            )
+            # Stochastic: 70% chance of including diverse programs
+            include_diverse = not stochastic or random.random() < 0.7
+            if include_diverse:
+                progs = list(diverse_programs[: self.config.num_diverse_programs])
+                if stochastic:
+                    random.shuffle(progs)
+                s = self._format_diverse_programs(progs)
+                if s:
+                    sections.append(s)
+
+        if inspiration_programs:
+            s = self._format_inspiration_programs(inspiration_programs)
             if s:
                 sections.append(s)
 
         if parent_metrics and best_metrics:
-            s = self._format_training_feedback(parent_metrics, best_metrics)
-            if s:
-                sections.append(s)
+            # Stochastic: 80% chance of including training feedback
+            include_feedback = not stochastic or random.random() < 0.8
+            if include_feedback:
+                s = self._format_training_feedback(parent_metrics, best_metrics)
+                if s:
+                    sections.append(s)
 
         feedback_sections = "\n\n".join(sections)
 
@@ -548,6 +715,22 @@ class PromptBuilder:
             )
         return SECTION_DIVERSE_PROGRAMS.format(entries="\n\n".join(entries))
 
+    def _format_inspiration_programs(self, programs: List[Dict[str, Any]]) -> str:
+        if not programs:
+            return ""
+        entries = []
+        for i, prog in enumerate(programs, 1):
+            m = prog.get("metrics", {})
+            sr = m.get("success_rate", 0.0)
+            entries.append(
+                SECTION_INSPIRATION_PROGRAM_ENTRY.format(
+                    rank=i,
+                    success_rate=f"{sr:.0%}",
+                    code=prog["code"],
+                )
+            )
+        return SECTION_INSPIRATION_PROGRAMS.format(entries="\n\n".join(entries))
+
     def _format_failures(self, failures: List[Dict[str, Any]]) -> str:
         if not failures:
             return ""
@@ -608,29 +791,27 @@ class PromptBuilder:
 
         if success_rate == 0:
             parts.append(
-                "- The agent NEVER reached the goal. The reward is not "
-                "providing a useful learning signal. Try a simple, strong "
-                "dense progress-based shaping reward that provides a learning "
-                "signal on every step."
+                "- The agent NEVER succeeded. The current interface is not "
+                "producing a useful learning signal. The observation, the reward, "
+                "or both need significant changes."
             )
         elif success_rate < 0.3:
             parts.append(
-                "- The agent rarely reaches the goal. The reward provides "
-                "some signal but learning is too slow. Consider: is the "
-                "observation too complex for the NN to learn from quickly? "
-                "Is the reward pulling in conflicting directions?"
+                "- The agent rarely succeeds. The interface is limiting learning. "
+                "Consider whether the observation provides enough information, "
+                "or whether the reward signal is misleading or too weak."
             )
         elif success_rate < 0.6:
             parts.append(
-                "- The agent reaches the goal sometimes but not reliably. "
-                "This may indicate the observation is missing key information, "
-                "or the reward has components that sometimes mislead the agent."
+                "- The agent succeeds sometimes but not reliably. The interface "
+                "is partially working. Consider what causes the remaining "
+                "failures — missing observation features? Conflicting reward "
+                "signals? Unhandled edge cases?"
             )
         elif success_rate < 0.9:
             parts.append(
-                "- Good success rate, but there is room to improve. Focus on "
-                "why the remaining episodes fail — does the agent get stuck "
-                "in certain starting positions? Is the reward scale balanced?"
+                "- Good success rate with room to improve. Focus on what causes "
+                "the remaining failures."
             )
 
         # Plateau detection
@@ -638,9 +819,7 @@ class PromptBuilder:
             parts.append(
                 "- NOTE: The parent is near the best known success rate, "
                 "suggesting the current approach may be plateauing. Consider "
-                "trying a STRUCTURALLY DIFFERENT design rather than minor "
-                "tweaks — e.g., different observation features, a simpler "
-                "reward, or a different progress metric."
+                "trying a structurally different interface design."
             )
 
         # Success curve trend
@@ -652,20 +831,19 @@ class PromptBuilder:
             if late > early + 0.1:
                 parts.append(
                     "- Learning curve is still improving at the end of "
-                    "training — the design is good but needs more training "
-                    "time, or could converge faster with a simpler observation."
+                    "training — the interface may benefit from more training "
+                    "time, or could be refined to converge faster."
                 )
             elif late < early - 0.1:
                 parts.append(
-                    "- Learning curve is DECLINING — the reward is causing "
-                    "unstable training. Reduce reward magnitude, remove "
-                    "competing reward terms, or simplify."
+                    "- Learning curve is DECLINING — training is unstable. "
+                    "The reward signal may be causing optimization issues."
                 )
             elif late < 0.1:
                 parts.append(
                     "- Success rate stays near zero throughout training. "
-                    "The current design is not working — try something "
-                    "fundamentally different."
+                    "The current interface is not working — try something "
+                    "structurally different."
                 )
 
         analysis = "\n".join(parts)
@@ -678,6 +856,7 @@ class PromptBuilder:
         best_metrics: Optional[Dict[str, Any]],
     ) -> str:
         hints: List[str] = []
+        stochastic = self.config.use_stochasticity
 
         # Check for crash failures
         has_crashes = False
@@ -705,90 +884,36 @@ class PromptBuilder:
             best_sr = best_metrics.get("success_rate", 0.0) if best_metrics else 0.0
 
             if sr == 0:
-                hints.append(
-                    "The agent never reaches the goal. Start with the "
-                    "simplest possible design:\n"
-                    "  - Observation: the most task-relevant state features "
-                    "(~8 features). See the library reference for what's available.\n"
-                    "  - Reward: progress shaping + small "
-                    "task completion bonus + tiny step penalty\n"
-                    "Strip everything else away and see if learning starts."
-                )
+                bracket = "zero"
             elif sr < 0.3:
-                hints.append(
-                    "The agent learns slowly. Possible causes:\n"
-                    "  - Observation has too many features — reduce to "
-                    "the essential ones\n"
-                    "  - Reward has too many competing terms — simplify to "
-                    "progress shaping + task completion bonus + step penalty\n"
-                    "  - Reward magnitudes are unbalanced — keep all terms "
-                    "in a similar range (0.01 to 1.0)"
-                )
+                bracket = "low"
             elif sr < 0.6:
-                hints.append(
-                    "Moderate success — the design is on the right track. "
-                    "To improve:\n"
-                    "  - If the observation has >15 features, try removing "
-                    "the least essential ones\n"
-                    "  - If the reward has >3 terms, try removing the weakest "
-                    "ones to reduce noise\n"
-                    "  - Make sure distance features are smooth and well-scaled"
-                )
+                bracket = "medium"
             elif sr < 0.9:
-                hints.append(
-                    "Good performance. Fine-tune:\n"
-                    "  - Ensure the observation captures enough info for ALL "
-                    "starting positions (corner cases)\n"
-                    "  - Slightly increase the step penalty to push for "
-                    "faster solutions\n"
-                    "  - Check if the reward ever gives misleading signal"
-                )
+                bracket = "good"
             else:
-                hints.append(
-                    "Excellent performance. To push higher:\n"
-                    "  - Analyze which episodes still fail — are there edge "
-                    "cases the observation doesn't capture?\n"
-                    "  - Small tweaks to reward scale or step penalty may "
-                    "help the last few percent"
-                )
+                bracket = "excellent"
+
+            variants = _IMPROVEMENT_VARIANTS[bracket]
+            if stochastic:
+                hints.append(random.choice(variants))
+            else:
+                hints.append(variants[0])
 
             # Plateau detection: parent ≈ best and best isn't great
             if best_sr > 0 and abs(sr - best_sr) < 0.1 and best_sr < 0.85:
                 hints.append(
                     "**PLATEAU DETECTED**: The population has stagnated near "
-                    f"{best_sr:.0%} success. Minor tweaks will not break "
-                    "through. Try something STRUCTURALLY DIFFERENT:\n"
-                    "  - If using many observation features, try drastically "
-                    "fewer (e.g., just 6-8)\n"
-                    "  - If using many reward terms, try just progress "
-                    "shaping + task completion bonus\n"
-                    "  - Try a fundamentally different observation structure "
-                    "or progress metric\n"
-                    "The key is to be BOLD — small changes won't escape "
-                    "this plateau."
+                    f"{best_sr:.0%} success. Try a STRUCTURALLY DIFFERENT "
+                    "interface design — different observation representation, "
+                    "different reward structure, or both."
                 )
-
-            # Anti-patterns
-            hints.append(
-                "Avoid these common anti-patterns:\n"
-                "  - Do NOT compute 'action values' or "
-                "'optimal decisions' in get_observation — that is trying to "
-                "solve the RL problem yourself and makes learning HARDER\n"
-                "  - Do NOT use reward magnitudes >10 for any single term — "
-                "this causes gradient instability\n"
-                "  - Do NOT add features 'just in case' — every extra "
-                "observation dimension makes learning slower"
-            )
 
         if not hints:
             hints.append(
-                "Design for learnability:\n"
-                "- Keep the observation small (8-15 features) with raw, "
-                "well-normalized information\n"
-                "- Keep the reward simple: progress shaping + task completion bonus "
-                "+ step penalty\n"
-                "- The neural network will learn the policy — your job is "
-                "to give it good inputs and a clear signal"
+                "Think carefully about what information the agent needs to "
+                "solve this task (observation) and what learning signal will "
+                "guide it toward the goal (reward)."
             )
 
         return "\n\n".join(hints)
