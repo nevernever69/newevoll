@@ -1,0 +1,1230 @@
+2026-02-22 06:36:07 INFO mdp_discovery.llm_client: LLMClient initialized: model=claude-sonnet-4-6 region=us-east-1
+2026-02-22 06:36:07 INFO mdp_discovery.llm_client: LLMEnsemble initialized: claude-sonnet-4-6 (w=1.00)
+2026-02-22 06:36:07 INFO mdp_discovery.controller: Starting evolution: 30 iterations, 2 candidates/batch, env=XLand-MiniGrid-R1-9x9, model=claude-sonnet-4-6, mode=full
+2026-02-22 06:36:07 INFO mdp_discovery.controller: [Iter 1] Submitting batch of 2 candidate(s)...
+2026-02-22 06:36:35 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 06:36:37 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=27)
+2026-02-22 06:36:37 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 06:36:42 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 06:36:43 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=28)
+2026-02-22 06:36:43 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 06:38:04 INFO mdp_discovery.evaluator: Short training done: success=0%, length=220.5, time=63.1s
+2026-02-22 06:38:04 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-22 06:38:04 DEBUG mdp_discovery.database: Added program bde3bb41 to island 0 cell 2-2 (fitness=0.0000)
+2026-02-22 06:38:04 INFO mdp_discovery.controller: [Iter 1] REJECTED (success=0%) | best=0% | 116.9s
+2026-02-22 06:38:04 INFO mdp_discovery.evaluator: Short training done: success=0%, length=223.1, time=63.3s
+2026-02-22 06:38:04 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-22 06:38:04 DEBUG mdp_discovery.database: Added program 76be9098 to island 0 cell 4-4 (fitness=0.0000)
+2026-02-22 06:38:04 INFO mdp_discovery.controller: [Iter 2] REJECTED (success=0%) | best=0% | 117.0s
+2026-02-22 06:38:04 INFO mdp_discovery.controller: [Iter 3] Submitting batch of 2 candidate(s)...
+2026-02-22 06:38:41 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 06:38:41 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=29)
+2026-02-22 06:38:41 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 06:38:44 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 06:38:48 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=84)
+2026-02-22 06:38:48 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 06:39:24 INFO mdp_discovery.evaluator: Short training done: success=0%, length=225.3, time=31.7s
+2026-02-22 06:39:24 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-22 06:39:24 DEBUG mdp_discovery.database: Added program a959f168 to island 0 cell 1-4 (fitness=0.0000)
+2026-02-22 06:39:24 INFO mdp_discovery.controller: [Iter 3] REJECTED (success=0%) | best=0% | 80.1s
+2026-02-22 06:39:44 INFO mdp_discovery.evaluator: Short training done: success=2%, length=214.2, time=40.8s
+2026-02-22 06:39:44 INFO mdp_discovery.evaluator: Passed threshold (2% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 06:40:33 INFO mdp_discovery.evaluator:   Seed 1/3: success=2% length=217.5
+2026-02-22 06:41:22 INFO mdp_discovery.evaluator:   Seed 2/3: success=34% length=141.6
+2026-02-22 06:42:12 INFO mdp_discovery.evaluator:   Seed 3/3: success=18% length=166.0
+2026-02-22 06:42:12 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=18% length=175.1
+2026-02-22 06:42:12 INFO mdp_discovery.evaluator: Full training done: success=18%, length=175.1, time=107.1s
+2026-02-22 06:42:12 DEBUG mdp_discovery.database: Added program ada927d1 to island 0 cell 1-4 (fitness=0.1800)
+2026-02-22 06:42:12 INFO mdp_discovery.controller: [Iter 4] full_train success=18% length=175.1 | best=18% | 248.0s *** NEW BEST ***
+2026-02-22 06:42:12 INFO mdp_discovery.controller: [Iter 5] Submitting batch of 2 candidate(s)...
+2026-02-22 06:42:54 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 06:42:54 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=84)
+2026-02-22 06:42:54 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 06:42:56 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 06:43:02 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=84)
+2026-02-22 06:43:02 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 06:43:47 INFO mdp_discovery.evaluator: Short training done: success=2%, length=235.0, time=38.4s
+2026-02-22 06:43:47 INFO mdp_discovery.evaluator: Passed threshold (2% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 06:43:55 INFO mdp_discovery.evaluator: Short training done: success=2%, length=229.9, time=38.8s
+2026-02-22 06:43:55 INFO mdp_discovery.evaluator: Passed threshold (2% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 06:44:41 INFO mdp_discovery.evaluator:   Seed 1/3: success=0% length=235.0
+2026-02-22 06:44:50 INFO mdp_discovery.evaluator:   Seed 1/3: success=0% length=242.7
+2026-02-22 06:45:36 INFO mdp_discovery.evaluator:   Seed 2/3: success=4% length=227.6
+2026-02-22 06:45:46 INFO mdp_discovery.evaluator:   Seed 2/3: success=0% length=228.1
+2026-02-22 06:46:32 INFO mdp_discovery.evaluator:   Seed 3/3: success=0% length=221.4
+2026-02-22 06:46:32 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=1% length=228.0
+2026-02-22 06:46:32 INFO mdp_discovery.evaluator: Full training done: success=1%, length=228.0, time=119.4s
+2026-02-22 06:46:32 DEBUG mdp_discovery.database: Added program cf50c417 to island 0 cell 2-4 (fitness=0.0133)
+2026-02-22 06:46:32 INFO mdp_discovery.controller: [Iter 5] full_train success=1% length=228.0 | best=18% | 260.5s
+2026-02-22 06:46:41 INFO mdp_discovery.evaluator:   Seed 3/3: success=0% length=231.6
+2026-02-22 06:46:41 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=0% length=234.2
+2026-02-22 06:46:41 INFO mdp_discovery.evaluator: Full training done: success=0%, length=234.2, time=121.2s
+2026-02-22 06:46:41 INFO mdp_discovery.controller: [Iter 6] full_train success=0% length=234.2 | best=18% | 269.1s
+2026-02-22 06:46:41 INFO mdp_discovery.controller: [Iter 7] Submitting batch of 2 candidate(s)...
+2026-02-22 06:47:21 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 06:47:22 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=84)
+2026-02-22 06:47:22 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 06:47:27 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 06:47:29 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=84)
+2026-02-22 06:47:29 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 06:48:15 INFO mdp_discovery.evaluator: Short training done: success=8%, length=194.2, time=38.0s
+2026-02-22 06:48:15 INFO mdp_discovery.evaluator: Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 06:48:23 INFO mdp_discovery.evaluator: Short training done: success=0%, length=224.9, time=38.8s
+2026-02-22 06:48:23 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-22 06:48:23 DEBUG mdp_discovery.database: Added program 29052727 to island 0 cell 3-4 (fitness=0.0000)
+2026-02-22 06:48:23 INFO mdp_discovery.controller: [Iter 7] REJECTED (success=0%) | best=18% | 102.1s
+2026-02-22 06:49:05 INFO mdp_discovery.evaluator:   Seed 1/3: success=22% length=140.4
+2026-02-22 06:49:55 INFO mdp_discovery.evaluator:   Seed 2/3: success=92% length=44.7
+2026-02-22 06:50:44 INFO mdp_discovery.evaluator:   Seed 3/3: success=54% length=61.5
+2026-02-22 06:50:44 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=56% length=82.2
+2026-02-22 06:50:44 INFO mdp_discovery.evaluator: Full training done: success=56%, length=82.2, time=109.3s
+2026-02-22 06:50:44 DEBUG mdp_discovery.database: Added program da228f93 to island 0 cell 2-4 (fitness=0.5600)
+2026-02-22 06:50:44 INFO mdp_discovery.controller: [Iter 8] full_train success=56% length=82.2 | best=56% | 243.3s *** NEW BEST ***
+2026-02-22 06:50:44 INFO mdp_discovery.controller: [Iter 9] Submitting batch of 2 candidate(s)...
+2026-02-22 06:51:24 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 06:51:24 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=84)
+2026-02-22 06:51:24 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 06:51:27 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 06:51:32 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=84)
+2026-02-22 06:51:32 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 06:52:18 INFO mdp_discovery.evaluator: Short training done: success=8%, length=194.2, time=38.6s
+2026-02-22 06:52:18 INFO mdp_discovery.evaluator: Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 06:52:26 INFO mdp_discovery.evaluator: Short training done: success=6%, length=196.6, time=38.9s
+2026-02-22 06:52:26 INFO mdp_discovery.evaluator: Passed threshold (6% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 06:53:13 INFO mdp_discovery.evaluator:   Seed 1/3: success=40% length=149.8
+2026-02-22 06:53:23 INFO mdp_discovery.evaluator:   Seed 1/3: success=32% length=154.6
+2026-02-22 06:54:10 INFO mdp_discovery.evaluator:   Seed 2/3: success=56% length=78.5
+2026-02-22 06:54:19 INFO mdp_discovery.evaluator:   Seed 2/3: success=52% length=82.9
+2026-02-22 06:55:06 INFO mdp_discovery.evaluator:   Seed 3/3: success=46% length=89.2
+2026-02-22 06:55:06 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=47% length=105.9
+2026-02-22 06:55:06 INFO mdp_discovery.evaluator: Full training done: success=47%, length=105.9, time=122.7s
+2026-02-22 06:55:06 INFO mdp_discovery.controller: [Iter 9] full_train success=47% length=105.9 | best=56% | 261.5s
+2026-02-22 06:55:13 INFO mdp_discovery.evaluator:   Seed 3/3: success=38% length=127.0
+2026-02-22 06:55:13 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=41% length=121.5
+2026-02-22 06:55:13 INFO mdp_discovery.evaluator: Full training done: success=41%, length=121.5, time=121.7s
+2026-02-22 06:55:13 DEBUG mdp_discovery.database: Added program 116691c9 to island 0 cell 3-4 (fitness=0.4067)
+2026-02-22 06:55:13 DEBUG mdp_discovery.evolution_trace: Flushed 10 trace events to experiments/main/medium/evolution_trace.jsonl
+2026-02-22 06:55:13 INFO mdp_discovery.controller: [Iter 10] full_train success=41% length=121.5 | best=56% | 269.0s
+2026-02-22 06:55:13 INFO mdp_discovery.controller: [Iter 11] Submitting batch of 2 candidate(s)...
+2026-02-22 06:55:55 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 06:55:56 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=84)
+2026-02-22 06:55:56 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 06:56:09 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 06:56:10 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=107)
+2026-02-22 06:56:10 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 06:56:49 INFO mdp_discovery.evaluator: Short training done: success=4%, length=196.6, time=39.3s
+2026-02-22 06:56:49 INFO mdp_discovery.evaluator: Passed threshold (4% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 06:57:16 INFO mdp_discovery.evaluator: Short training done: success=4%, length=226.4, time=47.2s
+2026-02-22 06:57:16 INFO mdp_discovery.evaluator: Passed threshold (4% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 06:57:47 INFO mdp_discovery.evaluator:   Seed 1/3: success=30% length=134.5
+2026-02-22 06:58:16 INFO mdp_discovery.evaluator:   Seed 1/3: success=28% length=152.3
+2026-02-22 06:58:43 INFO mdp_discovery.evaluator:   Seed 2/3: success=44% length=121.5
+2026-02-22 06:59:12 INFO mdp_discovery.evaluator:   Seed 2/3: success=32% length=155.3
+2026-02-22 06:59:40 INFO mdp_discovery.evaluator:   Seed 3/3: success=50% length=120.7
+2026-02-22 06:59:40 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=41% length=125.6
+2026-02-22 06:59:40 INFO mdp_discovery.evaluator: Full training done: success=41%, length=125.6, time=120.7s
+2026-02-22 06:59:40 DEBUG mdp_discovery.database: Added program 43dd61ef to island 0 cell 3-4 (fitness=0.4133)
+2026-02-22 06:59:40 INFO mdp_discovery.controller: [Iter 11] full_train success=41% length=125.6 | best=56% | 266.5s
+2026-02-22 07:00:10 INFO mdp_discovery.evaluator:   Seed 3/3: success=30% length=129.9
+2026-02-22 07:00:10 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=30% length=145.8
+2026-02-22 07:00:10 INFO mdp_discovery.evaluator: Full training done: success=30%, length=145.8, time=124.2s
+2026-02-22 07:00:10 DEBUG mdp_discovery.database: Added program 59b48b15 to island 0 cell 4-4 (fitness=0.3000)
+2026-02-22 07:00:10 INFO mdp_discovery.controller: [Iter 12] full_train success=30% length=145.8 | best=56% | 296.6s
+2026-02-22 07:00:10 INFO mdp_discovery.controller: [Iter 13] Submitting batch of 2 candidate(s)...
+2026-02-22 07:00:55 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:00:56 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=87)
+2026-02-22 07:00:56 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:01:50 INFO mdp_discovery.evaluator: Short training done: success=4%, length=208.9, time=36.8s
+2026-02-22 07:01:50 INFO mdp_discovery.evaluator: Passed threshold (4% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:02:03 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:02:03 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=91)
+2026-02-22 07:02:03 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:02:45 INFO mdp_discovery.evaluator:   Seed 1/3: success=88% length=53.5
+2026-02-22 07:03:14 INFO mdp_discovery.evaluator: Short training done: success=14%, length=193.7, time=50.7s
+2026-02-22 07:03:14 INFO mdp_discovery.evaluator: Passed threshold (14% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:03:45 INFO mdp_discovery.evaluator:   Seed 2/3: success=64% length=79.8
+2026-02-22 07:04:16 INFO mdp_discovery.evaluator:   Seed 1/3: success=62% length=79.9
+2026-02-22 07:04:42 INFO mdp_discovery.evaluator:   Seed 3/3: success=70% length=50.7
+2026-02-22 07:04:42 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=74% length=61.3
+2026-02-22 07:04:42 INFO mdp_discovery.evaluator: Full training done: success=74%, length=61.3, time=122.3s
+2026-02-22 07:04:42 DEBUG mdp_discovery.database: Added program ec9755f8 to island 0 cell 4-3 (fitness=0.7400)
+2026-02-22 07:04:42 INFO mdp_discovery.controller: [Iter 13] full_train success=74% length=61.3 | best=74% | 272.3s *** NEW BEST ***
+2026-02-22 07:05:15 INFO mdp_discovery.evaluator:   Seed 2/3: success=98% length=35.7
+2026-02-22 07:06:09 INFO mdp_discovery.evaluator:   Seed 3/3: success=92% length=40.3
+2026-02-22 07:06:09 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=84% length=52.0
+2026-02-22 07:06:09 INFO mdp_discovery.evaluator: Full training done: success=84%, length=52.0, time=123.4s
+2026-02-22 07:06:09 DEBUG mdp_discovery.database: Added program e9d2fe85 to island 0 cell 4-4 (fitness=0.8400)
+2026-02-22 07:06:09 INFO mdp_discovery.controller: [Iter 14] full_train success=84% length=52.0 | best=84% | 359.3s *** NEW BEST ***
+2026-02-22 07:06:09 INFO mdp_discovery.controller: [Iter 15] Submitting batch of 2 candidate(s)...
+2026-02-22 07:07:05 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:07:05 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=91)
+2026-02-22 07:07:05 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:07:10 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:07:15 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=99)
+2026-02-22 07:07:15 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:08:13 INFO mdp_discovery.evaluator: Short training done: success=22%, length=158.5, time=48.1s
+2026-02-22 07:08:13 INFO mdp_discovery.evaluator: Passed threshold (22% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:08:21 INFO mdp_discovery.evaluator: Short training done: success=2%, length=224.5, time=46.2s
+2026-02-22 07:08:21 INFO mdp_discovery.evaluator: Passed threshold (2% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:09:17 INFO mdp_discovery.evaluator:   Seed 1/3: success=90% length=44.7
+2026-02-22 07:09:29 INFO mdp_discovery.evaluator:   Seed 1/3: success=80% length=49.4
+2026-02-22 07:10:22 INFO mdp_discovery.evaluator:   Seed 2/3: success=94% length=36.4
+2026-02-22 07:10:31 INFO mdp_discovery.evaluator:   Seed 2/3: success=84% length=52.7
+2026-02-22 07:11:25 INFO mdp_discovery.evaluator:   Seed 3/3: success=94% length=42.6
+2026-02-22 07:11:25 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=93% length=41.2
+2026-02-22 07:11:25 INFO mdp_discovery.evaluator: Full training done: success=93%, length=41.2, time=133.5s
+2026-02-22 07:11:25 DEBUG mdp_discovery.database: Added program 681959a7 to island 0 cell 4-4 (fitness=0.9267)
+2026-02-22 07:11:25 INFO mdp_discovery.controller: [Iter 15] full_train success=93% length=41.2 | best=93% | 315.3s *** NEW BEST ***
+2026-02-22 07:11:35 INFO mdp_discovery.evaluator:   Seed 3/3: success=94% length=44.5
+2026-02-22 07:11:35 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=86% length=48.8
+2026-02-22 07:11:35 INFO mdp_discovery.evaluator: Full training done: success=86%, length=48.8, time=140.6s
+2026-02-22 07:11:35 INFO mdp_discovery.controller: [Iter 16] full_train success=86% length=48.8 | best=93% | 326.1s
+2026-02-22 07:11:35 INFO mdp_discovery.controller: [Iter 17] Submitting batch of 2 candidate(s)...
+2026-02-22 07:13:35 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:13:36 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=99)
+2026-02-22 07:13:36 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:14:34 INFO mdp_discovery.evaluator: Short training done: success=8%, length=201.4, time=42.8s
+2026-02-22 07:14:34 INFO mdp_discovery.evaluator: Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:15:34 INFO mdp_discovery.evaluator:   Seed 1/3: success=62% length=92.8
+2026-02-22 07:16:30 INFO mdp_discovery.evaluator:   Seed 2/3: success=12% length=204.2
+2026-02-22 07:16:46 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:16:47 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=102)
+2026-02-22 07:16:47 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:17:42 INFO mdp_discovery.evaluator:   Seed 3/3: success=64% length=111.0
+2026-02-22 07:17:42 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=46% length=136.0
+2026-02-22 07:17:42 INFO mdp_discovery.evaluator: Full training done: success=46%, length=136.0, time=129.0s
+2026-02-22 07:17:42 INFO mdp_discovery.controller: [Iter 17] full_train success=46% length=136.0 | best=93% | 366.8s
+2026-02-22 07:17:53 INFO mdp_discovery.evaluator: Short training done: success=18%, length=174.6, time=45.5s
+2026-02-22 07:17:53 INFO mdp_discovery.evaluator: Passed threshold (18% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:18:49 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=44.2
+2026-02-22 07:19:50 INFO mdp_discovery.evaluator:   Seed 2/3: success=94% length=37.4
+2026-02-22 07:20:49 INFO mdp_discovery.evaluator:   Seed 3/3: success=94% length=33.0
+2026-02-22 07:20:49 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=95% length=38.2
+2026-02-22 07:20:49 INFO mdp_discovery.evaluator: Full training done: success=95%, length=38.2, time=127.4s
+2026-02-22 07:20:49 DEBUG mdp_discovery.database: Added program e4ed6654 to island 0 cell 4-4 (fitness=0.9533)
+2026-02-22 07:20:49 INFO mdp_discovery.controller: [Iter 18] full_train success=95% length=38.2 | best=95% | 553.9s *** NEW BEST ***
+2026-02-22 07:20:49 INFO mdp_discovery.controller: [Iter 19] Submitting batch of 2 candidate(s)...
+2026-02-22 07:21:48 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:21:49 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=127)
+2026-02-22 07:21:49 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:22:50 INFO mdp_discovery.evaluator: Short training done: success=12%, length=195.6, time=43.3s
+2026-02-22 07:22:50 INFO mdp_discovery.evaluator: Passed threshold (12% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:23:51 INFO mdp_discovery.evaluator:   Seed 1/3: success=66% length=73.5
+2026-02-22 07:24:53 INFO mdp_discovery.evaluator:   Seed 2/3: success=94% length=48.0
+2026-02-22 07:25:51 INFO mdp_discovery.evaluator:   Seed 3/3: success=86% length=41.9
+2026-02-22 07:25:51 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=82% length=54.5
+2026-02-22 07:25:51 INFO mdp_discovery.evaluator: Full training done: success=82%, length=54.5, time=129.2s
+2026-02-22 07:25:51 INFO mdp_discovery.controller: [Iter 19] full_train success=82% length=54.5 | best=95% | 301.4s
+2026-02-22 07:26:02 WARNING mdp_discovery.llm_client: LLM call failed (attempt 1/3): Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse". Retrying in 1.0s...
+2026-02-22 07:27:02 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:27:03 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=110)
+2026-02-22 07:27:03 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:28:02 INFO mdp_discovery.evaluator: Short training done: success=6%, length=206.1, time=38.9s
+2026-02-22 07:28:02 INFO mdp_discovery.evaluator: Passed threshold (6% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:28:54 INFO mdp_discovery.evaluator:   Seed 1/3: success=84% length=60.9
+2026-02-22 07:29:51 INFO mdp_discovery.evaluator:   Seed 2/3: success=76% length=55.2
+2026-02-22 07:30:43 INFO mdp_discovery.evaluator:   Seed 3/3: success=84% length=47.6
+2026-02-22 07:30:43 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=81% length=54.6
+2026-02-22 07:30:43 INFO mdp_discovery.evaluator: Full training done: success=81%, length=54.6, time=118.6s
+2026-02-22 07:30:43 DEBUG mdp_discovery.evolution_trace: Flushed 10 trace events to experiments/main/medium/evolution_trace.jsonl
+2026-02-22 07:30:43 INFO mdp_discovery.controller: [Iter 20] full_train success=81% length=54.6 | best=95% | 593.8s
+2026-02-22 07:30:43 INFO mdp_discovery.controller: [Iter 21] Submitting batch of 2 candidate(s)...
+2026-02-22 07:32:43 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:32:43 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=102)
+2026-02-22 07:32:43 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:32:44 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:32:56 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=121)
+2026-02-22 07:32:56 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:33:50 INFO mdp_discovery.evaluator: Short training done: success=20%, length=177.9, time=50.7s
+2026-02-22 07:33:50 INFO mdp_discovery.evaluator: Passed threshold (20% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:34:03 INFO mdp_discovery.evaluator: Short training done: success=20%, length=196.6, time=45.3s
+2026-02-22 07:34:03 INFO mdp_discovery.evaluator: Passed threshold (20% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:34:57 INFO mdp_discovery.evaluator:   Seed 1/3: success=86% length=45.5
+2026-02-22 07:35:10 INFO mdp_discovery.evaluator:   Seed 1/3: success=90% length=45.3
+2026-02-22 07:36:03 INFO mdp_discovery.evaluator:   Seed 2/3: success=94% length=42.3
+2026-02-22 07:36:16 INFO mdp_discovery.evaluator:   Seed 2/3: success=86% length=46.8
+2026-02-22 07:37:10 INFO mdp_discovery.evaluator:   Seed 3/3: success=84% length=54.6
+2026-02-22 07:37:10 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=88% length=47.5
+2026-02-22 07:37:10 INFO mdp_discovery.evaluator: Full training done: success=88%, length=47.5, time=150.7s
+2026-02-22 07:37:10 DEBUG mdp_discovery.database: Added program 16c473a8 to island 0 cell 4-3 (fitness=0.8800)
+2026-02-22 07:37:10 INFO mdp_discovery.controller: [Iter 21] full_train success=88% length=47.5 | best=95% | 387.0s
+2026-02-22 07:37:19 INFO mdp_discovery.evaluator:   Seed 3/3: success=86% length=58.7
+2026-02-22 07:37:19 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=87% length=50.3
+2026-02-22 07:37:19 INFO mdp_discovery.evaluator: Full training done: success=87%, length=50.3, time=137.7s
+2026-02-22 07:37:19 INFO mdp_discovery.controller: [Iter 22] full_train success=87% length=50.3 | best=95% | 395.5s
+2026-02-22 07:37:19 INFO mdp_discovery.controller: [Iter 23] Submitting batch of 2 candidate(s)...
+2026-02-22 07:39:19 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:39:19 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=102)
+2026-02-22 07:39:19 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:40:18 INFO mdp_discovery.evaluator: Short training done: success=18%, length=174.6, time=44.7s
+2026-02-22 07:40:18 INFO mdp_discovery.evaluator: Passed threshold (18% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:41:14 INFO mdp_discovery.evaluator:   Seed 1/3: success=100% length=45.1
+2026-02-22 07:42:15 INFO mdp_discovery.evaluator:   Seed 2/3: success=92% length=43.4
+2026-02-22 07:42:31 WARNING mdp_discovery.llm_client: LLM call failed (attempt 1/3): Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse". Retrying in 1.0s...
+2026-02-22 07:43:11 INFO mdp_discovery.evaluator:   Seed 3/3: success=98% length=34.6
+2026-02-22 07:43:11 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=97% length=41.0
+2026-02-22 07:43:11 INFO mdp_discovery.evaluator: Full training done: success=97%, length=41.0, time=127.5s
+2026-02-22 07:43:11 DEBUG mdp_discovery.database: Added program 6c306526 to island 0 cell 4-3 (fitness=0.9667)
+2026-02-22 07:43:11 INFO mdp_discovery.controller: [Iter 23] full_train success=97% length=41.0 | best=97% | 351.9s *** NEW BEST ***
+2026-02-22 07:47:36 WARNING mdp_discovery.llm_client: LLM call failed (attempt 2/3): Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse". Retrying in 2.0s...
+2026-02-22 07:51:42 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:51:42 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=103)
+2026-02-22 07:51:42 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:52:45 INFO mdp_discovery.evaluator: Short training done: success=22%, length=183.3, time=46.0s
+2026-02-22 07:52:45 INFO mdp_discovery.evaluator: Passed threshold (22% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:53:40 INFO mdp_discovery.evaluator:   Seed 1/3: success=62% length=69.7
+2026-02-22 07:54:41 INFO mdp_discovery.evaluator:   Seed 2/3: success=62% length=77.8
+2026-02-22 07:55:36 INFO mdp_discovery.evaluator:   Seed 3/3: success=74% length=52.3
+2026-02-22 07:55:36 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=66% length=66.6
+2026-02-22 07:55:36 INFO mdp_discovery.evaluator: Full training done: success=66%, length=66.6, time=118.3s
+2026-02-22 07:55:36 INFO mdp_discovery.controller: [Iter 24] full_train success=66% length=66.6 | best=97% | 1097.0s
+2026-02-22 07:55:36 INFO mdp_discovery.controller: [Iter 25] Submitting batch of 2 candidate(s)...
+2026-02-22 07:56:35 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 07:56:35 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=102)
+2026-02-22 07:56:35 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 07:57:28 INFO mdp_discovery.evaluator: Short training done: success=18%, length=174.6, time=39.0s
+2026-02-22 07:57:28 INFO mdp_discovery.evaluator: Passed threshold (18% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 07:58:30 INFO mdp_discovery.evaluator:   Seed 1/3: success=80% length=43.5
+2026-02-22 07:59:25 INFO mdp_discovery.evaluator:   Seed 2/3: success=96% length=38.7
+2026-02-22 08:00:27 INFO mdp_discovery.evaluator:   Seed 3/3: success=94% length=33.6
+2026-02-22 08:00:27 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=90% length=38.6
+2026-02-22 08:00:27 INFO mdp_discovery.evaluator: Full training done: success=90%, length=38.6, time=133.9s
+2026-02-22 08:00:27 INFO mdp_discovery.controller: [Iter 25] full_train success=90% length=38.6 | best=97% | 291.2s
+2026-02-22 08:00:48 WARNING mdp_discovery.llm_client: LLM call failed (attempt 1/3): Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse". Retrying in 1.0s...
+2026-02-22 08:05:54 WARNING mdp_discovery.llm_client: LLM call failed (attempt 2/3): Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse". Retrying in 2.0s...
+2026-02-22 08:11:04 ERROR mdp_discovery.controller: [Iter 26] Worker failed
+Traceback (most recent call last):
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 1448, in getresponse
+    response.begin()
+  File "/usr/lib/python3.12/http/client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 297, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1252, in recv_into
+    return self.read(nbytes, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1104, in read
+    return self._sslobj.read(len, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: The read operation timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/httpsession.py", line 465, in send
+    urllib_response = conn.urlopen(
+                      ^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 841, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/util/retry.py", line 449, in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/util/util.py", line 39, in reraise
+    raise value
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 787, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 536, in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 367, in _raise_timeout
+    raise ReadTimeoutError(
+urllib3.exceptions.ReadTimeoutError: AWSHTTPSConnectionPool(host='bedrock-runtime.us-east-1.amazonaws.com', port=443): Read timed out. (read timeout=60)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/pureevol/mdp_discovery/controller.py", line 465, in _run_batch
+    response, result = f.result()
+                       ^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/pureevol/mdp_discovery/controller.py", line 368, in _run_single_candidate
+    response = self.llm.generate(prompt)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/pureevol/mdp_discovery/llm_client.py", line 275, in generate
+    return selected.generate(prompt)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/pureevol/mdp_discovery/llm_client.py", line 153, in generate
+    response = self.client.converse(**converse_params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/client.py", line 602, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/client.py", line 1060, in _make_api_call
+    http, parsed_response = self._make_request(
+                            ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/client.py", line 1084, in _make_request
+    return self._endpoint.make_request(operation_model, request_dict)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 119, in make_request
+    return self._send_request(request_dict, operation_model)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 200, in _send_request
+    while self._needs_retry(
+          ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 360, in _needs_retry
+    responses = self._event_emitter.emit(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/hooks.py", line 412, in emit
+    return self._emitter.emit(aliased_event_name, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/hooks.py", line 256, in emit
+    return self._emit(event_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/hooks.py", line 239, in _emit
+    response = handler(**kwargs)
+               ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 207, in __call__
+    if self._checker(**checker_kwargs):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 284, in __call__
+    should_retry = self._should_retry(
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 320, in _should_retry
+    return self._checker(attempt_number, response, caught_exception)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 363, in __call__
+    checker_response = checker(
+                       ^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 247, in __call__
+    return self._check_caught_exception(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 416, in _check_caught_exception
+    raise caught_exception
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 279, in _do_get_response
+    http_response = self._send(request)
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 383, in _send
+    return self.http_session.send(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/httpsession.py", line 502, in send
+    raise ReadTimeoutError(endpoint_url=request.url, error=e)
+botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse"
+2026-02-22 08:11:04 INFO mdp_discovery.controller: [Iter 27] Submitting batch of 2 candidate(s)...
+2026-02-22 08:12:04 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 08:12:04 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=102)
+2026-02-22 08:12:04 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-22 08:12:57 INFO mdp_discovery.evaluator: Short training done: success=18%, length=174.6, time=39.2s
+2026-02-22 08:12:57 INFO mdp_discovery.evaluator: Passed threshold (18% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-22 08:13:59 INFO mdp_discovery.evaluator:   Seed 1/3: success=100% length=45.1
+2026-02-22 08:14:55 INFO mdp_discovery.evaluator:   Seed 2/3: success=92% length=39.9
+2026-02-22 08:15:50 INFO mdp_discovery.evaluator:   Seed 3/3: success=94% length=34.3
+2026-02-22 08:15:50 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=95% length=39.8
+2026-02-22 08:15:50 INFO mdp_discovery.evaluator: Full training done: success=95%, length=39.8, time=122.0s
+2026-02-22 08:15:50 INFO mdp_discovery.controller: [Iter 27] full_train success=95% length=39.8 | best=97% | 286.4s
+2026-02-22 08:16:17 WARNING mdp_discovery.llm_client: LLM call failed (attempt 1/3): Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse". Retrying in 1.0s...
+2026-02-22 08:21:21 WARNING mdp_discovery.llm_client: LLM call failed (attempt 2/3): Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse". Retrying in 2.0s...
+2026-02-22 08:26:34 ERROR mdp_discovery.controller: [Iter 28] Worker failed
+Traceback (most recent call last):
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 1448, in getresponse
+    response.begin()
+  File "/usr/lib/python3.12/http/client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 297, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1252, in recv_into
+    return self.read(nbytes, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1104, in read
+    return self._sslobj.read(len, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: The read operation timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/httpsession.py", line 465, in send
+    urllib_response = conn.urlopen(
+                      ^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 841, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/util/retry.py", line 449, in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/util/util.py", line 39, in reraise
+    raise value
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 787, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 536, in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 367, in _raise_timeout
+    raise ReadTimeoutError(
+urllib3.exceptions.ReadTimeoutError: AWSHTTPSConnectionPool(host='bedrock-runtime.us-east-1.amazonaws.com', port=443): Read timed out. (read timeout=60)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/pureevol/mdp_discovery/controller.py", line 465, in _run_batch
+    response, result = f.result()
+                       ^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/pureevol/mdp_discovery/controller.py", line 368, in _run_single_candidate
+    response = self.llm.generate(prompt)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/pureevol/mdp_discovery/llm_client.py", line 275, in generate
+    return selected.generate(prompt)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/pureevol/mdp_discovery/llm_client.py", line 153, in generate
+    response = self.client.converse(**converse_params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/client.py", line 602, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/client.py", line 1060, in _make_api_call
+    http, parsed_response = self._make_request(
+                            ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/client.py", line 1084, in _make_request
+    return self._endpoint.make_request(operation_model, request_dict)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 119, in make_request
+    return self._send_request(request_dict, operation_model)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 200, in _send_request
+    while self._needs_retry(
+          ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 360, in _needs_retry
+    responses = self._event_emitter.emit(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/hooks.py", line 412, in emit
+    return self._emitter.emit(aliased_event_name, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/hooks.py", line 256, in emit
+    return self._emit(event_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/hooks.py", line 239, in _emit
+    response = handler(**kwargs)
+               ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 207, in __call__
+    if self._checker(**checker_kwargs):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 284, in __call__
+    should_retry = self._should_retry(
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 320, in _should_retry
+    return self._checker(attempt_number, response, caught_exception)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 363, in __call__
+    checker_response = checker(
+                       ^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 247, in __call__
+    return self._check_caught_exception(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 416, in _check_caught_exception
+    raise caught_exception
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 279, in _do_get_response
+    http_response = self._send(request)
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 383, in _send
+    return self.http_session.send(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/httpsession.py", line 502, in send
+    raise ReadTimeoutError(endpoint_url=request.url, error=e)
+botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse"
+2026-02-22 08:26:34 INFO mdp_discovery.controller: [Iter 29] Submitting batch of 2 candidate(s)...
+2026-02-22 08:31:42 WARNING mdp_discovery.llm_client: LLM call failed (attempt 1/3): Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse". Retrying in 1.0s...
+2026-02-22 08:31:42 WARNING mdp_discovery.llm_client: LLM call failed (attempt 1/3): Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse". Retrying in 1.0s...
+2026-02-22 08:36:50 WARNING mdp_discovery.llm_client: LLM call failed (attempt 2/3): Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse". Retrying in 2.0s...
+2026-02-22 08:36:51 WARNING mdp_discovery.llm_client: LLM call failed (attempt 2/3): Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse". Retrying in 2.0s...
+2026-02-22 08:42:02 ERROR mdp_discovery.controller: [Iter 29] Worker failed
+Traceback (most recent call last):
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 1448, in getresponse
+    response.begin()
+  File "/usr/lib/python3.12/http/client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 297, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1252, in recv_into
+    return self.read(nbytes, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1104, in read
+    return self._sslobj.read(len, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: The read operation timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/httpsession.py", line 465, in send
+    urllib_response = conn.urlopen(
+                      ^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 841, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/util/retry.py", line 449, in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/util/util.py", line 39, in reraise
+    raise value
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 787, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 536, in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 367, in _raise_timeout
+    raise ReadTimeoutError(
+urllib3.exceptions.ReadTimeoutError: AWSHTTPSConnectionPool(host='bedrock-runtime.us-east-1.amazonaws.com', port=443): Read timed out. (read timeout=60)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/pureevol/mdp_discovery/controller.py", line 465, in _run_batch
+    response, result = f.result()
+                       ^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/pureevol/mdp_discovery/controller.py", line 368, in _run_single_candidate
+    response = self.llm.generate(prompt)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/pureevol/mdp_discovery/llm_client.py", line 275, in generate
+    return selected.generate(prompt)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/pureevol/mdp_discovery/llm_client.py", line 153, in generate
+    response = self.client.converse(**converse_params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/client.py", line 602, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/client.py", line 1060, in _make_api_call
+    http, parsed_response = self._make_request(
+                            ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/client.py", line 1084, in _make_request
+    return self._endpoint.make_request(operation_model, request_dict)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 119, in make_request
+    return self._send_request(request_dict, operation_model)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 200, in _send_request
+    while self._needs_retry(
+          ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 360, in _needs_retry
+    responses = self._event_emitter.emit(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/hooks.py", line 412, in emit
+    return self._emitter.emit(aliased_event_name, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/hooks.py", line 256, in emit
+    return self._emit(event_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/hooks.py", line 239, in _emit
+    response = handler(**kwargs)
+               ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 207, in __call__
+    if self._checker(**checker_kwargs):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 284, in __call__
+    should_retry = self._should_retry(
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 320, in _should_retry
+    return self._checker(attempt_number, response, caught_exception)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 363, in __call__
+    checker_response = checker(
+                       ^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 247, in __call__
+    return self._check_caught_exception(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 416, in _check_caught_exception
+    raise caught_exception
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 279, in _do_get_response
+    http_response = self._send(request)
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 383, in _send
+    return self.http_session.send(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/httpsession.py", line 502, in send
+    raise ReadTimeoutError(endpoint_url=request.url, error=e)
+botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse"
+2026-02-22 08:42:03 ERROR mdp_discovery.controller: [Iter 30] Worker failed
+Traceback (most recent call last):
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 1448, in getresponse
+    response.begin()
+  File "/usr/lib/python3.12/http/client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 297, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1252, in recv_into
+    return self.read(nbytes, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1104, in read
+    return self._sslobj.read(len, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: The read operation timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/httpsession.py", line 465, in send
+    urllib_response = conn.urlopen(
+                      ^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 841, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/util/retry.py", line 449, in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/util/util.py", line 39, in reraise
+    raise value
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 787, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 536, in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/urllib3/connectionpool.py", line 367, in _raise_timeout
+    raise ReadTimeoutError(
+urllib3.exceptions.ReadTimeoutError: AWSHTTPSConnectionPool(host='bedrock-runtime.us-east-1.amazonaws.com', port=443): Read timed out. (read timeout=60)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/pureevol/mdp_discovery/controller.py", line 465, in _run_batch
+    response, result = f.result()
+                       ^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/pureevol/mdp_discovery/controller.py", line 368, in _run_single_candidate
+    response = self.llm.generate(prompt)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/pureevol/mdp_discovery/llm_client.py", line 275, in generate
+    return selected.generate(prompt)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/pureevol/mdp_discovery/llm_client.py", line 153, in generate
+    response = self.client.converse(**converse_params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/client.py", line 602, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/client.py", line 1060, in _make_api_call
+    http, parsed_response = self._make_request(
+                            ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/client.py", line 1084, in _make_request
+    return self._endpoint.make_request(operation_model, request_dict)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 119, in make_request
+    return self._send_request(request_dict, operation_model)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 200, in _send_request
+    while self._needs_retry(
+          ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 360, in _needs_retry
+    responses = self._event_emitter.emit(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/hooks.py", line 412, in emit
+    return self._emitter.emit(aliased_event_name, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/hooks.py", line 256, in emit
+    return self._emit(event_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/hooks.py", line 239, in _emit
+    response = handler(**kwargs)
+               ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 207, in __call__
+    if self._checker(**checker_kwargs):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 284, in __call__
+    should_retry = self._should_retry(
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 320, in _should_retry
+    return self._checker(attempt_number, response, caught_exception)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 363, in __call__
+    checker_response = checker(
+                       ^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 247, in __call__
+    return self._check_caught_exception(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/retryhandler.py", line 416, in _check_caught_exception
+    raise caught_exception
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 279, in _do_get_response
+    http_response = self._send(request)
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/endpoint.py", line 383, in _send
+    return self.http_session.send(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/rl-evolver/env/lib/python3.12/site-packages/botocore/httpsession.py", line 502, in send
+    raise ReadTimeoutError(endpoint_url=request.url, error=e)
+botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/us.anthropic.claude-sonnet-4-6/converse"
+2026-02-22 08:42:03 DEBUG mdp_discovery.evolution_trace: Flushed 6 trace events to experiments/main/medium/evolution_trace.jsonl
+2026-02-22 08:42:03 INFO mdp_discovery.database: Database saved to experiments/main/medium/database (26 programs)
+2026-02-22 08:42:03 INFO mdp_discovery.controller: [Iter 30] Checkpoint saved to experiments/main/medium
+2026-02-22 08:42:03 INFO mdp_discovery.evolution_trace: Evolution trace: 26 events, 18 improvements (69%), best deltas: {'final_return': 212.06839434305826, 'final_length': 74.6833356221517, 'success_rate': 0.9, 'training_time': 102.16013789176941}
+2026-02-22 08:42:03 INFO mdp_discovery.controller: ============================================================
+2026-02-22 08:42:03 INFO mdp_discovery.controller: Evolution complete
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Mode: full
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Iterations: 30
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Wall time: 7556.2s
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Total programs: 26
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Total eval time: 5453.7s
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Total LLM tokens: 1285754
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Input tokens: 1131850
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Output tokens: 153904
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Est. LLM cost: $5.70
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Recent failures: 5
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Grid cells filled: [6, 0, 0]
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Island sizes: [16, 0, 0]
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Best success rate: 97%
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Best obs_dim: 102
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Best program:
+import jax
+import jax.numpy as jnp
+
+FLOOR = 1
+WALL = 2
+SQUARE = 4
+PYRAMID = 5
+
+YELLOW = 5
+GREEN = 2
+
+DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)], dtype=jnp.int32)
+
+
+def get_observation(state):
+    H, W = state.grid.shape[:2]
+    H_f = jnp.float32(H)
+    W_f = jnp.float32(W)
+
+    ys = jnp.arange(H)
+    xs = jnp.arange(W)
+    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
+
+    # Agent
+    agent_y = state.agent.position[0].astype(jnp.float32)
+    agent_x = state.agent.position[1].astype(jnp.float32)
+    norm_agent_y = agent_y / (H_f - 1)
+    norm_agent_x = agent_x / (W_f - 1)
+    dir_oh = jax.nn.one_hot(state.agent.direction, 4)
+
+    # Yellow pyramid on grid
+    yp_mask = (state.grid[:, :, 0] == PYRAMID) & (state.grid[:, :, 1] == YELLOW)
+    yp_count = jnp.sum(yp_mask).astype(jnp.float32)
+    yp_y = jnp.sum(yy * yp_mask).astype(jnp.float32) / jnp.maximum(yp_count, 1.0)
+    yp_x = jnp.sum(xx * yp_mask).astype(jnp.float32) / jnp.maximum(yp_count, 1.0)
+    yp_on_grid = (yp_count > 0).astype(jnp.float32)
+
+    # Green square on grid
+    gs_mask = (state.grid[:, :, 0] == SQUARE) & (state.grid[:, :, 1] == GREEN)
+    gs_count = jnp.sum(gs_mask).astype(jnp.float32)
+    gs_y = jnp.sum(yy * gs_mask).astype(jnp.float32) / jnp.maximum(gs_count, 1.0)
+    gs_x = jnp.sum(xx * gs_mask).astype(jnp.float32) / jnp.maximum(gs_count, 1.0)
+
+    # Holding yellow pyramid
+    holding_yp = ((state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)).astype(jnp.float32)
+    pocket_empty = (state.agent.pocket[0] == 0).astype(jnp.float32)
+
+    # Normalized object positions
+    norm_yp_y = yp_y / (H_f - 1)
+    norm_yp_x = yp_x / (W_f - 1)
+    norm_gs_y = gs_y / (H_f - 1)
+    norm_gs_x = gs_x / (W_f - 1)
+
+    # Relative: agent -> yellow pyramid
+    rel_agent_yp_y = (yp_y - agent_y) / H_f
+    rel_agent_yp_x = (yp_x - agent_x) / W_f
+
+    # Relative: agent -> green square
+    rel_agent_gs_y = (gs_y - agent_y) / H_f
+    rel_agent_gs_x = (gs_x - agent_x) / W_f
+
+    # Relative: yellow pyramid -> green square
+    rel_yp_gs_y = (gs_y - yp_y) / H_f
+    rel_yp_gs_x = (gs_x - yp_x) / W_f
+
+    # Manhattan distances (normalized)
+    dist_agent_yp = (jnp.abs(agent_y - yp_y) + jnp.abs(agent_x - yp_x)) / (H_f + W_f)
+    dist_agent_gs = (jnp.abs(agent_y - gs_y) + jnp.abs(agent_x - gs_x)) / (H_f + W_f)
+    dist_yp_gs = (jnp.abs(yp_y - gs_y) + jnp.abs(yp_x - gs_x)) / (H_f + W_f)
+
+    # Front tile
+    dy = DIRECTIONS[state.agent.direction, 0]
+    dx = DIRECTIONS[state.agent.direction, 1]
+    front_y = jnp.clip(state.agent.position[0].astype(jnp.int32) + dy, 0, H - 1)
+    front_x = jnp.clip(state.agent.position[1].astype(jnp.int32) + dx, 0, W - 1)
+    front_tile_id = state.grid[front_y, front_x, 0].astype(jnp.float32) / 12.0
+    front_tile_color = state.grid[front_y, front_x, 1].astype(jnp.float32) / 11.0
+    front_is_yp = ((state.grid[front_y, front_x, 0] == PYRAMID) & (state.grid[front_y, front_x, 1] == YELLOW)).astype(jnp.float32)
+    front_is_gs = ((state.grid[front_y, front_x, 0] == SQUARE) & (state.grid[front_y, front_x, 1] == GREEN)).astype(jnp.float32)
+    front_is_floor = (state.grid[front_y, front_x, 0] == FLOOR).astype(jnp.float32)
+
+    # Front tile distance to green square (for putdown guidance)
+    front_dist_to_gs = jnp.abs(front_y.astype(jnp.float32) - gs_y) + jnp.abs(front_x.astype(jnp.float32) - gs_x)
+    front_adj_to_gs = (front_dist_to_gs <= 1.0).astype(jnp.float32)
+    # Is front tile a floor cell adjacent to green square? (ideal putdown spot)
+    front_ideal_putdown = (front_is_floor * front_adj_to_gs)
+
+    # Is agent adjacent to green square?
+    dist_agent_gs_raw = jnp.abs(agent_y - gs_y) + jnp.abs(agent_x - gs_x)
+    agent_adj_gs = (dist_agent_gs_raw <= 1.0).astype(jnp.float32)
+
+    # Is agent adjacent to yellow pyramid?
+    dist_agent_yp_raw = jnp.abs(agent_y - yp_y) + jnp.abs(agent_x - yp_x)
+    agent_adj_yp = (dist_agent_yp_raw <= 1.0).astype(jnp.float32)
+
+    # Is yellow pyramid adjacent to green square? (success)
+    dist_yp_gs_raw = jnp.abs(yp_y - gs_y) + jnp.abs(yp_x - gs_x)
+    yp_adj_gs = ((dist_yp_gs_raw <= 1.0) & (yp_count > 0)).astype(jnp.float32)
+
+    # Phase indicators
+    phase_go_pickup = ((1.0 - holding_yp) * (1.0 - yp_adj_gs))
+    phase_carry = holding_yp
+    phase_done = yp_adj_gs * (1.0 - holding_yp)
+
+    # Step progress
+    step_norm = state.step_num.astype(jnp.float32) / 80.0
+
+    # Find best adjacent cell to green square (nearest free floor cell to agent)
+    gs_y_int = gs_y.astype(jnp.int32)
+    gs_x_int = gs_x.astype(jnp.int32)
+
+    best_adj_y = gs_y
+    best_adj_x = gs_x
+    best_adj_dist = H_f + W_f + 1.0
+
+    for d in range(4):
+        dy_off = DIRECTIONS[d, 0]
+        dx_off = DIRECTIONS[d, 1]
+        ny = jnp.clip(gs_y_int + dy_off, 0, H - 1)
+        nx = jnp.clip(gs_x_int + dx_off, 0, W - 1)
+        is_floor = (state.grid[ny, nx, 0] == FLOOR)
+        d_to_adj = jnp.abs(agent_y - ny.astype(jnp.float32)) + jnp.abs(agent_x - nx.astype(jnp.float32))
+        better = is_floor & (d_to_adj < best_adj_dist)
+        best_adj_y = jnp.where(better, ny.astype(jnp.float32), best_adj_y)
+        best_adj_x = jnp.where(better, nx.astype(jnp.float32), best_adj_x)
+        best_adj_dist = jnp.where(better, d_to_adj, best_adj_dist)
+
+    norm_best_adj_y = best_adj_y / (H_f - 1)
+    norm_best_adj_x = best_adj_x / (W_f - 1)
+    rel_agent_best_adj_y = (best_adj_y - agent_y) / H_f
+    rel_agent_best_adj_x = (best_adj_x - agent_x) / W_f
+    dist_agent_best_adj = (jnp.abs(agent_y - best_adj_y) + jnp.abs(agent_x - best_adj_x)) / (H_f + W_f)
+
+    # All 4 adjacent cells to green square - their distances to agent (for richer signal)
+    adj_info = []
+    for d in range(4):
+        dy_off = DIRECTIONS[d, 0]
+        dx_off = DIRECTIONS[d, 1]
+        ny = jnp.clip(gs_y_int + dy_off, 0, H - 1)
+        nx = jnp.clip(gs_x_int + dx_off, 0, W - 1)
+        is_floor = (state.grid[ny, nx, 0] == FLOOR).astype(jnp.float32)
+        d_to_adj = (jnp.abs(agent_y - ny.astype(jnp.float32)) + jnp.abs(agent_x - nx.astype(jnp.float32))) / (H_f + W_f)
+        adj_info.extend([is_floor, d_to_adj])
+
+    # Local grid view around agent (5x5 neighborhood)
+    ay = state.agent.position[0].astype(jnp.int32)
+    ax = state.agent.position[1].astype(jnp.int32)
+    local_obs = []
+    for dy_off in range(-2, 3):
+        for dx_off in range(-2, 3):
+            ny = jnp.clip(ay + dy_off, 0, H - 1)
+            nx = jnp.clip(ax + dx_off, 0, W - 1)
+            tid = state.grid[ny, nx, 0].astype(jnp.float32) / 12.0
+            tcol = state.grid[ny, nx, 1].astype(jnp.float32) / 11.0
+            local_obs.extend([tid, tcol])
+
+    # Additional useful features
+    front_dist_to_gs_norm = front_dist_to_gs / (H_f + W_f)
+    # Is the agent in a position where PUTDOWN would succeed?
+    ready_to_succeed = (holding_yp * front_is_floor * front_adj_to_gs)
+    # Facing the green square directly
+    facing_gs = front_is_gs
+
+    obs = jnp.array([
+        norm_agent_y, norm_agent_x,
+        dir_oh[0], dir_oh[1], dir_oh[2], dir_oh[3],
+        holding_yp, pocket_empty,
+        norm_yp_y, norm_yp_x, yp_on_grid,
+        norm_gs_y, norm_gs_x,
+        rel_agent_yp_y, rel_agent_yp_x,
+        rel_agent_gs_y, rel_agent_gs_x,
+        rel_yp_gs_y, rel_yp_gs_x,
+        dist_agent_yp, dist_agent_gs, dist_yp_gs,
+        front_tile_id, front_tile_color,
+        front_is_yp, front_is_gs, front_is_floor,
+        front_adj_to_gs, front_ideal_putdown,
+        front_dist_to_gs_norm,
+        agent_adj_gs, agent_adj_yp,
+        yp_adj_gs,
+        phase_go_pickup, phase_carry, phase_done,
+        step_norm,
+        norm_best_adj_y, norm_best_adj_x,
+        rel_agent_best_adj_y, rel_agent_best_adj_x,
+        dist_agent_best_adj,
+        facing_gs,
+        ready_to_succeed,
+        *adj_info,
+        *local_obs,
+    ], dtype=jnp.float32)
+
+    return obs
+
+
+def compute_reward(state, action, next_state):
+    H, W = state.grid.shape[:2]
+    H_f = jnp.float32(H)
+    W_f = jnp.float32(W)
+    max_dist = H_f + W_f
+
+    ys = jnp.arange(H)
+    xs = jnp.arange(W)
+    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
+
+    # Green square position (stable - doesn't move)
+    gs_mask = (state.grid[:, :, 0] == SQUARE) & (state.grid[:, :, 1] == GREEN)
+    gs_count = jnp.sum(gs_mask).astype(jnp.float32)
+    gs_y = jnp.sum(yy * gs_mask).astype(jnp.float32) / jnp.maximum(gs_count, 1.0)
+    gs_x = jnp.sum(xx * gs_mask).astype(jnp.float32) / jnp.maximum(gs_count, 1.0)
+
+    # Yellow pyramid - current state
+    yp_mask_cur = (state.grid[:, :, 0] == PYRAMID) & (state.grid[:, :, 1] == YELLOW)
+    yp_count_cur = jnp.sum(yp_mask_cur).astype(jnp.float32)
+    yp_y_cur = jnp.sum(yy * yp_mask_cur).astype(jnp.float32) / jnp.maximum(yp_count_cur, 1.0)
+    yp_x_cur = jnp.sum(xx * yp_mask_cur).astype(jnp.float32) / jnp.maximum(yp_count_cur, 1.0)
+
+    # Yellow pyramid - next state
+    yp_mask_next = (next_state.grid[:, :, 0] == PYRAMID) & (next_state.grid[:, :, 1] == YELLOW)
+    yp_count_next = jnp.sum(yp_mask_next).astype(jnp.float32)
+    yp_y_next = jnp.sum(yy * yp_mask_next).astype(jnp.float32) / jnp.maximum(yp_count_next, 1.0)
+    yp_x_next = jnp.sum(xx * yp_mask_next).astype(jnp.float32) / jnp.maximum(yp_count_next, 1.0)
+
+    # Agent positions
+    agent_y_cur = state.agent.position[0].astype(jnp.float32)
+    agent_x_cur = state.agent.position[1].astype(jnp.float32)
+    agent_y_next = next_state.agent.position[0].astype(jnp.float32)
+    agent_x_next = next_state.agent.position[1].astype(jnp.float32)
+
+    # Holding states
+    holding_cur = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)
+    holding_next = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)
+    just_picked_up = (~holding_cur) & holding_next
+    just_put_down = holding_cur & (~holding_next)
+
+    # Success condition: pyramid on grid, adjacent (manhattan<=1) to green square
+    dist_yp_gs_cur = jnp.abs(yp_y_cur - gs_y) + jnp.abs(yp_x_cur - gs_x)
+    dist_yp_gs_next = jnp.abs(yp_y_next - gs_y) + jnp.abs(yp_x_next - gs_x)
+
+    success_cur = (dist_yp_gs_cur <= 1.0) & (yp_count_cur > 0) & (gs_count > 0)
+    success_next = (dist_yp_gs_next <= 1.0) & (yp_count_next > 0) & (gs_count > 0)
+    just_succeeded = (~success_cur) & success_next
+
+    # 1. Large success reward
+    reward_success = jax.lax.select(just_succeeded, 10.0, 0.0)
+
+    # 2. Milestone: pick up pyramid
+    reward_pickup = jax.lax.select(just_picked_up, 2.0, 0.0)
+
+    # 3. Phase 1 shaping: when NOT holding, approach yellow pyramid
+    dist_to_yp_cur = jnp.abs(agent_y_cur - yp_y_cur) + jnp.abs(agent_x_cur - yp_x_cur)
+    dist_to_yp_next = jnp.abs(agent_y_next - yp_y_cur) + jnp.abs(agent_x_next - yp_x_cur)
+    delta_to_yp = (dist_to_yp_cur - dist_to_yp_next) / max_dist
+    reward_approach_yp = jnp.where(
+        (~holding_cur) & (~success_cur) & (yp_count_cur > 0),
+        delta_to_yp * 2.0,
+        0.0
+    )
+
+    # 4. Phase 2 shaping: when holding, approach green square
+    dist_to_gs_cur = jnp.abs(agent_y_cur - gs_y) + jnp.abs(agent_x_cur - gs_x)
+    dist_to_gs_next = jnp.abs(agent_y_next - gs_y) + jnp.abs(agent_x_next - gs_x)
+    delta_to_gs = (dist_to_gs_cur - dist_to_gs_next) / max_dist
+    reward_approach_gs = jnp.where(
+        holding_cur & (~success_cur),
+        delta_to_gs * 3.0,
+        0.0
+    )
+
+    # 5. Penalty for putting down pyramid NOT adjacent to green square
+    putdown_penalty = jnp.where(
+        just_put_down & (~success_next),
+        -1.5,
+        0.0
+    )
+
+    # Bonus for putting down when it achieves success
+    putdown_bonus = jnp.where(
+        just_put_down & success_next,
+        3.0,
+        0.0
+    )
+
+    # 6. Continuous reward for being in success state
+    reward_maintain = jax.lax.select(success_next, 0.2, 0.0)
+
+    # 7. Bonus for becoming adjacent to green square while holding
+    agent_adj_gs_cur = (dist_to_gs_cur <= 1.0)
+    agent_adj_gs_next = (dist_to_gs_next <= 1.0)
+    just_became_adj_gs = holding_cur & (~agent_adj_gs_cur) & agent_adj_gs_next
+    reward_adj_gs = jax.lax.select(just_became_adj_gs, 2.0, 0.0)
+
+    # 8. Continuous bonus for holding and being adjacent to green square
+    reward_holding_adj = jnp.where(
+        holding_next & agent_adj_gs_next & (~success_next),
+        0.3,
+        0.0
+    )
+
+    # 9. Reward for front tile being adjacent to green square when holding
+    # This guides the agent to face a good putdown location
+    dy_front = DIRECTIONS[next_state.agent.direction, 0]
+    dx_front = DIRECTIONS[next_state.agent.direction, 1]
+    front_y_next = jnp.clip(next_state.agent.position[0].astype(jnp.int32) + dy_front, 0, H - 1)
+    front_x_next = jnp.clip(next_state.agent.position[1].astype(jnp.int32) + dx_front, 0, W - 1)
+    front_is_floor_next = (next_state.grid[front_y_next, front_x_next, 0] == FLOOR)
+    front_dist_to_gs_next = jnp.abs(front_y_next.astype(jnp.float32) - gs_y) + jnp.abs(front_x_next.astype(jnp.float32) - gs_x)
+    front_adj_gs_next = (front_dist_to_gs_next <= 1.0)
+
+    reward_ready_putdown = jnp.where(
+        holding_next & front_is_floor_next & front_adj_gs_next & (~success_next),
+        0.5,
+        0.0
+    )
+
+    # 10. Potential-based shaping using pyramid-to-gs distance when on grid
+    yp_on_grid_cur = (yp_count_cur > 0) & (~holding_cur)
+    yp_on_grid_next = (yp_count_next > 0) & (~holding_next)
+    phi_yp_cur = -dist_yp_gs_cur / max_dist
+    phi_yp_next = -dist_yp_gs_next / max_dist
+    potential_yp_gs = jnp.where(
+        yp_on_grid_cur & yp_on_grid_next & (~success_cur),
+        (phi_yp_next - phi_yp_cur) * 3.0,
+        0.0
+    )
+
+    # 11. When holding, reward approaching the best adjacent cell to green square
+    gs_y_int = gs_y.astype(jnp.int32)
+    gs_x_int = gs_x.astype(jnp.int32)
+
+    best_adj_y = gs_y
+    best_adj_x = gs_x
+    best_adj_dist_cur = max_dist + 1.0
+
+    for d in range(4):
+        dy_off = DIRECTIONS[d, 0]
+        dx_off = DIRECTIONS[d, 1]
+        ny = jnp.clip(gs_y_int + dy_off, 0, H - 1)
+        nx = jnp.clip(gs_x_int + dx_off, 0, W - 1)
+        is_floor = (state.grid[ny, nx, 0] == FLOOR)
+        d_to_adj = jnp.abs(agent_y_cur - ny.astype(jnp.float32)) + jnp.abs(agent_x_cur - nx.astype(jnp.float32))
+        better = is_floor & (d_to_adj < best_adj_dist_cur)
+        best_adj_y = jnp.where(better, ny.astype(jnp.float32), best_adj_y)
+        best_adj_x = jnp.where(better, nx.astype(jnp.float32), best_adj_x)
+        best_adj_dist_cur = jnp.where(better, d_to_adj, best_adj_dist_cur)
+
+    dist_to_best_adj_cur = jnp.abs(agent_y_cur - best_adj_y) + jnp.abs(agent_x_cur - best_adj_x)
+    dist_to_best_adj_next = jnp.abs(agent_y_next - best_adj_y) + jnp.abs(agent_x_next - best_adj_x)
+    delta_to_best_adj = (dist_to_best_adj_cur - dist_to_best_adj_next) / max_dist
+
+    reward_approach_best_adj = jnp.where(
+        holding_cur & (~success_cur) & (~agent_adj_gs_cur),
+        delta_to_best_adj * 2.0,
+        0.0
+    )
+
+    # 12. Extra: when holding and at best adj cell, milestone reward
+    at_best_adj_cur = (dist_to_best_adj_cur <= 0.5)
+    at_best_adj_next = (dist_to_best_adj_next <= 0.5)
+    just_reached_best_adj = holding_cur & (~at_best_adj_cur) & at_best_adj_next
+    reward_reached_best_adj = jax.lax.select(just_reached_best_adj, 1.0, 0.0)
+
+    # 13. Strong signal: when holding + adjacent to gs + front is floor adjacent to gs
+    # This is the "perfect putdown position" - give strong continuous signal
+    reward_perfect_position = jnp.where(
+        holding_next & agent_adj_gs_next & front_is_floor_next & front_adj_gs_next & (~success_next),
+        0.5,
+        0.0
+    )
+
+    total = (reward_success + reward_pickup +
+             reward_approach_yp + reward_approach_gs +
+             putdown_penalty + putdown_bonus +
+             reward_maintain + reward_adj_gs + reward_holding_adj +
+             reward_ready_putdown + potential_yp_gs +
+             reward_approach_best_adj + reward_reached_best_adj +
+             reward_perfect_position)
+
+    return total.astype(jnp.float32)
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Trace events: 26
+2026-02-22 08:42:03 INFO mdp_discovery.controller:   Improvements: 18 (69%)
+2026-02-22 08:42:03 INFO mdp_discovery.controller: ============================================================

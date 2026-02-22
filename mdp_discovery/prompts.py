@@ -103,14 +103,14 @@ agent can learn the task.
 
 Observation design:
 - The observation must give the agent ALL the information it needs to learn \
-the task. Think carefully about what the agent needs to perceive — positions, \
-spatial layout, object states, progress indicators, etc.
-- Include raw spatial or structural information when the task involves \
-navigating around obstacles, interacting with objects, or any situation where \
-the environment layout matters.
+the task. Think carefully about what the agent needs to perceive from the \
+environment state.
+- Include any relational or structural information that is relevant to the task.
 - Normalize features to similar ranges (e.g., [0, 1] or [-1, 1]).
 - The observation can be anywhere from a handful of features to hundreds — \
 use whatever the task requires. The max is 512 elements.
+- Compute everything from the current state. Do NOT hardcode any environment-\
+specific constants — the environment is randomized across episodes.
 
 Reward design:
 - The reward should provide a learning signal that guides the agent toward \
@@ -120,6 +120,17 @@ where the goal is reached), NOT on reward magnitude.
 rewarding progress toward them would help learning.
 - The reward can use any structure — dense shaping, sparse bonuses, \
 milestone rewards, or combinations. Use what fits the task.
+
+Generalization:
+- The environment is evaluated across RANDOMIZED initial conditions. Your \
+interface must generalize across all of them, not just one specific setup.
+- Do NOT hardcode environment-specific constants. Compute everything from \
+the current state.
+- The reward must reflect ACTUAL task progress, not a proxy that happens to \
+correlate in some configurations. If the reward can be maximized without \
+completing the task, the agent will learn to exploit that shortcut.
+- Test your reasoning: would this observation and reward still make sense if \
+the initial conditions were completely different?
 
 ## Library Reference
 
@@ -479,8 +490,9 @@ class PromptBuilder:
         return (
             "**Observation design:**\n"
             "- Decide what information from the environment state the agent needs "
-            "to solve this task. Consider positions, spatial structure, object states, "
-            "and any other relevant features.\n"
+            "to solve this task.\n"
+            "- Compute all features from the current state — do NOT hardcode "
+            "any environment-specific constants.\n"
             "- Refer to the library reference above for all available state fields.\n\n"
         )
 
@@ -493,7 +505,9 @@ class PromptBuilder:
             "- Design a reward signal that will help the agent learn the task. "
             "Consider what milestones, progress measures, or completion signals "
             "are appropriate for this task.\n"
-            "- The agent is evaluated on task success rate, not reward magnitude.\n\n"
+            "- The agent is evaluated on task success rate, not reward magnitude.\n"
+            "- AVOID reward hacking: do not reward proxies that can be maximized "
+            "without actually completing the task. The reward must track real progress.\n\n"
         )
 
     def _get_function_instructions(self) -> str:
@@ -523,6 +537,15 @@ class PromptBuilder:
             lines.append("- get_observation must return a 1D jnp.float32 array (max 512 elements)")
         if self.evolution_mode != "obs_only":
             lines.append("- compute_reward must return a scalar jnp.float32")
+        lines.append(
+            "- Do NOT hardcode environment-specific constants. "
+            "The environment is randomized — the interface must generalize"
+        )
+        if self.evolution_mode != "obs_only":
+            lines.append(
+                "- The reward must reflect actual task progress. Do not reward proxies "
+                "that can be maximized without completing the task (reward hacking)"
+            )
         return "\n".join(lines)
 
     def build_prompt(
@@ -845,6 +868,14 @@ class PromptBuilder:
                     "The current interface is not working — try something "
                     "structurally different."
                 )
+
+        # Generalization reminder
+        parts.append(
+            "- IMPORTANT: The environment is randomized across episodes. "
+            "Ensure the interface does not rely on hardcoded constants. "
+            "The reward must reflect real task completion, not a proxy "
+            "that can be maximized without solving the task."
+        )
 
         analysis = "\n".join(parts)
         return SECTION_TRAINING_FEEDBACK.format(analysis=analysis)

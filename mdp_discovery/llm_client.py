@@ -104,9 +104,11 @@ class LLMClient:
         """Return a thread-local boto3 Bedrock client (created lazily)."""
         c = getattr(self._local, "client", None)
         if c is None:
+            from botocore.config import Config as BotoConfig
             c = boto3.client(
                 "bedrock-runtime",
                 region_name=self.config.region_name,
+                config=BotoConfig(read_timeout=300),
             )
             self._local.client = c
         return c

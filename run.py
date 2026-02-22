@@ -94,6 +94,8 @@ def parse_args():
     parser.add_argument("--num-seeds", type=int, default=None, help="Number of seeds for multi-seed averaging.")
     parser.add_argument("--no-cascade", action="store_true", help="Disable cascade (go straight to full training).")
     parser.add_argument("--log-level", type=str, default=None, help="Logging level (DEBUG, INFO, WARNING).")
+    parser.add_argument("--run-dir", type=str, default=None, help="Explicit run directory (overrides auto-generated).")
+    parser.add_argument("--seed", type=int, default=None, help="Random seed override for training and evolution.")
 
     return parser.parse_args()
 
@@ -182,12 +184,15 @@ def main():
         config.evolution_mode = args.mode
     if args.context:
         config.environment.context_file = args.context
+    if args.seed is not None:
+        config.random_seed = args.seed
+        config.training.seed = args.seed
 
     # Resolve task: CLI arg overrides config
     task_description = args.task  # may be None; controller falls back to config
 
     # Auto-generate checkpoint dir if not specified
-    checkpoint_dir = args.checkpoint_dir
+    checkpoint_dir = args.run_dir or args.checkpoint_dir
     if checkpoint_dir is None and args.resume is None:
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         env_short = config.environment.env_id.replace("MiniGrid-", "").replace("XLand-MiniGrid-", "")
@@ -242,8 +247,10 @@ def main():
     # Print final results
     best = controller.db.get_best_program()
     print()
+    wall_time = time.time() - controller.start_time
+    est_cost = (controller.total_input_tokens * 3 + controller.total_output_tokens * 15) / 1_000_000
     print(f"{'=' * 60}")
-    print(f"Evolution complete — {controller.iteration} iterations in {controller.total_eval_time:.0f}s")
+    print(f"Evolution complete — {controller.iteration} iterations in {wall_time:.0f}s")
     print(f"{'=' * 60}")
     if best:
         best_file = Path(run_dir) / "best_interface.py"
@@ -252,6 +259,11 @@ def main():
         print(f"  Best program:  {best_file}")
     else:
         print("  No successful programs found.")
+    print(f"  Wall time:     {wall_time:.1f}s ({wall_time/60:.1f}m)")
+    print(f"  Eval time:     {controller.total_eval_time:.1f}s")
+    print(f"  Input tokens:  {controller.total_input_tokens:,}")
+    print(f"  Output tokens: {controller.total_output_tokens:,}")
+    print(f"  Est. LLM cost: ${est_cost:.2f}")
     print(f"  Full logs:     {log_file}")
     print(f"  Checkpoint:    {run_dir}")
     print(f"{'=' * 60}")

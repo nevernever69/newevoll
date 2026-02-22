@@ -1,0 +1,77 @@
+max_iterations: 500
+candidates_per_iteration: 1
+checkpoint_interval: 50
+log_level: "INFO"
+random_seed: 42
+
+environment:
+  env_id: "XLand-MiniGrid-R4-13x13"
+  ruleset_file: "tasks/hard_rule_chain.py"
+  view_size: 7
+
+training:
+  num_envs: 8192
+  num_steps: 16
+  update_epochs: 1
+  num_minibatches: 16
+  total_timesteps: 3000000
+  total_timesteps_full: 5000000
+  lr: 0.001
+  clip_eps: 0.2
+  gamma: 0.99
+  gae_lambda: 0.95
+  ent_coef: 0.01
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  eval_episodes: 80
+  eval_episodes_for_fitness: 50
+  eval_max_steps: 400
+  seed: 42
+  num_seeds: 3
+  enable_bf16: false
+  hidden_dim: 256
+  rnn_hidden_dim: 512
+  rnn_num_layers: 1
+  head_hidden_dim: 256
+  action_emb_dim: 16
+
+mdp_interface:
+  max_obs_dim: 512
+  include_action_transform: false
+
+crash_filter:
+  stage0_timeout: 5
+  stage1_timeout: 10
+  stage2_timeout: 30
+  retry_on_crash: true
+  max_crash_retries: 1
+
+evaluator:
+  timeout: 900
+  max_retries: 2
+  cascade_evaluation: true
+  cascade_thresholds: [0.01]
+
+llm:
+  region_name: "us-east-1"
+  model_name: "claude-4-sonnet"
+  temperature: 0.7
+  max_tokens: 16384
+  retries: 3
+  retry_delay: 1.0
+
+database:
+  population_size: 200
+  archive_size: 50
+  num_islands: 3
+  feature_dimensions: ["reward_complexity", "obs_dimensionality"]
+  feature_bins: 5
+  migration_interval: 20
+  migration_rate: 0.1
+
+prompt:
+  num_top_programs: 3
+  num_diverse_programs: 2
+  num_failure_examples: 2
+  include_artifacts: true
+  max_artifact_bytes: 20480

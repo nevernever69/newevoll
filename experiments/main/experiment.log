@@ -1,0 +1,58 @@
+============================================================
+Main Experiment — Sun Feb 22 04:49:50 UTC 2026
+  Iterations: 30
+  Candidates: 2 per iteration
+  Training seeds: 3 per candidate
+  Model: claude-sonnet-4-6
+============================================================
+
+>>> EASY: Pick up the blue pyramid (9x9)
+[04:49:50] easy starting
+
+============================================================
+Continuing Experiment (Medium + Hard) — Sun Feb 22 06:01:53 UTC 2026
+  Iterations: 30
+  Candidates: 2 per iteration
+  Training seeds: 3 per candidate
+  Model: claude-sonnet-4-6
+  Skipping: easy (already complete)
+============================================================
+
+>>> MEDIUM: Place yellow pyramid adjacent to green square (9x9)
+[06:01:53] medium starting
+
+============================================================
+Continuing Experiment (Medium + Hard) — Sun Feb 22 06:27:53 UTC 2026
+  Iterations: 30
+  Candidates: 2 per iteration
+  Training seeds: 3 per candidate
+  Model: claude-sonnet-4-6
+  Skipping: easy (already complete)
+============================================================
+
+>>> MEDIUM: Place yellow pyramid adjacent to green square (9x9)
+[06:27:53] medium starting
+
+============================================================
+Continuing Experiment (Medium + Hard) — Sun Feb 22 06:36:02 UTC 2026
+  Iterations: 30
+  Candidates: 2 per iteration
+  Training seeds: 3 per candidate
+  Model: claude-sonnet-4-6
+  Skipping: easy (already complete)
+============================================================
+
+>>> MEDIUM: Place yellow pyramid adjacent to green square (9x9)
+[06:36:02] medium starting
+
+============================================================
+Continuing Experiment (Hard only) — Sun Feb 22 08:54:04 UTC 2026
+  Iterations: 30
+  Candidates: 2 per iteration
+  Training seeds: 3 per candidate
+  Model: claude-sonnet-4-6
+  Skipping: easy, medium (already complete)
+============================================================
+
+>>> HARD: Rule chain + TileNearGoal (13x13, 4 rooms)
+[08:54:04] hard starting

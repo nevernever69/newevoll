@@ -103,6 +103,8 @@ class EvolutionController:
         # Tracking
         self.iteration = 0
         self.total_llm_tokens = 0
+        self.total_input_tokens = 0
+        self.total_output_tokens = 0
         self.total_eval_time = 0.0
         self.start_time = 0.0
 
@@ -300,6 +302,8 @@ class EvolutionController:
                 continue
 
             self.total_llm_tokens += response.input_tokens + response.output_tokens
+            self.total_input_tokens += response.input_tokens
+            self.total_output_tokens += response.output_tokens
 
             if result is None:
                 logger.warning(
@@ -464,6 +468,8 @@ class EvolutionController:
                 continue
 
             self.total_llm_tokens += response.input_tokens + response.output_tokens
+            self.total_input_tokens += response.input_tokens
+            self.total_output_tokens += response.output_tokens
 
             if result is None:
                 logger.warning(
@@ -574,6 +580,11 @@ class EvolutionController:
         logger.info("  Total programs: %d", stats["total_programs"])
         logger.info("  Total eval time: %.1fs", self.total_eval_time)
         logger.info("  Total LLM tokens: %d", self.total_llm_tokens)
+        logger.info("  Input tokens: %d", self.total_input_tokens)
+        logger.info("  Output tokens: %d", self.total_output_tokens)
+        # Cost estimate (Claude Sonnet pricing: $3/M input, $15/M output)
+        est_cost = (self.total_input_tokens * 3 + self.total_output_tokens * 15) / 1_000_000
+        logger.info("  Est. LLM cost: $%.2f", est_cost)
         logger.info("  Recent failures: %d", stats["recent_failures"])
         logger.info("  Grid cells filled: %s", stats["grid_cells_filled"])
         logger.info("  Island sizes: %s", stats["island_sizes"])
@@ -604,10 +615,16 @@ class EvolutionController:
         self.db.save(str(path / "database"))
 
         # Save controller metadata
+        elapsed = time.time() - self.start_time if self.start_time else 0.0
+        est_cost = (self.total_input_tokens * 3 + self.total_output_tokens * 15) / 1_000_000
         meta = {
             "iteration": self.iteration,
             "total_llm_tokens": self.total_llm_tokens,
+            "total_input_tokens": self.total_input_tokens,
+            "total_output_tokens": self.total_output_tokens,
+            "est_llm_cost_usd": round(est_cost, 4),
             "total_eval_time": self.total_eval_time,
+            "wall_time": round(elapsed, 1),
             "task_description": self.task_description,
             "evolution_mode": self.config.evolution_mode,
             "config": self.config.to_dict(),
@@ -659,6 +676,8 @@ class EvolutionController:
                 meta = json.load(f)
             self.iteration = meta.get("iteration", 0)
             self.total_llm_tokens = meta.get("total_llm_tokens", 0)
+            self.total_input_tokens = meta.get("total_input_tokens", 0)
+            self.total_output_tokens = meta.get("total_output_tokens", 0)
             self.total_eval_time = meta.get("total_eval_time", 0.0)
 
         logger.info(
