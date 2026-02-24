@@ -1,0 +1,71 @@
+{
+  "best_program_id": "68b208ba-f84c-467e-a530-26b3d6307ff4",
+  "current_island": 1,
+  "island_generations": [
+    12,
+    9,
+    9
+  ],
+  "last_migration_gen": 0,
+  "total_added": 30,
+  "archive": [
+    "0526cc2d-d009-4d1a-97bc-f25e364c9d67",
+    "678ea3f6-959c-4214-94b1-af6860eaa88c",
+    "a100ad4e-ba5b-48f5-926c-353a461b16eb",
+    "e6abfbf9-1c83-4651-8023-77bfb55c6950",
+    "16b73c7c-0025-4bf4-a7d8-43d5e7376da8",
+    "265ca9ea-9c83-493d-9fcd-bb2d2d74c0f7",
+    "911cb800-9967-4f52-bc45-522338995ba3",
+    "fcbd1a83-ec99-4c91-b2fa-75053aa80fae",
+    "ffbf5252-5a82-49b0-a431-175623a25179",
+    "ac36e11e-fa3d-4760-8f1a-f102296ffd05",
+    "67c0c7fe-f1b1-418c-a231-63e2289b56f0",
+    "68b208ba-f84c-467e-a530-26b3d6307ff4",
+    "5896b884-ba18-4d57-8953-b07cf9d10d68"
+  ],
+  "islands": [
+    [
+      "f5a79cc6-1560-410d-983e-eefeb78f7505",
+      "605f7211-83ba-4dec-95f1-2060dd3ca704",
+      "c69607c7-0106-45c3-9eb9-7dc16d067fdc",
+      "560b2080-111c-467a-b130-385113e2902a",
+      "6216188c-f5ca-4530-a907-f85afe16d70a",
+      "bb64ff98-4f64-4cc5-afd7-091679305993",
+      "664ab605-4086-4bbb-bb73-8fdf25987481",
+      "b8c9d90d-3f3d-4b6a-973c-837a5b66db32",
+      "0d06847e-acd9-4034-96c7-2cb73b276614",
+      "c065f5eb-51fd-4256-8166-ed5dd9edfb44",
+      "a45f3db9-0971-4114-82f5-f8fe94270b5c",
+      "5896b884-ba18-4d57-8953-b07cf9d10d68",
+      "92514149-c1ac-4aac-855b-98b8330235c7",
+      "f437bb30-7191-468f-acd4-a25b7a5b9d98",
+      "188d4ecf-5e9f-4bc0-a2a9-317e1792856a",
+      "8fe643c5-089d-4a9f-a2fd-b36547c6978b",
+      "91a6d6bd-5713-4c99-b6e8-e2ee01c74817",
+      "0526cc2d-d009-4d1a-97bc-f25e364c9d67",
+      "6edbcdf5-36bc-41a6-af54-d93cc28dee65",
+      "68b208ba-f84c-467e-a530-26b3d6307ff4"
+    ],
+    [],
+    []
+  ],
+  "grid": [
+    {
+      "2-2": "0526cc2d-d009-4d1a-97bc-f25e364c9d67",
+      "4-2": "68b208ba-f84c-467e-a530-26b3d6307ff4",
+      "3-2": "5896b884-ba18-4d57-8953-b07cf9d10d68"
+    },
+    {},
+    {}
+  ],
+  "feature_stats": {
+    "reward_complexity": {
+      "min": 609.0,
+      "max": 1060.0
+    },
+    "obs_dimensionality": {
+      "min": 171.0,
+      "max": 171.0
+    }
+  }
+}

@@ -1,0 +1,524 @@
+2026-02-22 17:56:21 INFO mdp_discovery.llm_client: LLMClient initialized: model=claude-sonnet-4-6 region=us-east-1
+2026-02-22 17:56:21 INFO mdp_discovery.llm_client: LLMEnsemble initialized: claude-sonnet-4-6 (w=1.00)
+2026-02-22 17:56:21 INFO mdp_discovery.controller: Starting evolution: 30 iterations, 2 candidates/batch, env=XLand-MiniGrid-R1-9x9, model=claude-sonnet-4-6, mode=obs_only
+2026-02-22 17:56:21 INFO mdp_discovery.controller: [Iter 1] Submitting batch of 2 candidate(s)...
+2026-02-22 17:56:34 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 17:56:35 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 17:56:35 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=183)
+2026-02-22 17:56:35 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 17:56:35 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=38)
+2026-02-22 17:56:35 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 17:57:59 INFO mdp_discovery.evaluator: Short training done: success=22%, length=176.7, time=61.1s
+2026-02-22 17:57:59 INFO mdp_discovery.evaluator: Passed threshold (22% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 17:58:04 INFO mdp_discovery.evaluator: Short training done: success=22%, length=174.0, time=64.2s
+2026-02-22 17:58:04 INFO mdp_discovery.evaluator: Passed threshold (22% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 17:58:37 INFO mdp_discovery.evaluator:   Seed 1/3: success=44% length=124.8
+2026-02-22 17:58:43 INFO mdp_discovery.evaluator:   Seed 1/3: success=74% length=76.3
+2026-02-22 17:59:17 INFO mdp_discovery.evaluator:   Seed 2/3: success=40% length=132.5
+2026-02-22 17:59:23 INFO mdp_discovery.evaluator:   Seed 2/3: success=46% length=108.8
+2026-02-22 17:59:56 INFO mdp_discovery.evaluator:   Seed 3/3: success=42% length=108.3
+2026-02-22 17:59:56 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=42% length=121.9
+2026-02-22 17:59:56 INFO mdp_discovery.evaluator: Full training done: success=42%, length=121.9, time=81.6s
+2026-02-22 17:59:56 DEBUG mdp_discovery.database: Added program 6e47c314 to island 0 cell 2-2 (fitness=0.4200)
+2026-02-22 17:59:56 INFO mdp_discovery.controller: [Iter 1] full_train success=42% length=121.9 | best=42% | 215.4s *** NEW BEST ***
+2026-02-22 18:00:02 INFO mdp_discovery.evaluator:   Seed 3/3: success=70% length=62.4
+2026-02-22 18:00:02 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=63% length=82.5
+2026-02-22 18:00:02 INFO mdp_discovery.evaluator: Full training done: success=63%, length=82.5, time=87.8s
+2026-02-22 18:00:02 DEBUG mdp_discovery.database: Added program c64d415a to island 0 cell 2-0 (fitness=0.6333)
+2026-02-22 18:00:02 INFO mdp_discovery.controller: [Iter 2] full_train success=63% length=82.5 | best=63% | 220.9s *** NEW BEST ***
+2026-02-22 18:00:02 INFO mdp_discovery.controller: [Iter 3] Submitting batch of 2 candidate(s)...
+2026-02-22 18:00:15 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:00:16 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=99)
+2026-02-22 18:00:16 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:00:19 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:00:26 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=101)
+2026-02-22 18:00:26 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:01:15 INFO mdp_discovery.evaluator: Short training done: success=18%, length=176.0, time=42.4s
+2026-02-22 18:01:15 INFO mdp_discovery.evaluator: Passed threshold (18% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:01:25 INFO mdp_discovery.evaluator: Short training done: success=14%, length=180.3, time=41.5s
+2026-02-22 18:01:25 INFO mdp_discovery.evaluator: Passed threshold (14% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:02:12 INFO mdp_discovery.evaluator:   Seed 1/3: success=92% length=37.7
+2026-02-22 18:02:21 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=26.8
+2026-02-22 18:03:08 INFO mdp_discovery.evaluator:   Seed 2/3: success=94% length=28.1
+2026-02-22 18:03:17 INFO mdp_discovery.evaluator:   Seed 2/3: success=88% length=15.7
+2026-02-22 18:04:03 INFO mdp_discovery.evaluator:   Seed 3/3: success=92% length=22.5
+2026-02-22 18:04:03 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=93% length=29.5
+2026-02-22 18:04:03 INFO mdp_discovery.evaluator: Full training done: success=93%, length=29.5, time=117.2s
+2026-02-22 18:04:03 DEBUG mdp_discovery.database: Added program a38851a2 to island 0 cell 2-2 (fitness=0.9267)
+2026-02-22 18:04:03 INFO mdp_discovery.controller: [Iter 3] full_train success=93% length=29.5 | best=93% | 241.6s *** NEW BEST ***
+2026-02-22 18:04:12 INFO mdp_discovery.evaluator:   Seed 3/3: success=100% length=24.4
+2026-02-22 18:04:12 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=95% length=22.3
+2026-02-22 18:04:12 INFO mdp_discovery.evaluator: Full training done: success=95%, length=22.3, time=117.4s
+2026-02-22 18:04:12 DEBUG mdp_discovery.database: Added program 3a8c0fa4 to island 0 cell 2-2 (fitness=0.9533)
+2026-02-22 18:04:12 INFO mdp_discovery.controller: [Iter 4] full_train success=95% length=22.3 | best=95% | 249.8s *** NEW BEST ***
+2026-02-22 18:04:12 INFO mdp_discovery.controller: [Iter 5] Submitting batch of 2 candidate(s)...
+2026-02-22 18:04:29 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:04:29 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:04:30 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=176)
+2026-02-22 18:04:30 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:04:30 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=176)
+2026-02-22 18:04:30 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:06:10 INFO mdp_discovery.evaluator: Short training done: success=16%, length=168.3, time=69.2s
+2026-02-22 18:06:10 INFO mdp_discovery.evaluator: Passed threshold (16% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:06:10 INFO mdp_discovery.evaluator: Short training done: success=14%, length=160.8, time=69.2s
+2026-02-22 18:06:10 INFO mdp_discovery.evaluator: Passed threshold (14% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:07:24 INFO mdp_discovery.evaluator:   Seed 1/3: success=96% length=33.4
+2026-02-22 18:07:39 INFO mdp_discovery.evaluator:   Seed 1/3: success=96% length=28.5
+2026-02-22 18:08:40 INFO mdp_discovery.evaluator:   Seed 2/3: success=94% length=22.2
+2026-02-22 18:08:56 INFO mdp_discovery.evaluator:   Seed 2/3: success=92% length=22.2
+2026-02-22 18:09:57 INFO mdp_discovery.evaluator:   Seed 3/3: success=100% length=21.1
+2026-02-22 18:09:57 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=97% length=25.6
+2026-02-22 18:09:57 INFO mdp_discovery.evaluator: Full training done: success=97%, length=25.6, time=155.7s
+2026-02-22 18:09:57 DEBUG mdp_discovery.database: Added program 3a699c6e to island 0 cell 2-4 (fitness=0.9667)
+2026-02-22 18:09:57 INFO mdp_discovery.controller: [Iter 5] full_train success=97% length=25.6 | best=97% | 345.7s *** NEW BEST ***
+2026-02-22 18:10:09 INFO mdp_discovery.evaluator:   Seed 3/3: success=96% length=27.6
+2026-02-22 18:10:09 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=95% length=26.1
+2026-02-22 18:10:09 INFO mdp_discovery.evaluator: Full training done: success=95%, length=26.1, time=154.0s
+2026-02-22 18:10:09 INFO mdp_discovery.controller: [Iter 6] full_train success=95% length=26.1 | best=97% | 357.8s
+2026-02-22 18:10:09 INFO mdp_discovery.controller: [Iter 7] Submitting batch of 2 candidate(s)...
+2026-02-22 18:10:27 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:10:27 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=178)
+2026-02-22 18:10:27 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:10:31 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:10:42 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=261)
+2026-02-22 18:10:42 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:11:49 INFO mdp_discovery.evaluator: Short training done: success=26%, length=129.8, time=55.3s
+2026-02-22 18:11:49 INFO mdp_discovery.evaluator: Passed threshold (26% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:12:03 INFO mdp_discovery.evaluator: Short training done: success=16%, length=165.2, time=55.8s
+2026-02-22 18:12:03 INFO mdp_discovery.evaluator: Passed threshold (16% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:13:08 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=24.0
+2026-02-22 18:13:22 INFO mdp_discovery.evaluator:   Seed 1/3: success=96% length=32.1
+2026-02-22 18:14:26 INFO mdp_discovery.evaluator:   Seed 2/3: success=92% length=22.5
+2026-02-22 18:14:39 INFO mdp_discovery.evaluator:   Seed 2/3: success=84% length=22.4
+2026-02-22 18:15:42 INFO mdp_discovery.evaluator:   Seed 3/3: success=96% length=27.2
+2026-02-22 18:15:42 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=95% length=24.6
+2026-02-22 18:15:42 INFO mdp_discovery.evaluator: Full training done: success=95%, length=24.6, time=157.8s
+2026-02-22 18:15:42 INFO mdp_discovery.controller: [Iter 7] full_train success=95% length=24.6 | best=97% | 332.3s
+2026-02-22 18:15:54 INFO mdp_discovery.evaluator:   Seed 3/3: success=98% length=18.5
+2026-02-22 18:15:54 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=93% length=24.3
+2026-02-22 18:15:54 INFO mdp_discovery.evaluator: Full training done: success=93%, length=24.3, time=158.2s
+2026-02-22 18:15:54 INFO mdp_discovery.controller: [Iter 8] full_train success=93% length=24.3 | best=97% | 344.6s
+2026-02-22 18:15:54 INFO mdp_discovery.controller: [Iter 9] Submitting batch of 2 candidate(s)...
+2026-02-22 18:16:08 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:16:09 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=168)
+2026-02-22 18:16:09 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:16:13 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:16:24 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=179)
+2026-02-22 18:16:24 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:17:31 INFO mdp_discovery.evaluator: Short training done: success=16%, length=162.2, time=54.4s
+2026-02-22 18:17:31 INFO mdp_discovery.evaluator: Passed threshold (16% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:17:46 INFO mdp_discovery.evaluator: Short training done: success=26%, length=159.9, time=56.5s
+2026-02-22 18:17:46 INFO mdp_discovery.evaluator: Passed threshold (26% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:18:48 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=28.7
+2026-02-22 18:19:04 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=35.2
+2026-02-22 18:20:07 INFO mdp_discovery.evaluator:   Seed 2/3: success=96% length=17.2
+2026-02-22 18:20:22 INFO mdp_discovery.evaluator:   Seed 2/3: success=90% length=23.8
+2026-02-22 18:21:25 INFO mdp_discovery.evaluator:   Seed 3/3: success=98% length=19.8
+2026-02-22 18:21:25 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=97% length=21.9
+2026-02-22 18:21:25 INFO mdp_discovery.evaluator: Full training done: success=97%, length=21.9, time=155.1s
+2026-02-22 18:21:25 DEBUG mdp_discovery.database: Added program 06a21b49 to island 0 cell 2-2 (fitness=0.9733)
+2026-02-22 18:21:25 INFO mdp_discovery.controller: [Iter 9] full_train success=97% length=21.9 | best=97% | 331.2s *** NEW BEST ***
+2026-02-22 18:21:35 INFO mdp_discovery.evaluator:   Seed 3/3: success=100% length=18.7
+2026-02-22 18:21:35 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=96% length=25.9
+2026-02-22 18:21:35 INFO mdp_discovery.evaluator: Full training done: success=96%, length=25.9, time=156.1s
+2026-02-22 18:21:35 DEBUG mdp_discovery.database: Added program c8d4a7e7 to island 0 cell 2-3 (fitness=0.9600)
+2026-02-22 18:21:35 DEBUG mdp_discovery.evolution_trace: Flushed 10 trace events to experiments/ablations/easy_obs_only/evolution_trace.jsonl
+2026-02-22 18:21:35 INFO mdp_discovery.controller: [Iter 10] full_train success=96% length=25.9 | best=97% | 340.7s
+2026-02-22 18:21:35 INFO mdp_discovery.controller: [Iter 11] Submitting batch of 2 candidate(s)...
+2026-02-22 18:21:51 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:21:52 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=178)
+2026-02-22 18:21:52 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:21:55 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:22:07 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=191)
+2026-02-22 18:22:07 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:23:12 INFO mdp_discovery.evaluator: Short training done: success=34%, length=132.8, time=55.1s
+2026-02-22 18:23:12 INFO mdp_discovery.evaluator: Passed threshold (34% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:23:25 INFO mdp_discovery.evaluator: Short training done: success=28%, length=163.7, time=54.4s
+2026-02-22 18:23:25 INFO mdp_discovery.evaluator: Passed threshold (28% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:24:34 INFO mdp_discovery.evaluator:   Seed 1/3: success=96% length=21.5
+2026-02-22 18:24:48 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=28.7
+2026-02-22 18:25:54 INFO mdp_discovery.evaluator:   Seed 2/3: success=92% length=20.9
+2026-02-22 18:26:10 INFO mdp_discovery.evaluator:   Seed 2/3: success=92% length=21.2
+2026-02-22 18:27:16 INFO mdp_discovery.evaluator:   Seed 3/3: success=96% length=25.1
+2026-02-22 18:27:16 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=95% length=22.5
+2026-02-22 18:27:16 INFO mdp_discovery.evaluator: Full training done: success=95%, length=22.5, time=159.6s
+2026-02-22 18:27:16 INFO mdp_discovery.controller: [Iter 11] full_train success=95% length=22.5 | best=97% | 340.8s
+2026-02-22 18:27:29 INFO mdp_discovery.evaluator:   Seed 3/3: success=96% length=25.9
+2026-02-22 18:27:29 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=95% length=25.3
+2026-02-22 18:27:29 INFO mdp_discovery.evaluator: Full training done: success=95%, length=25.3, time=171.0s
+2026-02-22 18:27:29 INFO mdp_discovery.controller: [Iter 12] full_train success=95% length=25.3 | best=97% | 353.9s
+2026-02-22 18:27:29 INFO mdp_discovery.controller: [Iter 13] Submitting batch of 2 candidate(s)...
+2026-02-22 18:27:46 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:27:46 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=179)
+2026-02-22 18:27:47 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:27:49 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:28:03 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=195)
+2026-02-22 18:28:03 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:29:10 INFO mdp_discovery.evaluator: Short training done: success=26%, length=159.9, time=55.6s
+2026-02-22 18:29:10 INFO mdp_discovery.evaluator: Passed threshold (26% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:29:26 INFO mdp_discovery.evaluator: Short training done: success=24%, length=157.8, time=54.0s
+2026-02-22 18:29:26 INFO mdp_discovery.evaluator: Passed threshold (24% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:30:24 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=35.2
+2026-02-22 18:30:49 INFO mdp_discovery.evaluator:   Seed 1/3: success=94% length=26.6
+2026-02-22 18:31:57 INFO mdp_discovery.evaluator:   Seed 2/3: success=90% length=23.8
+2026-02-22 18:32:08 INFO mdp_discovery.evaluator:   Seed 2/3: success=92% length=22.5
+2026-02-22 18:33:15 INFO mdp_discovery.evaluator:   Seed 3/3: success=100% length=21.6
+2026-02-22 18:33:15 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=96% length=26.8
+2026-02-22 18:33:15 INFO mdp_discovery.evaluator: Full training done: success=96%, length=26.8, time=159.3s
+2026-02-22 18:33:15 INFO mdp_discovery.controller: [Iter 13] full_train success=96% length=26.8 | best=97% | 346.4s
+2026-02-22 18:33:28 INFO mdp_discovery.evaluator:   Seed 3/3: success=96% length=19.8
+2026-02-22 18:33:28 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=94% length=23.0
+2026-02-22 18:33:28 INFO mdp_discovery.evaluator: Full training done: success=94%, length=23.0, time=171.5s
+2026-02-22 18:33:28 INFO mdp_discovery.controller: [Iter 14] full_train success=94% length=23.0 | best=97% | 359.6s
+2026-02-22 18:33:28 INFO mdp_discovery.controller: [Iter 15] Submitting batch of 2 candidate(s)...
+2026-02-22 18:33:42 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:33:43 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=168)
+2026-02-22 18:33:43 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:33:45 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:34:00 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=179)
+2026-02-22 18:34:00 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:35:02 INFO mdp_discovery.evaluator: Short training done: success=16%, length=162.2, time=53.5s
+2026-02-22 18:35:02 INFO mdp_discovery.evaluator: Passed threshold (16% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:35:17 INFO mdp_discovery.evaluator: Short training done: success=26%, length=159.9, time=50.2s
+2026-02-22 18:35:17 INFO mdp_discovery.evaluator: Passed threshold (26% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:36:21 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=28.9
+2026-02-22 18:36:32 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=35.1
+2026-02-22 18:37:37 INFO mdp_discovery.evaluator:   Seed 2/3: success=94% length=18.2
+2026-02-22 18:37:52 INFO mdp_discovery.evaluator:   Seed 2/3: success=92% length=23.4
+2026-02-22 18:38:49 INFO mdp_discovery.evaluator:   Seed 3/3: success=98% length=19.8
+2026-02-22 18:38:49 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=97% length=22.3
+2026-02-22 18:38:49 INFO mdp_discovery.evaluator: Full training done: success=97%, length=22.3, time=148.2s
+2026-02-22 18:38:49 INFO mdp_discovery.controller: [Iter 15] full_train success=97% length=22.3 | best=97% | 321.1s
+2026-02-22 18:39:12 INFO mdp_discovery.evaluator:   Seed 3/3: success=100% length=18.7
+2026-02-22 18:39:12 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=97% length=25.7
+2026-02-22 18:39:12 INFO mdp_discovery.evaluator: Full training done: success=97%, length=25.7, time=168.5s
+2026-02-22 18:39:12 DEBUG mdp_discovery.database: Added program 563c3739 to island 0 cell 2-3 (fitness=0.9667)
+2026-02-22 18:39:12 INFO mdp_discovery.controller: [Iter 16] full_train success=97% length=25.7 | best=97% | 344.1s
+2026-02-22 18:39:12 INFO mdp_discovery.controller: [Iter 17] Submitting batch of 2 candidate(s)...
+2026-02-22 18:39:31 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:39:31 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:39:31 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=181)
+2026-02-22 18:39:31 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:39:32 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=181)
+2026-02-22 18:39:32 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:41:14 INFO mdp_discovery.evaluator: Short training done: success=38%, length=131.0, time=77.5s
+2026-02-22 18:41:14 INFO mdp_discovery.evaluator: Passed threshold (38% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:41:33 INFO mdp_discovery.evaluator: Short training done: success=38%, length=131.0, time=83.4s
+2026-02-22 18:41:33 INFO mdp_discovery.evaluator: Passed threshold (38% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:42:44 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=20.3
+2026-02-22 18:42:59 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=20.3
+2026-02-22 18:44:13 INFO mdp_discovery.evaluator:   Seed 2/3: success=94% length=22.1
+2026-02-22 18:44:28 INFO mdp_discovery.evaluator:   Seed 2/3: success=94% length=22.1
+2026-02-22 18:45:37 INFO mdp_discovery.evaluator:   Seed 3/3: success=96% length=30.6
+2026-02-22 18:45:37 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=96% length=24.3
+2026-02-22 18:45:37 INFO mdp_discovery.evaluator: Full training done: success=96%, length=24.3, time=168.3s
+2026-02-22 18:45:37 INFO mdp_discovery.controller: [Iter 17] full_train success=96% length=24.3 | best=97% | 384.4s
+2026-02-22 18:45:51 INFO mdp_discovery.evaluator:   Seed 3/3: success=96% length=29.5
+2026-02-22 18:45:51 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=96% length=24.0
+2026-02-22 18:45:51 INFO mdp_discovery.evaluator: Full training done: success=96%, length=24.0, time=163.5s
+2026-02-22 18:45:51 INFO mdp_discovery.controller: [Iter 18] full_train success=96% length=24.0 | best=97% | 398.6s
+2026-02-22 18:45:51 INFO mdp_discovery.controller: [Iter 19] Submitting batch of 2 candidate(s)...
+2026-02-22 18:46:05 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:46:06 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=172)
+2026-02-22 18:46:06 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:46:10 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:46:19 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=194)
+2026-02-22 18:46:19 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:47:37 INFO mdp_discovery.evaluator: Short training done: success=26%, length=154.9, time=56.3s
+2026-02-22 18:47:37 INFO mdp_discovery.evaluator: Passed threshold (26% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:47:49 INFO mdp_discovery.evaluator: Short training done: success=28%, length=150.3, time=59.7s
+2026-02-22 18:47:49 INFO mdp_discovery.evaluator: Passed threshold (28% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:49:09 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=24.3
+2026-02-22 18:49:21 INFO mdp_discovery.evaluator:   Seed 1/3: success=96% length=25.1
+2026-02-22 18:50:43 INFO mdp_discovery.evaluator:   Seed 2/3: success=88% length=17.2
+2026-02-22 18:51:04 INFO mdp_discovery.evaluator:   Seed 2/3: success=92% length=29.5
+2026-02-22 18:52:28 INFO mdp_discovery.evaluator:   Seed 3/3: success=98% length=22.4
+2026-02-22 18:52:28 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=95% length=21.3
+2026-02-22 18:52:28 INFO mdp_discovery.evaluator: Full training done: success=95%, length=21.3, time=176.4s
+2026-02-22 18:52:28 INFO mdp_discovery.controller: [Iter 19] full_train success=95% length=21.3 | best=97% | 397.2s
+2026-02-22 18:52:46 INFO mdp_discovery.evaluator:   Seed 3/3: success=100% length=17.0
+2026-02-22 18:52:46 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=96% length=23.9
+2026-02-22 18:52:46 INFO mdp_discovery.evaluator: Full training done: success=96%, length=23.9, time=191.1s
+2026-02-22 18:52:46 DEBUG mdp_discovery.evolution_trace: Flushed 10 trace events to experiments/ablations/easy_obs_only/evolution_trace.jsonl
+2026-02-22 18:52:46 INFO mdp_discovery.controller: [Iter 20] full_train success=96% length=23.9 | best=97% | 414.8s
+2026-02-22 18:52:46 INFO mdp_discovery.controller: [Iter 21] Submitting batch of 2 candidate(s)...
+2026-02-22 18:53:03 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:53:04 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=187)
+2026-02-22 18:53:04 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:53:05 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 18:53:05 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=181)
+2026-02-22 18:53:05 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 18:54:43 INFO mdp_discovery.evaluator: Short training done: success=18%, length=164.9, time=68.2s
+2026-02-22 18:54:43 INFO mdp_discovery.evaluator: Passed threshold (18% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:55:02 INFO mdp_discovery.evaluator: Short training done: success=30%, length=146.8, time=64.5s
+2026-02-22 18:55:02 INFO mdp_discovery.evaluator: Passed threshold (30% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 18:56:27 INFO mdp_discovery.evaluator:   Seed 1/3: success=92% length=30.4
+2026-02-22 18:56:45 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=29.0
+2026-02-22 18:57:58 INFO mdp_discovery.evaluator:   Seed 2/3: success=96% length=24.4
+2026-02-22 18:58:25 INFO mdp_discovery.evaluator:   Seed 2/3: success=90% length=24.3
+2026-02-22 18:59:43 INFO mdp_discovery.evaluator:   Seed 3/3: success=94% length=15.7
+2026-02-22 18:59:43 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=94% length=23.5
+2026-02-22 18:59:43 INFO mdp_discovery.evaluator: Full training done: success=94%, length=23.5, time=202.0s
+2026-02-22 18:59:43 INFO mdp_discovery.controller: [Iter 21] full_train success=94% length=23.5 | best=97% | 417.1s
+2026-02-22 18:59:55 INFO mdp_discovery.evaluator:   Seed 3/3: success=96% length=27.9
+2026-02-22 18:59:55 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=95% length=27.1
+2026-02-22 18:59:55 INFO mdp_discovery.evaluator: Full training done: success=95%, length=27.1, time=188.7s
+2026-02-22 18:59:55 INFO mdp_discovery.controller: [Iter 22] full_train success=95% length=27.1 | best=97% | 429.5s
+2026-02-22 18:59:55 INFO mdp_discovery.controller: [Iter 23] Submitting batch of 2 candidate(s)...
+2026-02-22 19:00:13 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 19:00:13 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=185)
+2026-02-22 19:00:13 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 19:00:15 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 19:00:41 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=190)
+2026-02-22 19:00:41 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 19:02:00 INFO mdp_discovery.evaluator: Short training done: success=18%, length=159.9, time=78.5s
+2026-02-22 19:02:00 INFO mdp_discovery.evaluator: Passed threshold (18% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 19:02:17 INFO mdp_discovery.evaluator: Short training done: success=22%, length=152.7, time=66.4s
+2026-02-22 19:02:17 INFO mdp_discovery.evaluator: Passed threshold (22% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 19:03:30 INFO mdp_discovery.evaluator:   Seed 1/3: success=96% length=31.2
+2026-02-22 19:04:13 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=22.2
+2026-02-22 19:05:14 INFO mdp_discovery.evaluator:   Seed 2/3: success=92% length=20.0
+2026-02-22 19:05:57 INFO mdp_discovery.evaluator:   Seed 2/3: success=96% length=21.4
+2026-02-22 19:06:43 INFO mdp_discovery.evaluator:   Seed 3/3: success=98% length=22.3
+2026-02-22 19:06:43 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=95% length=24.5
+2026-02-22 19:06:43 INFO mdp_discovery.evaluator: Full training done: success=95%, length=24.5, time=185.5s
+2026-02-22 19:06:43 INFO mdp_discovery.controller: [Iter 23] full_train success=95% length=24.5 | best=97% | 407.8s
+2026-02-22 19:07:37 INFO mdp_discovery.evaluator:   Seed 3/3: success=100% length=19.5
+2026-02-22 19:07:37 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=98% length=21.0
+2026-02-22 19:07:37 INFO mdp_discovery.evaluator: Full training done: success=98%, length=21.0, time=220.1s
+2026-02-22 19:07:37 DEBUG mdp_discovery.database: Added program 929ea266 to island 0 cell 2-3 (fitness=0.9800)
+2026-02-22 19:07:37 INFO mdp_discovery.controller: [Iter 24] full_train success=98% length=21.0 | best=98% | 461.9s *** NEW BEST ***
+2026-02-22 19:07:37 INFO mdp_discovery.controller: [Iter 25] Submitting batch of 2 candidate(s)...
+2026-02-22 19:07:55 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 19:07:56 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=190)
+2026-02-22 19:07:56 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 19:07:57 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 19:08:10 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=190)
+2026-02-22 19:08:10 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 19:09:25 INFO mdp_discovery.evaluator: Short training done: success=22%, length=152.3, time=62.2s
+2026-02-22 19:09:25 INFO mdp_discovery.evaluator: Passed threshold (22% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 19:09:52 INFO mdp_discovery.evaluator: Short training done: success=22%, length=152.3, time=62.5s
+2026-02-22 19:09:52 INFO mdp_discovery.evaluator: Passed threshold (22% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 19:11:15 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=22.2
+2026-02-22 19:11:28 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=22.2
+2026-02-22 19:12:54 INFO mdp_discovery.evaluator:   Seed 2/3: success=96% length=21.4
+2026-02-22 19:13:15 INFO mdp_discovery.evaluator:   Seed 2/3: success=96% length=21.4
+2026-02-22 19:14:47 INFO mdp_discovery.evaluator:   Seed 3/3: success=100% length=19.3
+2026-02-22 19:14:47 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=98% length=21.0
+2026-02-22 19:14:47 INFO mdp_discovery.evaluator: Full training done: success=98%, length=21.0, time=210.1s
+2026-02-22 19:14:47 INFO mdp_discovery.controller: [Iter 25] full_train success=98% length=21.0 | best=98% | 429.9s
+2026-02-22 19:14:57 INFO mdp_discovery.evaluator:   Seed 3/3: success=100% length=19.3
+2026-02-22 19:14:57 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=98% length=21.0
+2026-02-22 19:14:57 INFO mdp_discovery.evaluator: Full training done: success=98%, length=21.0, time=215.9s
+2026-02-22 19:14:57 INFO mdp_discovery.controller: [Iter 26] full_train success=98% length=21.0 | best=98% | 440.0s
+2026-02-22 19:14:57 INFO mdp_discovery.controller: [Iter 27] Submitting batch of 2 candidate(s)...
+2026-02-22 19:15:18 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 19:15:18 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 19:15:18 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=271)
+2026-02-22 19:15:18 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 19:15:19 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=271)
+2026-02-22 19:15:19 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 19:17:05 INFO mdp_discovery.evaluator: Short training done: success=18%, length=151.5, time=78.0s
+2026-02-22 19:17:05 INFO mdp_discovery.evaluator: Passed threshold (18% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 19:17:34 INFO mdp_discovery.evaluator: Short training done: success=18%, length=151.5, time=86.0s
+2026-02-22 19:17:34 INFO mdp_discovery.evaluator: Passed threshold (18% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 19:18:53 INFO mdp_discovery.evaluator:   Seed 1/3: success=94% length=33.7
+2026-02-22 19:19:07 INFO mdp_discovery.evaluator:   Seed 1/3: success=96% length=33.4
+2026-02-22 19:20:24 INFO mdp_discovery.evaluator:   Seed 2/3: success=94% length=22.9
+2026-02-22 19:21:07 INFO mdp_discovery.evaluator:   Seed 2/3: success=94% length=22.9
+2026-02-22 19:21:56 INFO mdp_discovery.evaluator:   Seed 3/3: success=98% length=24.5
+2026-02-22 19:21:56 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=95% length=27.0
+2026-02-22 19:21:56 INFO mdp_discovery.evaluator: Full training done: success=95%, length=27.0, time=203.7s
+2026-02-22 19:21:56 INFO mdp_discovery.controller: [Iter 27] full_train success=95% length=27.0 | best=98% | 418.7s
+2026-02-22 19:22:53 INFO mdp_discovery.evaluator:   Seed 3/3: success=98% length=23.9
+2026-02-22 19:22:53 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=96% length=26.8
+2026-02-22 19:22:53 INFO mdp_discovery.evaluator: Full training done: success=96%, length=26.8, time=215.0s
+2026-02-22 19:22:53 INFO mdp_discovery.controller: [Iter 28] full_train success=96% length=26.8 | best=98% | 475.8s
+2026-02-22 19:22:53 INFO mdp_discovery.controller: [Iter 29] Submitting batch of 2 candidate(s)...
+2026-02-22 19:23:11 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 19:23:12 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=190)
+2026-02-22 19:23:12 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 19:23:13 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-22 19:23:25 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=190)
+2026-02-22 19:23:25 INFO mdp_discovery.evaluator: Running short training (500,000 steps)...
+2026-02-22 19:24:40 INFO mdp_discovery.evaluator: Short training done: success=22%, length=152.7, time=61.8s
+2026-02-22 19:24:40 INFO mdp_discovery.evaluator: Passed threshold (22% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 19:24:55 INFO mdp_discovery.evaluator: Short training done: success=22%, length=152.3, time=62.2s
+2026-02-22 19:24:55 INFO mdp_discovery.evaluator: Passed threshold (22% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+2026-02-22 19:26:10 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=20.4
+2026-02-22 19:26:53 INFO mdp_discovery.evaluator:   Seed 1/3: success=98% length=22.2
+2026-02-22 19:27:40 INFO mdp_discovery.evaluator:   Seed 2/3: success=96% length=21.4
+2026-02-22 19:28:35 INFO mdp_discovery.evaluator:   Seed 2/3: success=96% length=21.4
+2026-02-22 19:29:16 INFO mdp_discovery.evaluator:   Seed 3/3: success=100% length=19.3
+2026-02-22 19:29:16 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=98% length=20.4
+2026-02-22 19:29:16 INFO mdp_discovery.evaluator: Full training done: success=98%, length=20.4, time=194.5s
+2026-02-22 19:29:16 INFO mdp_discovery.controller: [Iter 29] full_train success=98% length=20.4 | best=98% | 383.2s
+2026-02-22 19:29:50 INFO mdp_discovery.evaluator:   Seed 3/3: success=100% length=19.5
+2026-02-22 19:29:50 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=98% length=21.0
+2026-02-22 19:29:50 INFO mdp_discovery.evaluator: Full training done: success=98%, length=21.0, time=218.0s
+2026-02-22 19:29:50 DEBUG mdp_discovery.evolution_trace: Flushed 10 trace events to experiments/ablations/easy_obs_only/evolution_trace.jsonl
+2026-02-22 19:29:50 INFO mdp_discovery.controller: [Iter 30] full_train success=98% length=21.0 | best=98% | 416.6s
+2026-02-22 19:29:50 INFO mdp_discovery.database: Database saved to experiments/ablations/easy_obs_only/database (30 programs)
+2026-02-22 19:29:50 INFO mdp_discovery.controller: [Iter 30] Checkpoint saved to experiments/ablations/easy_obs_only
+2026-02-22 19:29:50 INFO mdp_discovery.evolution_trace: Evolution trace: 30 events, 23 improvements (77%), best deltas: {'final_return': 0.39165123303731286, 'final_length': 2.420834223429363, 'success_rate': 0.5466666666666666, 'training_time': 122.340900182724}
+2026-02-22 19:29:50 INFO mdp_discovery.controller: ============================================================
+2026-02-22 19:29:50 INFO mdp_discovery.controller: Evolution complete
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Mode: obs_only
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Iterations: 30
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Wall time: 5608.8s
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Total programs: 30
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Total eval time: 10392.9s
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Total LLM tokens: 596567
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Input tokens: 523595
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Output tokens: 72972
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Est. LLM cost: $2.67
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Recent failures: 0
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Grid cells filled: [4, 0, 0]
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Island sizes: [25, 0, 0]
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Best success rate: 98%
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Best obs_dim: 190
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Best program:
+import jax
+import jax.numpy as jnp
+
+def get_observation(state) -> jnp.ndarray:
+    H, W = state.grid.shape[0], state.grid.shape[1]
+    
+    PYRAMID_ID = 5
+    BLUE_ID = 3
+    
+    # Agent position normalized
+    agent_y = state.agent.position[0].astype(jnp.float32) / (H - 1)
+    agent_x = state.agent.position[1].astype(jnp.float32) / (W - 1)
+    
+    # Agent direction as one-hot (4 directions)
+    dir_oh = jax.nn.one_hot(state.agent.direction, 4)
+    
+    # Pocket contents (raw + normalized)
+    pocket_tile = state.agent.pocket[0].astype(jnp.float32) / 12.0
+    pocket_color = state.agent.pocket[1].astype(jnp.float32) / 11.0
+    
+    # Whether holding blue pyramid
+    holding_blue_pyramid = ((state.agent.pocket[0] == PYRAMID_ID) & (state.agent.pocket[1] == BLUE_ID)).astype(jnp.float32)
+    pocket_empty = (state.agent.pocket[0] == 0).astype(jnp.float32)
+    
+    # Find blue pyramid location
+    ys = jnp.arange(H)
+    xs = jnp.arange(W)
+    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
+    
+    pyramid_mask = (state.grid[:, :, 0] == PYRAMID_ID) & (state.grid[:, :, 1] == BLUE_ID)
+    pyramid_count = jnp.sum(pyramid_mask).astype(jnp.float32)
+    pyramid_y = jnp.sum(yy * pyramid_mask).astype(jnp.float32) / jnp.maximum(pyramid_count, 1.0)
+    pyramid_x = jnp.sum(xx * pyramid_mask).astype(jnp.float32) / jnp.maximum(pyramid_count, 1.0)
+    
+    # Whether pyramid exists on grid
+    pyramid_exists = jnp.minimum(pyramid_count, 1.0)
+    
+    # Normalized absolute pyramid position
+    pyramid_y_norm = pyramid_y / (H - 1)
+    pyramid_x_norm = pyramid_x / (W - 1)
+    
+    # Raw relative position
+    raw_rel_y = pyramid_y - state.agent.position[0].astype(jnp.float32)
+    raw_rel_x = pyramid_x - state.agent.position[1].astype(jnp.float32)
+    
+    # Normalized relative position
+    rel_y = raw_rel_y / (H - 1)
+    rel_x = raw_rel_x / (W - 1)
+    
+    # Manhattan distance to pyramid (normalized)
+    manhattan_dist = (jnp.abs(raw_rel_y) + jnp.abs(raw_rel_x)) / (H + W - 2)
+    
+    # Euclidean distance (normalized)
+    dist_raw = jnp.sqrt(raw_rel_y**2 + raw_rel_x**2 + 1e-8)
+    dist_norm = dist_raw / jnp.sqrt((H-1)**2 + (W-1)**2 + 1e-8)
+    
+    # Angle to pyramid (encoded as sin/cos), zeroed when pyramid not on grid
+    angle_sin = (raw_rel_y / dist_raw) * pyramid_exists
+    angle_cos = (raw_rel_x / dist_raw) * pyramid_exists
+    
+    # Direction vectors
+    DIRECTIONS = jnp.array([[-1, 0], [0, 1], [1, 0], [0, -1]], dtype=jnp.int32)
+    dy = DIRECTIONS[state.agent.direction, 0]
+    dx = DIRECTIONS[state.agent.direction, 1]
+    
+    # Front tile
+    front_y = jnp.clip(state.agent.position[0].astype(jnp.int32) + dy, 0, H - 1)
+    front_x = jnp.clip(state.agent.position[1].astype(jnp.int32) + dx, 0, W - 1)
+    front_tile_id = state.grid[front_y, front_x, 0].astype(jnp.float32) / 12.0
+    front_tile_color = state.grid[front_y, front_x, 1].astype(jnp.float32) / 11.0
+    
+    # Is front tile the blue pyramid?
+    front_is_blue_pyramid = ((state.grid[front_y, front_x, 0] == PYRAMID_ID) & 
+                              (state.grid[front_y, front_x, 1] == BLUE_ID)).astype(jnp.float32)
+    
+    # Derived features
+    adjacent_to_pyramid = ((jnp.abs(raw_rel_y) + jnp.abs(raw_rel_x)) <= 1.5).astype(jnp.float32)
+    
+    facing_dy = DIRECTIONS[state.agent.direction, 0].astype(jnp.float32)
+    facing_dx = DIRECTIONS[state.agent.direction, 1].astype(jnp.float32)
+    dot_product = facing_dy * raw_rel_y + facing_dx * raw_rel_x
+    facing_toward_pyramid = (dot_product > 0).astype(jnp.float32)
+    
+    same_row = (jnp.abs(raw_rel_y) < 0.5).astype(jnp.float32)
+    same_col = (jnp.abs(raw_rel_x) < 0.5).astype(jnp.float32)
+    
+    # Sign direction to pyramid
+    dy_to_pyramid = jnp.sign(raw_rel_y)
+    dx_to_pyramid = jnp.sign(raw_rel_x)
+    
+    can_pickup = front_is_blue_pyramid * pocket_empty
+    task_done = holding_blue_pyramid
+    
+    # Step progress
+    step_norm = state.step_num.astype(jnp.float32) / 80.0
+    
+    # All 4 neighbors of the agent (up, right, down, left)
+    neighbor_features = []
+    for d in range(4):
+        ndy = DIRECTIONS[d, 0]
+        ndx = DIRECTIONS[d, 1]
+        ny = jnp.clip(state.agent.position[0].astype(jnp.int32) + ndy, 0, H - 1)
+        nx = jnp.clip(state.agent.position[1].astype(jnp.int32) + ndx, 0, W - 1)
+        t_id = state.grid[ny, nx, 0].astype(jnp.float32) / 12.0
+        t_col = state.grid[ny, nx, 1].astype(jnp.float32) / 11.0
+        is_bp = ((state.grid[ny, nx, 0] == PYRAMID_ID) & (state.grid[ny, nx, 1] == BLUE_ID)).astype(jnp.float32)
+        neighbor_features.extend([t_id, t_col, is_bp])
+    neighbors = jnp.array(neighbor_features)  # 4*3 = 12
+    
+    # Local view: 7x7 grid around agent (tile_id, color_id, is_blue_pyramid)
+    local_tiles = []
+    for dy_off in [-3, -2, -1, 0, 1, 2, 3]:
+        for dx_off in [-3, -2, -1, 0, 1, 2, 3]:
+            ny = jnp.clip(state.agent.position[0].astype(jnp.int32) + dy_off, 0, H - 1)
+            nx = jnp.clip(state.agent.position[1].astype(jnp.int32) + dx_off, 0, W - 1)
+            t_id = state.grid[ny, nx, 0].astype(jnp.float32) / 12.0
+            t_col = state.grid[ny, nx, 1].astype(jnp.float32) / 11.0
+            is_bp = ((state.grid[ny, nx, 0] == PYRAMID_ID) & (state.grid[ny, nx, 1] == BLUE_ID)).astype(jnp.float32)
+            local_tiles.extend([t_id, t_col, is_bp])
+    local_view = jnp.array(local_tiles)  # 7*7*3 = 147
+    
+    # Assemble observation
+    obs = jnp.concatenate([
+        jnp.array([agent_y, agent_x]),                                          # 2
+        dir_oh,                                                                   # 4
+        jnp.array([pocket_tile, pocket_color]),                                   # 2
+        jnp.array([holding_blue_pyramid, pocket_empty]),                          # 2
+        jnp.array([pyramid_y_norm, pyramid_x_norm, pyramid_exists]),              # 3
+        jnp.array([rel_y, rel_x, manhattan_dist, dist_norm]),                     # 4
+        jnp.array([angle_sin, angle_cos]),                                        # 2
+        jnp.array([front_tile_id, front_tile_color, front_is_blue_pyramid]),      # 3
+        jnp.array([step_norm]),                                                   # 1
+        jnp.array([dy_to_pyramid, dx_to_pyramid]),                               # 2
+        jnp.array([adjacent_to_pyramid, facing_toward_pyramid]),                  # 2
+        jnp.array([same_row, same_col]),                                          # 2
+        jnp.array([can_pickup, task_done]),                                       # 2
+        neighbors,                                                                # 12
+        local_view,                                                               # 147
+    ])
+    
+    return obs.astype(jnp.float32)
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Trace events: 30
+2026-02-22 19:29:50 INFO mdp_discovery.controller:   Improvements: 23 (77%)
+2026-02-22 19:29:50 INFO mdp_discovery.controller: ============================================================

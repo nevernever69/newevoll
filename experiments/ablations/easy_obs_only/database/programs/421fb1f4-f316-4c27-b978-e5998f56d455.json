@@ -1,0 +1,29 @@
+{
+  "id": "421fb1f4-f316-4c27-b978-e5998f56d455",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state) -> jnp.ndarray:\n    H, W = state.grid.shape[0], state.grid.shape[1]\n    \n    PYRAMID_ID = 5\n    BLUE_ID = 3\n    \n    # Agent position normalized\n    agent_y = state.agent.position[0].astype(jnp.float32) / (H - 1)\n    agent_x = state.agent.position[1].astype(jnp.float32) / (W - 1)\n    \n    # Agent direction as one-hot (4 directions)\n    dir_oh = jax.nn.one_hot(state.agent.direction, 4)\n    \n    # Whether holding blue pyramid\n    holding_blue_pyramid = ((state.agent.pocket[0] == PYRAMID_ID) & (state.agent.pocket[1] == BLUE_ID)).astype(jnp.float32)\n    pocket_empty = (state.agent.pocket[0] == 0).astype(jnp.float32)\n    \n    # Find blue pyramid location\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    pyramid_mask = (state.grid[:, :, 0] == PYRAMID_ID) & (state.grid[:, :, 1] == BLUE_ID)\n    pyramid_count = jnp.sum(pyramid_mask).astype(jnp.float32)\n    pyramid_y = jnp.sum(yy * pyramid_mask).astype(jnp.float32) / jnp.maximum(pyramid_count, 1.0)\n    pyramid_x = jnp.sum(xx * pyramid_mask).astype(jnp.float32) / jnp.maximum(pyramid_count, 1.0)\n    \n    pyramid_exists = jnp.minimum(pyramid_count, 1.0)\n    \n    # Raw relative position\n    raw_rel_y = pyramid_y - state.agent.position[0].astype(jnp.float32)\n    raw_rel_x = pyramid_x - state.agent.position[1].astype(jnp.float32)\n    \n    # Normalized relative position\n    rel_y = raw_rel_y / (H - 1)\n    rel_x = raw_rel_x / (W - 1)\n    \n    # Manhattan distance (normalized)\n    manhattan_dist = (jnp.abs(raw_rel_y) + jnp.abs(raw_rel_x)) / (H + W - 2)\n    \n    # Euclidean distance (normalized)\n    dist_raw = jnp.sqrt(raw_rel_y**2 + raw_rel_x**2 + 1e-8)\n    dist_norm = dist_raw / jnp.sqrt((H-1)**2 + (W-1)**2 + 1e-8)\n    \n    # Angle to pyramid\n    angle_sin = (raw_rel_y / dist_raw) * pyramid_exists\n    angle_cos = (raw_rel_x / dist_raw) * pyramid_exists\n    \n    # Front tile information\n    DIRECTIONS = jnp.array([[-1, 0], [0, 1], [1, 0], [0, -1]], dtype=jnp.int32)\n    dy = DIRECTIONS[state.agent.direction, 0]\n    dx = DIRECTIONS[state.agent.direction, 1]\n    front_y = jnp.clip(state.agent.position[0].astype(jnp.int32) + dy, 0, H - 1)\n    front_x = jnp.clip(state.agent.position[1].astype(jnp.int32) + dx, 0, W - 1)\n    \n    front_is_blue_pyramid = ((state.grid[front_y, front_x, 0] == PYRAMID_ID) & \n                              (state.grid[front_y, front_x, 1] == BLUE_ID)).astype(jnp.float32)\n    \n    # Derived features\n    adjacent_to_pyramid = ((jnp.abs(raw_rel_y) + jnp.abs(raw_rel_x)) <= 1.5).astype(jnp.float32)\n    \n    facing_dy = DIRECTIONS[state.agent.direction, 0].astype(jnp.float32)\n    facing_dx = DIRECTIONS[state.agent.direction, 1].astype(jnp.float32)\n    dot_product = facing_dy * raw_rel_y + facing_dx * raw_rel_x\n    facing_toward_pyramid = (dot_product > 0).astype(jnp.float32)\n    \n    same_row = (jnp.abs(raw_rel_y) < 0.5).astype(jnp.float32)\n    same_col = (jnp.abs(raw_rel_x) < 0.5).astype(jnp.float32)\n    can_pickup = front_is_blue_pyramid * pocket_empty\n    task_done = holding_blue_pyramid\n    \n    # Sign-based direction to pyramid\n    dy_to_pyramid = jnp.sign(raw_rel_y)\n    dx_to_pyramid = jnp.sign(raw_rel_x)\n    \n    # Step progress\n    step_norm = state.step_num.astype(jnp.float32) / 80.0\n    \n    # Local view: 7x7 grid around agent\n    local_tiles = []\n    for dy_off in [-3, -2, -1, 0, 1, 2, 3]:\n        for dx_off in [-3, -2, -1, 0, 1, 2, 3]:\n            ny = jnp.clip(state.agent.position[0].astype(jnp.int32) + dy_off, 0, H - 1)\n            nx = jnp.clip(state.agent.position[1].astype(jnp.int32) + dx_off, 0, W - 1)\n            t_id = state.grid[ny, nx, 0].astype(jnp.float32) / 12.0\n            t_col = state.grid[ny, nx, 1].astype(jnp.float32) / 11.0\n            is_bp = ((state.grid[ny, nx, 0] == PYRAMID_ID) & (state.grid[ny, nx, 1] == BLUE_ID)).astype(jnp.float32)\n            local_tiles.extend([t_id, t_col, is_bp])\n    local_view = jnp.array(local_tiles)  # 7*7*3 = 147\n    \n    obs = jnp.concatenate([\n        jnp.array([agent_y, agent_x]),                                     # 2\n        dir_oh,                                                             # 4\n        jnp.array([holding_blue_pyramid, pocket_empty]),                    # 2\n        jnp.array([pyramid_exists]),                                        # 1\n        jnp.array([rel_y, rel_x, manhattan_dist, dist_norm]),              # 4\n        jnp.array([angle_sin, angle_cos]),                                  # 2\n        jnp.array([front_is_blue_pyramid]),                                 # 1\n        jnp.array([adjacent_to_pyramid, facing_toward_pyramid]),            # 2\n        jnp.array([same_row, same_col]),                                    # 2\n        jnp.array([dy_to_pyramid, dx_to_pyramid]),                         # 2\n        jnp.array([can_pickup, task_done, step_norm]),                      # 3\n        local_view,                                                         # 147\n    ])\n    \n    return obs.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 0.9203395247459412,
+    "final_length": 21.283334096272785,
+    "success_rate": 0.9466666666666667,
+    "success_curve": [
+      0.42916666467984516,
+      0.4791666666666667,
+      0.7958333293596903,
+      0.9791666865348816,
+      0.9916666746139526,
+      0.9958333373069763,
+      0.9916666746139526
+    ],
+    "training_time": 176.42081260681152
+  },
+  "obs_dim": 172,
+  "stage": "full_train",
+  "generation": 1,
+  "parent_id": "c64d415a-97ca-4eb6-90a6-217806e5e74d",
+  "island": 0,
+  "timestamp": 1771786348.7091877,
+  "feature_coords": [
+    2,
+    3
+  ]
+}

@@ -60,9 +60,14 @@ def make_states(
     num_envs_per_device, _, _, num_updates = _compute_device_splits(config, total_timesteps)
 
     # --- Learning rate schedule ---
-    def linear_schedule(count):
-        frac = 1.0 - (count // (tc.num_minibatches * tc.update_epochs)) / num_updates
-        return tc.lr * frac
+    def lr_schedule(count):
+        progress = (count // (tc.num_minibatches * tc.update_epochs)) / num_updates
+        if tc.lr_schedule == "constant":
+            return tc.lr
+        elif tc.lr_schedule == "cosine":
+            return tc.lr * 0.5 * (1.0 + jnp.cos(jnp.pi * progress))
+        else:  # "linear" (default)
+            return tc.lr * (1.0 - progress)
 
     # --- Environment with MDP interface wrapper ---
     env, env_params = adapter.make_env(
@@ -95,7 +100,7 @@ def make_states(
     tx = optax.chain(
         optax.clip_by_global_norm(tc.max_grad_norm),
         optax.inject_hyperparams(optax.adam)(
-            learning_rate=linear_schedule, eps=1e-8
+            learning_rate=lr_schedule, eps=1e-8
         ),
     )
     train_state = TrainState.create(

@@ -1,0 +1,29 @@
+{
+  "id": "6e47c314-0746-46dc-aeb0-a08522e2435a",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state) -> jnp.ndarray:\n    H, W = state.grid.shape[:2]\n    \n    # Agent position normalized\n    agent_y = state.agent.position[0].astype(jnp.float32) / (H - 1)\n    agent_x = state.agent.position[1].astype(jnp.float32) / (W - 1)\n    \n    # Agent direction one-hot\n    dir_oh = jax.nn.one_hot(state.agent.direction, 4)  # (4,)\n    \n    # Pocket info: tile_id and color_id normalized\n    pocket_tile = state.agent.pocket[0].astype(jnp.float32) / 12.0\n    pocket_color = state.agent.pocket[1].astype(jnp.float32) / 11.0\n    pocket_empty = (state.agent.pocket[0] == 0).astype(jnp.float32)\n    holding_pyramid = (state.agent.pocket[0] == 5).astype(jnp.float32)\n    holding_blue_pyramid = ((state.agent.pocket[0] == 5) & (state.agent.pocket[1] == 3)).astype(jnp.float32)\n    \n    # Find blue pyramid location\n    PYRAMID_ID = 5\n    BLUE_ID = 3\n    \n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    pyramid_mask = (state.grid[:, :, 0] == PYRAMID_ID) & (state.grid[:, :, 1] == BLUE_ID)\n    pyramid_count = jnp.sum(pyramid_mask).astype(jnp.float32)\n    \n    # Mean position of blue pyramid (if exists)\n    pyramid_mean_y = jnp.sum(yy * pyramid_mask) / jnp.maximum(pyramid_count, 1.0)\n    pyramid_mean_x = jnp.sum(xx * pyramid_mask) / jnp.maximum(pyramid_count, 1.0)\n    \n    pyramid_norm_y = pyramid_mean_y / (H - 1)\n    pyramid_norm_x = pyramid_mean_x / (W - 1)\n    \n    # Relative position from agent to blue pyramid\n    rel_y = (pyramid_mean_y - state.agent.position[0].astype(jnp.float32)) / (H - 1)\n    rel_x = (pyramid_mean_x - state.agent.position[1].astype(jnp.float32)) / (W - 1)\n    \n    # Manhattan distance to blue pyramid\n    dist = (jnp.abs(pyramid_mean_y - state.agent.position[0].astype(jnp.float32)) + \n            jnp.abs(pyramid_mean_x - state.agent.position[1].astype(jnp.float32)))\n    dist_norm = dist / (H + W - 2)\n    \n    # Whether pyramid is still on the grid (not picked up)\n    pyramid_exists = (pyramid_count > 0).astype(jnp.float32)\n    \n    # Front tile info\n    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)])\n    dy = DIRECTIONS[state.agent.direction, 0]\n    dx = DIRECTIONS[state.agent.direction, 1]\n    front_y = jnp.clip(state.agent.position[0].astype(jnp.int32) + dy, 0, H - 1)\n    front_x = jnp.clip(state.agent.position[1].astype(jnp.int32) + dx, 0, W - 1)\n    front_tile_id = state.grid[front_y, front_x, 0].astype(jnp.float32) / 12.0\n    front_tile_color = state.grid[front_y, front_x, 1].astype(jnp.float32) / 11.0\n    \n    # Is front tile the blue pyramid?\n    front_is_blue_pyramid = ((state.grid[front_y, front_x, 0] == PYRAMID_ID) & \n                              (state.grid[front_y, front_x, 1] == BLUE_ID)).astype(jnp.float32)\n    \n    # Step progress\n    step_norm = state.step_num.astype(jnp.float32) / 80.0\n    \n    # Flattened grid observation (tile_id and color_id for each cell)\n    grid_tiles = state.grid[:, :, 0].astype(jnp.float32).flatten() / 12.0  # (H*W,)\n    grid_colors = state.grid[:, :, 1].astype(jnp.float32).flatten() / 11.0  # (H*W,)\n    \n    # Combine all features\n    scalar_features = jnp.array([\n        agent_y, agent_x,\n        pocket_tile, pocket_color,\n        pocket_empty, holding_pyramid, holding_blue_pyramid,\n        pyramid_norm_y, pyramid_norm_x,\n        rel_y, rel_x,\n        dist_norm,\n        pyramid_exists,\n        front_tile_id, front_tile_color,\n        front_is_blue_pyramid,\n        step_norm,\n    ], dtype=jnp.float32)\n    \n    obs = jnp.concatenate([\n        scalar_features,   # 17\n        dir_oh,            # 4\n        grid_tiles,        # H*W = 81\n        grid_colors,       # H*W = 81\n    ])\n    \n    return obs.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 0.5245370864868164,
+    "final_length": 121.85000101725261,
+    "success_rate": 0.42,
+    "success_curve": [
+      0.3750000099341075,
+      0.4000000059604645,
+      0.45000000794728595,
+      0.5041666726271311,
+      0.6083333492279053,
+      0.750000019868215,
+      0.7458333571751913
+    ],
+    "training_time": 81.59024047851562
+  },
+  "obs_dim": 183,
+  "stage": "full_train",
+  "generation": 0,
+  "parent_id": null,
+  "island": 0,
+  "timestamp": 1771783196.8279862,
+  "feature_coords": [
+    2,
+    2
+  ]
+}

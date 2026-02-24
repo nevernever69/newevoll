@@ -1,0 +1,29 @@
+{
+  "id": "f5a79cc6-1560-410d-983e-eefeb78f7505",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    PYRAMID = 5\n    BLUE = 3\n    PICKUP_ACTION = 3\n\n    H, W = state.grid.shape[:2]\n\n    # Pocket state checks\n    holding_next = (\n        (next_state.agent.pocket[0] == PYRAMID) &\n        (next_state.agent.pocket[1] == BLUE)\n    )\n    holding_curr = (\n        (state.agent.pocket[0] == PYRAMID) &\n        (state.agent.pocket[1] == BLUE)\n    )\n    pocket_empty_curr = (state.agent.pocket[0] == 0)\n\n    just_picked_up = holding_next & (~holding_curr)\n\n    # Find blue pyramid on the grid (current state)\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n\n    pyramid_mask_curr = (\n        (state.grid[:, :, 0] == PYRAMID) &\n        (state.grid[:, :, 1] == BLUE)\n    )\n\n    count_curr = jnp.sum(pyramid_mask_curr).astype(jnp.float32)\n    pyramid_on_grid = count_curr > 0\n\n    pyr_y = jnp.sum(yy * pyramid_mask_curr).astype(jnp.float32) / jnp.maximum(count_curr, 1.0)\n    pyr_x = jnp.sum(xx * pyramid_mask_curr).astype(jnp.float32) / jnp.maximum(count_curr, 1.0)\n\n    # Agent positions\n    agent_y_curr = state.agent.position[0].astype(jnp.float32)\n    agent_x_curr = state.agent.position[1].astype(jnp.float32)\n    agent_y_next = next_state.agent.position[0].astype(jnp.float32)\n    agent_x_next = next_state.agent.position[1].astype(jnp.float32)\n\n    dist_curr = jnp.abs(agent_y_curr - pyr_y) + jnp.abs(agent_x_curr - pyr_x)\n    dist_next = jnp.abs(agent_y_next - pyr_y) + jnp.abs(agent_x_next - pyr_x)\n\n    max_dist = jnp.float32(H + W - 2)\n\n    # Potential-based distance shaping: phi = -dist/max_dist\n    phi_curr = -dist_curr / max_dist\n    phi_next = -dist_next / max_dist\n\n    dist_shaping = jnp.where(\n        pyramid_on_grid & (~holding_curr),\n        (phi_next - phi_curr) * jnp.float32(10.0),\n        jnp.float32(0.0)\n    )\n\n    # Facing direction checks\n    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)], dtype=jnp.int32)\n\n    dy_curr = DIRECTIONS[state.agent.direction, 0]\n    dx_curr = DIRECTIONS[state.agent.direction, 1]\n    front_y_curr = jnp.clip(state.agent.position[0].astype(jnp.int32) + dy_curr, 0, H - 1)\n    front_x_curr = jnp.clip(state.agent.position[1].astype(jnp.int32) + dx_curr, 0, W - 1)\n\n    was_facing_pyramid = (\n        (state.grid[front_y_curr, front_x_curr, 0] == PYRAMID) &\n        (state.grid[front_y_curr, front_x_curr, 1] == BLUE)\n    )\n\n    dy_next = DIRECTIONS[next_state.agent.direction, 0]\n    dx_next = DIRECTIONS[next_state.agent.direction, 1]\n    front_y_next = jnp.clip(next_state.agent.position[0].astype(jnp.int32) + dy_next, 0, H - 1)\n    front_x_next = jnp.clip(next_state.agent.position[1].astype(jnp.int32) + dx_next, 0, W - 1)\n\n    front_is_pyramid_next = (\n        (next_state.grid[front_y_next, front_x_next, 0] == PYRAMID) &\n        (next_state.grid[front_y_next, front_x_next, 1] == BLUE)\n    )\n\n    # Milestone: newly facing the pyramid\n    just_facing = front_is_pyramid_next & (~was_facing_pyramid) & (~holding_curr)\n    facing_milestone = jnp.where(just_facing, jnp.float32(3.0), jnp.float32(0.0))\n\n    # Small persistent reward for facing pyramid - kept small to avoid exploitation\n    # Agent should prefer picking up over just facing\n    persistent_facing = jnp.where(\n        front_is_pyramid_next & (~holding_next),\n        jnp.float32(0.2),\n        jnp.float32(0.0)\n    )\n\n    # Bonus for pickup action when correctly positioned and facing\n    # Only reward if pickup actually succeeded (just_picked_up) to avoid false positives\n    # But also reward attempt to encourage the action\n    pickup_attempt_bonus = jnp.where(\n        (action == PICKUP_ACTION) & was_facing_pyramid & pocket_empty_curr & (~holding_curr),\n        jnp.float32(4.0),\n        jnp.float32(0.0)\n    )\n\n    # Large success reward - dominant signal\n    success_reward = jnp.where(just_picked_up, jnp.float32(50.0), jnp.float32(0.0))\n\n    # Step penalty to encourage efficiency\n    step_penalty = jnp.where(\n        ~holding_next,\n        jnp.float32(-0.05),\n        jnp.float32(0.0)\n    )\n\n    total_reward = (\n        success_reward\n        + dist_shaping\n        + facing_milestone\n        + persistent_facing\n        + pickup_attempt_bonus\n        + step_penalty\n    )\n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 44.72551472981771,
+    "final_length": 112.02916717529297,
+    "success_rate": 0.5,
+    "success_curve": [
+      0.4000000059604645,
+      0.46666667858759564,
+      0.662500003973643,
+      0.7125000158945719,
+      0.750000019868215,
+      0.8166666825612386,
+      0.8291666905085245
+    ],
+    "training_time": 80.89348435401917
+  },
+  "obs_dim": 171,
+  "stage": "full_train",
+  "generation": 2,
+  "parent_id": "b8c9d90d-3f3d-4b6a-973c-837a5b66db32",
+  "island": 0,
+  "timestamp": 1771815045.2671049,
+  "feature_coords": [
+    4,
+    2
+  ]
+}

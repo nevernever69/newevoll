@@ -1,0 +1,38 @@
+{
+  "id": "d56f22a2-8aa1-485e-9376-0bdabab0a6e3",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    # Tile and color constants\n    PYRAMID = 5\n    SQUARE = 4\n    YELLOW = 5\n    GREEN = 2\n    FLOOR = 1\n\n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n\n    # Find yellow pyramid position in grid\n    pyr_mask = (next_state.grid[:, :, 0] == PYRAMID) & (next_state.grid[:, :, 1] == YELLOW)\n    pyr_count = jnp.sum(pyr_mask).astype(jnp.float32)\n    pyr_y = jnp.sum(yy * pyr_mask).astype(jnp.float32) / jnp.maximum(pyr_count, 1.0)\n    pyr_x = jnp.sum(xx * pyr_mask).astype(jnp.float32) / jnp.maximum(pyr_count, 1.0)\n\n    # Find green square position in grid\n    sq_mask = (next_state.grid[:, :, 0] == SQUARE) & (next_state.grid[:, :, 1] == GREEN)\n    sq_count = jnp.sum(sq_mask).astype(jnp.float32)\n    sq_y = jnp.sum(yy * sq_mask).astype(jnp.float32) / jnp.maximum(sq_count, 1.0)\n    sq_x = jnp.sum(xx * sq_mask).astype(jnp.float32) / jnp.maximum(sq_count, 1.0)\n\n    # Agent position\n    agent_y = next_state.agent.position[0].astype(jnp.float32)\n    agent_x = next_state.agent.position[1].astype(jnp.float32)\n\n    # Check if agent is holding yellow pyramid\n    holding_pyramid = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)\n\n    # Distance from agent to yellow pyramid (when not holding it)\n    dist_agent_to_pyr = jnp.abs(agent_y - pyr_y) + jnp.abs(agent_x - pyr_x)\n\n    # Distance from agent to green square (when holding pyramid)\n    dist_agent_to_sq = jnp.abs(agent_y - sq_y) + jnp.abs(agent_x - sq_x)\n\n    # Manhattan distance between yellow pyramid and green square (when placed)\n    dist_pyr_to_sq = jnp.abs(pyr_y - sq_y) + jnp.abs(pyr_x - sq_x)\n\n    # Success: yellow pyramid is adjacent (Manhattan distance == 1) to green square\n    # and not held by agent\n    pyr_in_grid = pyr_count > 0.5\n    sq_in_grid = sq_count > 0.5\n    not_holding = ~holding_pyramid\n    adjacent = (dist_pyr_to_sq < 1.5) & (dist_pyr_to_sq > 0.5)  # distance == 1\n    success = pyr_in_grid & sq_in_grid & not_holding & adjacent\n\n    # Dense reward shaping\n    # Normalize distances by grid size\n    max_dist = jnp.float32(H + W)\n\n    # Phase 1: approach pyramid (not holding)\n    approach_pyr_reward = (max_dist - dist_agent_to_pyr) / max_dist\n\n    # Phase 2: approach square (holding pyramid)\n    approach_sq_reward = (max_dist - dist_agent_to_sq) / max_dist\n\n    # Phase 3: proximity of pyramid to square (when placed)\n    # Only meaningful when pyramid is in grid and not held\n    pyr_sq_proximity = jnp.where(\n        pyr_in_grid & sq_in_grid & not_holding,\n        (max_dist - dist_pyr_to_sq) / max_dist,\n        jnp.float32(0.0)\n    )\n\n    # Milestone: picked up pyramid\n    pickup_bonus = jnp.where(holding_pyramid, jnp.float32(0.3), jnp.float32(0.0))\n\n    # Combine rewards\n    # When not holding: reward for approaching pyramid + proximity if already placed\n    # When holding: reward for approaching square\n    dense_reward = jnp.where(\n        holding_pyramid,\n        approach_sq_reward * 0.1 + pickup_bonus,\n        approach_pyr_reward * 0.05 + pyr_sq_proximity * 0.2\n    )\n\n    # Success reward\n    success_reward = jnp.where(success, jnp.float32(1.0), jnp.float32(0.0))\n\n    total_reward = dense_reward + success_reward\n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 58.65900802612305,
+    "final_length": 239.0625,
+    "success_rate": 0.0,
+    "learning_curve": [
+      58.1509895324707,
+      52.214229583740234,
+      46.50258255004883,
+      49.74532699584961,
+      55.80131912231445,
+      52.55161666870117,
+      58.65900802612305
+    ],
+    "success_curve": [
+      0.11250000447034836,
+      0.11250000447034836,
+      0.0625,
+      0.02500000037252903,
+      0.02500000037252903,
+      0.08749999850988388,
+      0.0625
+    ],
+    "training_time": 60.0592987537384
+  },
+  "obs_dim": 171,
+  "stage": "short_train_rejected",
+  "generation": 0,
+  "parent_id": null,
+  "island": 0,
+  "timestamp": 1771819546.151165,
+  "feature_coords": [
+    2,
+    2
+  ]
+}

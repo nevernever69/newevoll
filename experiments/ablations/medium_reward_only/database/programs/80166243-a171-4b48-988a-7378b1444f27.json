@@ -1,0 +1,38 @@
+{
+  "id": "80166243-a171-4b48-988a-7378b1444f27",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    PYRAMID = 5\n    SQUARE = 4\n    YELLOW = 5\n    GREEN = 2\n\n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n\n    def find_object(grid, tile_id, color_id):\n        mask = (grid[:, :, 0] == tile_id) & (grid[:, :, 1] == color_id)\n        count = jnp.sum(mask).astype(jnp.float32)\n        y = jnp.sum(yy * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        x = jnp.sum(xx * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        return y, x, count\n\n    # State info\n    pyr_y_s, pyr_x_s, pyr_cnt_s = find_object(state.grid, PYRAMID, YELLOW)\n    sq_y_s, sq_x_s, sq_cnt_s = find_object(state.grid, SQUARE, GREEN)\n    ay_s = state.agent.position[0].astype(jnp.float32)\n    ax_s = state.agent.position[1].astype(jnp.float32)\n    holding_s = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)\n\n    # Next state info\n    pyr_y_n, pyr_x_n, pyr_cnt_n = find_object(next_state.grid, PYRAMID, YELLOW)\n    sq_y_n, sq_x_n, sq_cnt_n = find_object(next_state.grid, SQUARE, GREEN)\n    ay_n = next_state.agent.position[0].astype(jnp.float32)\n    ax_n = next_state.agent.position[1].astype(jnp.float32)\n    holding_n = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)\n\n    hs = holding_s.astype(jnp.float32)\n    hn = holding_n.astype(jnp.float32)\n\n    just_picked = (~holding_s) & holding_n\n    just_placed = holding_s & (~holding_n)\n\n    pyr_on_grid_n = pyr_cnt_n > 0.5\n    pyr_on_grid_s = pyr_cnt_s > 0.5\n\n    max_dist = jnp.float32(H + W)\n\n    # Key distances in next state\n    dist_pyr_sq_n = jnp.abs(pyr_y_n - sq_y_n) + jnp.abs(pyr_x_n - sq_x_n)\n    dist_pyr_sq_s = jnp.abs(pyr_y_s - sq_y_s) + jnp.abs(pyr_x_s - sq_x_s)\n\n    # SUCCESS: pyramid on grid, not held, adjacent (manhattan dist == 1) to square\n    success = pyr_on_grid_n & (~holding_n) & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5)\n\n    # ===== POTENTIAL-BASED SHAPING =====\n    # Define potential for each state\n    # Phase 0: not holding, pyramid on grid \u2192 potential based on agent-pyramid distance\n    # Phase 1: holding pyramid \u2192 potential based on agent-square distance  \n    # Phase 2: pyramid placed \u2192 potential based on pyramid-square distance\n\n    def potential(grid_pyr_y, grid_pyr_x, grid_sq_y, grid_sq_x,\n                  a_y, a_x, pyr_cnt, sq_cnt, holding, pyr_on_grid):\n        holding_f = holding.astype(jnp.float32)\n        not_holding_f = 1.0 - holding_f\n\n        # Agent to pyramid distance (relevant when not holding)\n        d_agent_pyr = jnp.abs(a_y - grid_pyr_y) + jnp.abs(a_x - grid_pyr_x)\n        # Agent to square distance (relevant when holding)\n        d_agent_sq = jnp.abs(a_y - grid_sq_y) + jnp.abs(a_x - grid_sq_x)\n        # Pyramid to square distance (relevant when placed)\n        d_pyr_sq = jnp.abs(grid_pyr_y - grid_sq_y) + jnp.abs(grid_pyr_x - grid_sq_x)\n\n        # Phase 0 potential: guide to pyramid (not holding)\n        phi_phase0 = not_holding_f * (max_dist - d_agent_pyr) / max_dist * 3.0\n\n        # Phase 1 potential: guide to square (holding)\n        phi_phase1 = holding_f * (max_dist - d_agent_sq) / max_dist * 3.0\n\n        # Phase 2 potential: pyramid close to square (placed)\n        phi_phase2 = jnp.where(\n            pyr_on_grid & (~holding),\n            (max_dist - d_pyr_sq) / max_dist * 5.0,\n            jnp.float32(0.0)\n        )\n\n        return phi_phase0 + phi_phase1 + phi_phase2\n\n    phi_s = potential(pyr_y_s, pyr_x_s, sq_y_s, sq_x_s,\n                      ay_s, ax_s, pyr_cnt_s, sq_cnt_s, holding_s, pyr_on_grid_s)\n    phi_n = potential(pyr_y_n, pyr_x_n, sq_y_n, sq_x_n,\n                      ay_n, ax_n, pyr_cnt_n, sq_cnt_n, holding_n, pyr_on_grid_n)\n\n    # Potential-based shaping reward\n    shaping_reward = phi_n - phi_s\n\n    # ===== MILESTONE REWARDS =====\n    # Pickup bonus\n    r_pickup = just_picked.astype(jnp.float32) * 2.0\n\n    # Putdown reward: depends on where pyramid lands\n    r_putdown = just_placed.astype(jnp.float32) * jnp.where(\n        pyr_on_grid_n & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5),\n        jnp.float32(10.0),   # adjacent: big bonus\n        jnp.where(\n            pyr_on_grid_n & (dist_pyr_sq_n <= 3.5),\n            jnp.float32(1.0),  # close: small bonus\n            jnp.float32(-1.0)  # far: small penalty\n        )\n    )\n\n    # Success reward (persistent while goal is achieved)\n    r_success = success.astype(jnp.float32) * 20.0\n\n    total = shaping_reward + r_pickup + r_putdown + r_success\n\n    return total.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 300.7367858886719,
+    "final_length": 240.28750610351562,
+    "success_rate": 0.0,
+    "learning_curve": [
+      339.98406982421875,
+      150.68472290039062,
+      93.29930114746094,
+      123.1402816772461,
+      137.77154541015625,
+      88.4423599243164,
+      300.7367858886719
+    ],
+    "success_curve": [
+      0.11250000447034836,
+      0.05000000074505806,
+      0.10000000149011612,
+      0.02500000037252903,
+      0.11250000447034836,
+      0.0625,
+      0.03750000149011612
+    ],
+    "training_time": 27.261520385742188
+  },
+  "obs_dim": 171,
+  "stage": "short_train_rejected",
+  "generation": 2,
+  "parent_id": "27c673ef-ccee-47ed-a381-889da0101ed9",
+  "island": 0,
+  "timestamp": 1771820014.3688173,
+  "feature_coords": [
+    2,
+    2
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "91a6d6bd-5713-4c99-b6e8-e2ee01c74817",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    \"\"\"\n    Reward for picking up the blue pyramid.\n    Structurally different approach: \n    - Progress-based distance shaping (delta distance, larger coefficient)\n    - Milestone reward for facing the pyramid\n    - Large success reward\n    - No step penalty (let agent explore freely)\n    \"\"\"\n    PYRAMID = 5\n    BLUE = 3\n    \n    H, W = next_state.grid.shape[:2]\n    \n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    # Find the blue pyramid on the grid in current state\n    mask_curr = (state.grid[:, :, 0] == PYRAMID) & (state.grid[:, :, 1] == BLUE)\n    count_curr = jnp.sum(mask_curr).astype(jnp.float32)\n    \n    pyr_y = jnp.sum(yy * mask_curr).astype(jnp.float32) / jnp.maximum(count_curr, 1.0)\n    pyr_x = jnp.sum(xx * mask_curr).astype(jnp.float32) / jnp.maximum(count_curr, 1.0)\n    \n    # Agent positions\n    agent_y_curr = state.agent.position[0].astype(jnp.float32)\n    agent_x_curr = state.agent.position[1].astype(jnp.float32)\n    agent_y_next = next_state.agent.position[0].astype(jnp.float32)\n    agent_x_next = next_state.agent.position[1].astype(jnp.float32)\n    \n    # Distance before and after action\n    dist_curr = jnp.abs(agent_y_curr - pyr_y) + jnp.abs(agent_x_curr - pyr_x)\n    dist_next = jnp.abs(agent_y_next - pyr_y) + jnp.abs(agent_x_next - pyr_x)\n    \n    # Check holding states\n    holding_blue_pyramid = (\n        (next_state.agent.pocket[0] == PYRAMID) & \n        (next_state.agent.pocket[1] == BLUE)\n    )\n    was_holding_blue_pyramid = (\n        (state.agent.pocket[0] == PYRAMID) & \n        (state.agent.pocket[1] == BLUE)\n    )\n    \n    just_picked_up = holding_blue_pyramid & (~was_holding_blue_pyramid)\n    \n    # Success reward - large signal\n    success_reward = jnp.where(just_picked_up, jnp.float32(10.0), jnp.float32(0.0))\n    \n    # Progress-based shaping: reward for getting closer to pyramid\n    # Only active when pyramid is on grid (not yet picked up)\n    pyramid_on_grid = count_curr > 0\n    not_holding = ~was_holding_blue_pyramid  # use state (before action) to avoid double counting\n    \n    # Progress reward: positive when moving closer, negative when moving away\n    dist_progress = dist_curr - dist_next  # positive = getting closer\n    max_dist = jnp.float32(H + W - 2)\n    \n    shaping_reward = jnp.where(\n        pyramid_on_grid & not_holding,\n        dist_progress / max_dist * jnp.float32(1.0),\n        jnp.float32(0.0)\n    )\n    \n    # Milestone: reward for facing the blue pyramid (encourages alignment for pickup)\n    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)], dtype=jnp.int32)\n    dy = DIRECTIONS[next_state.agent.direction, 0]\n    dx = DIRECTIONS[next_state.agent.direction, 1]\n    front_y = jnp.clip(next_state.agent.position[0].astype(jnp.int32) + dy, 0, H - 1)\n    front_x = jnp.clip(next_state.agent.position[1].astype(jnp.int32) + dx, 0, W - 1)\n    \n    front_is_blue_pyramid = (\n        (next_state.grid[front_y, front_x, 0] == PYRAMID) &\n        (next_state.grid[front_y, front_x, 1] == BLUE)\n    )\n    \n    # Reward for facing pyramid (significant enough to matter)\n    facing_reward = jnp.where(\n        front_is_blue_pyramid & (~holding_blue_pyramid),\n        jnp.float32(0.5),\n        jnp.float32(0.0)\n    )\n    \n    # Check if agent was facing pyramid before (to avoid repeated reward)\n    dy_prev = DIRECTIONS[state.agent.direction, 0]\n    dx_prev = DIRECTIONS[state.agent.direction, 1]\n    front_y_prev = jnp.clip(state.agent.position[0].astype(jnp.int32) + dy_prev, 0, H - 1)\n    front_x_prev = jnp.clip(state.agent.position[1].astype(jnp.int32) + dx_prev, 0, W - 1)\n    \n    was_facing_blue_pyramid = (\n        (state.grid[front_y_prev, front_x_prev, 0] == PYRAMID) &\n        (state.grid[front_y_prev, front_x_prev, 1] == BLUE)\n    )\n    \n    # Only reward newly facing the pyramid\n    just_facing = front_is_blue_pyramid & (~was_facing_blue_pyramid) & (~holding_blue_pyramid)\n    facing_reward = jnp.where(just_facing, jnp.float32(0.5), jnp.float32(0.0))\n    \n    total_reward = success_reward + shaping_reward + facing_reward\n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 6.165364742279053,
+    "final_length": 160.18333943684897,
+    "success_rate": 0.24,
+    "success_curve": [
+      0.40416666865348816,
+      0.4958333472410838,
+      0.500000019868215,
+      0.475000003973643,
+      0.5500000317891439,
+      0.4875000019868215,
+      0.5541666746139526
+    ],
+    "training_time": 80.77016735076904
+  },
+  "obs_dim": 171,
+  "stage": "full_train",
+  "generation": 1,
+  "parent_id": "0526cc2d-d009-4d1a-97bc-f25e364c9d67",
+  "island": 0,
+  "timestamp": 1771813713.8618462,
+  "feature_coords": [
+    4,
+    2
+  ]
+}

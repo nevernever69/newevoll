@@ -1,0 +1,37 @@
+{
+  "id": "eae52af3-695c-4ad8-be9f-888b384fa0a1",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef get_observation(state) -> jnp.ndarray:\n    H, W = state.grid.shape[:2]\n    \n    # Direction vectors: Up=0, Right=1, Down=2, Left=3\n    DIRECTIONS = jnp.array([[-1, 0], [0, 1], [1, 0], [0, -1]], dtype=jnp.float32)\n    \n    # Agent info\n    agent_y = state.agent.position[0].astype(jnp.float32)\n    agent_x = state.agent.position[1].astype(jnp.float32)\n    norm_agent_y = agent_y / (H - 1)\n    norm_agent_x = agent_x / (W - 1)\n    dir_one_hot = jax.nn.one_hot(state.agent.direction, 4)  # (4,)\n    \n    # Pocket info\n    pocket_tile = state.agent.pocket[0].astype(jnp.float32) / 12.0\n    pocket_color = state.agent.pocket[1].astype(jnp.float32) / 11.0\n    holding_yellow_pyramid = ((state.agent.pocket[0] == 5) & (state.agent.pocket[1] == 5)).astype(jnp.float32)\n    pocket_empty = (state.agent.pocket[0] == 0).astype(jnp.float32)\n    \n    # Grid coordinate meshgrid\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    yy_f = yy.astype(jnp.float32)\n    xx_f = xx.astype(jnp.float32)\n    \n    # Find yellow pyramid (tile=5, color=5)\n    pyr_mask = (state.grid[:, :, 0] == 5) & (state.grid[:, :, 1] == 5)\n    pyr_count = jnp.sum(pyr_mask).astype(jnp.float32)\n    pyr_y = jnp.sum(yy_f * pyr_mask) / jnp.maximum(pyr_count, 1.0)\n    pyr_x = jnp.sum(xx_f * pyr_mask) / jnp.maximum(pyr_count, 1.0)\n    pyr_found = jnp.minimum(pyr_count, 1.0)  # 1 if on grid, 0 if picked up\n    \n    # Find green square (tile=4, color=2)\n    sq_mask = (state.grid[:, :, 0] == 4) & (state.grid[:, :, 1] == 2)\n    sq_count = jnp.sum(sq_mask).astype(jnp.float32)\n    sq_y = jnp.sum(yy_f * sq_mask) / jnp.maximum(sq_count, 1.0)\n    sq_x = jnp.sum(xx_f * sq_mask) / jnp.maximum(sq_count, 1.0)\n    sq_found = jnp.minimum(sq_count, 1.0)\n    \n    # Normalized positions\n    norm_pyr_y = pyr_y / (H - 1)\n    norm_pyr_x = pyr_x / (W - 1)\n    norm_sq_y = sq_y / (H - 1)\n    norm_sq_x = sq_x / (W - 1)\n    \n    # Relative vectors: agent -> pyramid\n    rel_pyr_y = (pyr_y - agent_y) / (H - 1)\n    rel_pyr_x = (pyr_x - agent_x) / (W - 1)\n    dist_to_pyr = (jnp.abs(pyr_y - agent_y) + jnp.abs(pyr_x - agent_x)) / (H + W - 2)\n    \n    # Relative vectors: agent -> square\n    rel_sq_y = (sq_y - agent_y) / (H - 1)\n    rel_sq_x = (sq_x - agent_x) / (W - 1)\n    dist_to_sq = (jnp.abs(sq_y - agent_y) + jnp.abs(sq_x - agent_x)) / (H + W - 2)\n    \n    # Relative vectors: pyramid -> square (for placement guidance)\n    rel_pyr_to_sq_y = (sq_y - pyr_y) / (H - 1)\n    rel_pyr_to_sq_x = (sq_x - pyr_x) / (W - 1)\n    dist_pyr_to_sq = (jnp.abs(sq_y - pyr_y) + jnp.abs(sq_x - pyr_x)) / (H + W - 2)\n    \n    # Front tile info\n    dy = DIRECTIONS[state.agent.direction, 0]\n    dx = DIRECTIONS[state.agent.direction, 1]\n    front_y = jnp.clip(agent_y + dy, 0, H - 1).astype(jnp.int32)\n    front_x = jnp.clip(agent_x + dx, 0, W - 1).astype(jnp.int32)\n    front_tile_id = state.grid[front_y, front_x, 0].astype(jnp.float32) / 12.0\n    front_tile_color = state.grid[front_y, front_x, 1].astype(jnp.float32) / 11.0\n    \n    # Is front tile the yellow pyramid?\n    front_is_pyr = ((state.grid[front_y, front_x, 0] == 5) & \n                    (state.grid[front_y, front_x, 1] == 5)).astype(jnp.float32)\n    \n    # Is front tile adjacent to green square?\n    front_adj_to_sq = ((jnp.abs(front_y - sq_y) + jnp.abs(front_x - sq_x)) <= 1.0).astype(jnp.float32)\n    \n    # Is agent adjacent to green square?\n    agent_adj_to_sq = ((jnp.abs(agent_y - sq_y) + jnp.abs(agent_x - sq_x)) <= 1.0).astype(jnp.float32)\n    \n    # Step progress\n    step_norm = state.step_num.astype(jnp.float32) / 80.0\n    \n    obs = jnp.array([\n        norm_agent_y, norm_agent_x,         # agent position (2)\n        norm_pyr_y, norm_pyr_x,             # pyramid position (2)\n        norm_sq_y, norm_sq_x,               # square position (2)\n        rel_pyr_y, rel_pyr_x,               # agent -> pyramid (2)\n        rel_sq_y, rel_sq_x,                 # agent -> square (2)\n        rel_pyr_to_sq_y, rel_pyr_to_sq_x,  # pyramid -> square (2)\n        dist_to_pyr,                         # distance to pyramid (1)\n        dist_to_sq,                          # distance to square (1)\n        dist_pyr_to_sq,                      # pyramid to square distance (1)\n        pyr_found,                           # pyramid on grid (1)\n        sq_found,                            # square on grid (1)\n        holding_yellow_pyramid,              # holding yellow pyramid (1)\n        pocket_empty,                        # pocket empty (1)\n        pocket_tile, pocket_color,           # pocket contents (2)\n        front_tile_id, front_tile_color,     # front tile (2)\n        front_is_pyr,                        # front is yellow pyramid (1)\n        front_adj_to_sq,                     # front tile adj to square (1)\n        agent_adj_to_sq,                     # agent adj to square (1)\n        step_norm,                           # time progress (1)\n    ], dtype=jnp.float32)\n    \n    obs = jnp.concatenate([obs, dir_one_hot])  # total: 28 + 4 = 32\n    \n    return obs",
+  "metrics": {
+    "final_return": 0.6026543577512106,
+    "final_length": 102.55833689371745,
+    "success_rate": 0.5,
+    "success_curve": [
+      0.09166666865348816,
+      0.07500000049670537,
+      0.07500000111758709,
+      0.05833333358168602,
+      0.12916666766007742,
+      0.10416666666666667,
+      0.14999999850988388,
+      0.291666679084301,
+      0.4166666616996129,
+      0.49166667461395264,
+      0.6083333392937978,
+      0.5999999990065893,
+      0.7291666766007742,
+      0.7791666785875956,
+      0.824999988079071
+    ],
+    "training_time": 78.09494400024414
+  },
+  "obs_dim": 31,
+  "stage": "full_train",
+  "generation": 0,
+  "parent_id": null,
+  "island": 0,
+  "timestamp": 1771816096.6479986,
+  "feature_coords": [
+    2,
+    0
+  ]
+}

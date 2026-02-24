@@ -1,0 +1,29 @@
+{
+  "id": "678ea3f6-959c-4214-94b1-af6860eaa88c",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    \"\"\"\n    Reward for picking up the blue pyramid.\n    \n    Milestones:\n    1. Dense shaping: reward for moving closer to the blue pyramid\n    2. Sparse bonus: reward for successfully picking up the blue pyramid\n    \"\"\"\n    PYRAMID = jnp.int32(5)\n    BLUE = jnp.int32(3)\n    \n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    # Find the blue pyramid on the grid (in current and next state)\n    mask_curr = (state.grid[:, :, 0] == PYRAMID) & (state.grid[:, :, 1] == BLUE)\n    mask_next = (next_state.grid[:, :, 0] == PYRAMID) & (next_state.grid[:, :, 1] == BLUE)\n    \n    count_curr = jnp.sum(mask_curr)\n    count_next = jnp.sum(mask_next)\n    \n    # Agent position (float)\n    agent_y = next_state.agent.position[0].astype(jnp.float32)\n    agent_x = next_state.agent.position[1].astype(jnp.float32)\n    \n    # Mean position of blue pyramid on grid\n    pyr_y_curr = jnp.sum(yy * mask_curr).astype(jnp.float32) / jnp.maximum(count_curr, 1).astype(jnp.float32)\n    pyr_x_curr = jnp.sum(xx * mask_curr).astype(jnp.float32) / jnp.maximum(count_curr, 1).astype(jnp.float32)\n    \n    pyr_y_next = jnp.sum(yy * mask_next).astype(jnp.float32) / jnp.maximum(count_next, 1).astype(jnp.float32)\n    pyr_x_next = jnp.sum(xx * mask_next).astype(jnp.float32) / jnp.maximum(count_next, 1).astype(jnp.float32)\n    \n    # Manhattan distance from agent to blue pyramid in current state\n    agent_y_curr = state.agent.position[0].astype(jnp.float32)\n    agent_x_curr = state.agent.position[1].astype(jnp.float32)\n    \n    dist_curr = jnp.abs(agent_y_curr - pyr_y_curr) + jnp.abs(agent_x_curr - pyr_x_curr)\n    dist_next = jnp.abs(agent_y - pyr_y_next) + jnp.abs(agent_x - pyr_x_next)\n    \n    # Check if agent is now holding the blue pyramid\n    holding_blue_pyramid = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == BLUE)\n    was_holding_blue_pyramid = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == BLUE)\n    \n    # Success: just picked up the blue pyramid\n    just_picked_up = holding_blue_pyramid & (~was_holding_blue_pyramid)\n    \n    # Dense reward: progress toward pyramid (only when pyramid is on grid)\n    pyramid_on_grid = count_curr > 0\n    dist_improvement = dist_curr - dist_next\n    shaping_reward = jnp.where(pyramid_on_grid, dist_improvement * 0.1, jnp.float32(0.0))\n    \n    # Sparse reward for picking up\n    success_reward = jnp.where(just_picked_up, jnp.float32(1.0), jnp.float32(0.0))\n    \n    # Small penalty per step to encourage efficiency\n    step_penalty = jnp.float32(-0.01)\n    \n    total_reward = success_reward + shaping_reward + step_penalty\n    \n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": -1.5712903340657551,
+    "final_length": 182.42083740234375,
+    "success_rate": 0.19999999999999998,
+    "success_curve": [
+      0.30416667461395264,
+      0.34166666865348816,
+      0.3541666766007741,
+      0.3083333373069763,
+      0.4375000099341075,
+      0.3916666805744171,
+      0.4375000099341075
+    ],
+    "training_time": 78.81566882133484
+  },
+  "obs_dim": 171,
+  "stage": "full_train",
+  "generation": 0,
+  "parent_id": null,
+  "island": 0,
+  "timestamp": 1771813551.8325524,
+  "feature_coords": [
+    4,
+    2
+  ]
+}

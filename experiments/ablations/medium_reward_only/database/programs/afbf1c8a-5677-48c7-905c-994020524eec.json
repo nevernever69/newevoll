@@ -1,0 +1,38 @@
+{
+  "id": "afbf1c8a-5677-48c7-905c-994020524eec",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    PYRAMID = 5\n    SQUARE = 4\n    YELLOW = 5\n    GREEN = 2\n\n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)])\n\n    def find_obj(grid, tile_id, color_id):\n        mask = (grid[:, :, 0] == tile_id) & (grid[:, :, 1] == color_id)\n        count = jnp.sum(mask).astype(jnp.float32)\n        y = jnp.sum(yy * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        x = jnp.sum(xx * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        return y, x, count\n\n    # Previous state info\n    pyr_y_s, pyr_x_s, pyr_cnt_s = find_obj(state.grid, PYRAMID, YELLOW)\n    sq_y_s, sq_x_s, sq_cnt_s = find_obj(state.grid, SQUARE, GREEN)\n    ay_s = state.agent.position[0].astype(jnp.float32)\n    ax_s = state.agent.position[1].astype(jnp.float32)\n    holding_s = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)\n\n    # Next state info\n    pyr_y_n, pyr_x_n, pyr_cnt_n = find_obj(next_state.grid, PYRAMID, YELLOW)\n    sq_y_n, sq_x_n, sq_cnt_n = find_obj(next_state.grid, SQUARE, GREEN)\n    ay_n = next_state.agent.position[0].astype(jnp.float32)\n    ax_n = next_state.agent.position[1].astype(jnp.float32)\n    holding_n = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)\n\n    pyr_on_grid_n = pyr_cnt_n > 0.5\n    pyr_on_grid_s = pyr_cnt_s > 0.5\n\n    just_picked = (~holding_s) & holding_n\n    just_placed = holding_s & (~holding_n)\n\n    max_dist = jnp.float32(H + W - 2)\n\n    # Success: pyramid on grid, not held, adjacent (dist==1) to square\n    dist_pyr_sq_n = jnp.abs(pyr_y_n - sq_y_n) + jnp.abs(pyr_x_n - sq_x_n)\n    dist_pyr_sq_s = jnp.abs(pyr_y_s - sq_y_s) + jnp.abs(pyr_x_s - sq_x_s)\n    success = pyr_on_grid_n & (~holding_n) & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5)\n\n    # Front cell of agent in next state\n    dir_n = next_state.agent.direction\n    front_dy = DIRECTIONS[dir_n, 0].astype(jnp.float32)\n    front_dx = DIRECTIONS[dir_n, 1].astype(jnp.float32)\n    front_y_n = ay_n + front_dy\n    front_x_n = ax_n + front_dx\n\n    # Distance from front cell to square (for placing adjacent)\n    dist_front_sq_n = jnp.abs(front_y_n - sq_y_n) + jnp.abs(front_x_n - sq_x_n)\n\n    # Phase 1: not holding -> approach pyramid\n    dist_ap_s = jnp.abs(ay_s - pyr_y_s) + jnp.abs(ax_s - pyr_x_s)\n    dist_ap_n = jnp.abs(ay_n - pyr_y_n) + jnp.abs(ax_n - pyr_x_n)\n    not_holding_both = (~holding_s) & (~holding_n)\n    r_approach_pyr = not_holding_both.astype(jnp.float32) * (dist_ap_s - dist_ap_n) / max_dist\n\n    # Pickup bonus\n    r_pickup = just_picked.astype(jnp.float32) * 2.0\n\n    # Phase 2: holding -> approach square\n    dist_as_s = jnp.abs(ay_s - sq_y_s) + jnp.abs(ax_s - sq_x_s)\n    dist_as_n = jnp.abs(ay_n - sq_y_n) + jnp.abs(ax_n - sq_x_n)\n    holding_both = holding_s & holding_n\n    r_approach_sq = holding_both.astype(jnp.float32) * (dist_as_s - dist_as_n) / max_dist\n\n    # Phase 2b: while holding, also reward front cell being adjacent to square\n    # This guides the agent to position correctly for placing\n    front_adj_sq = holding_n & (dist_front_sq_n >= 0.5) & (dist_front_sq_n <= 1.5)\n    r_front_adj = front_adj_sq.astype(jnp.float32) * 0.5\n\n    # Putdown reward: heavily reward placing adjacent, penalize placing far\n    placed_adj = just_placed & pyr_on_grid_n & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5)\n    placed_near = just_placed & pyr_on_grid_n & (dist_pyr_sq_n > 1.5) & (dist_pyr_sq_n <= 3.5)\n    placed_far = just_placed & pyr_on_grid_n & (dist_pyr_sq_n > 3.5)\n    r_putdown = (\n        placed_adj.astype(jnp.float32) * 5.0\n        + placed_near.astype(jnp.float32) * 0.5\n        + placed_far.astype(jnp.float32) * (-1.0)\n    )\n\n    # Success reward\n    r_success = success.astype(jnp.float32) * 10.0\n\n    # Persistent success reward (keep agent from undoing the task)\n    was_success_s = pyr_on_grid_s & (~holding_s) & (dist_pyr_sq_s >= 0.5) & (dist_pyr_sq_s <= 1.5)\n    r_persist = (was_success_s & success).astype(jnp.float32) * 5.0\n\n    total = (\n        r_approach_pyr * 1.0\n        + r_pickup\n        + r_approach_sq * 1.0\n        + r_front_adj\n        + r_putdown\n        + r_success\n        + r_persist\n    )\n\n    return total.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 146.6015625,
+    "final_length": 240.375,
+    "success_rate": 0.0,
+    "learning_curve": [
+      210.04141235351562,
+      143.3984375,
+      142.33750915527344,
+      75.41719055175781,
+      154.61485290527344,
+      91.70234680175781,
+      146.6015625
+    ],
+    "success_curve": [
+      0.11250000447034836,
+      0.08749999850988388,
+      0.08749999850988388,
+      0.0625,
+      0.07500000298023224,
+      0.08749999850988388,
+      0.02500000037252903
+    ],
+    "training_time": 27.115013599395752
+  },
+  "obs_dim": 171,
+  "stage": "short_train_rejected",
+  "generation": 1,
+  "parent_id": "d56f22a2-8aa1-485e-9376-0bdabab0a6e3",
+  "island": 0,
+  "timestamp": 1771820547.3495734,
+  "feature_coords": [
+    3,
+    2
+  ]
+}

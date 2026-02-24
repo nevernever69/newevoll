@@ -1,0 +1,38 @@
+{
+  "id": "3bd0ffb2-572e-418c-9717-08a49e378d2d",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    PYRAMID = 5\n    SQUARE = 4\n    YELLOW = 5\n    GREEN = 2\n\n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)])\n\n    def find_obj(grid, tile_id, color_id):\n        mask = (grid[:, :, 0] == tile_id) & (grid[:, :, 1] == color_id)\n        count = jnp.sum(mask).astype(jnp.float32)\n        y = jnp.sum(yy * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        x = jnp.sum(xx * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        return y, x, count\n\n    # State info\n    pyr_y_s, pyr_x_s, pyr_cnt_s = find_obj(state.grid, PYRAMID, YELLOW)\n    sq_y_s, sq_x_s, _ = find_obj(state.grid, SQUARE, GREEN)\n    ay_s = state.agent.position[0].astype(jnp.float32)\n    ax_s = state.agent.position[1].astype(jnp.float32)\n    holding_s = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)\n\n    pyr_y_n, pyr_x_n, pyr_cnt_n = find_obj(next_state.grid, PYRAMID, YELLOW)\n    sq_y_n, sq_x_n, _ = find_obj(next_state.grid, SQUARE, GREEN)\n    ay_n = next_state.agent.position[0].astype(jnp.float32)\n    ax_n = next_state.agent.position[1].astype(jnp.float32)\n    holding_n = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)\n\n    pyr_on_grid_n = pyr_cnt_n > 0.5\n    just_picked = (~holding_s) & holding_n\n    just_placed = holding_s & (~holding_n)\n\n    hs = holding_s.astype(jnp.float32)\n    hn = holding_n.astype(jnp.float32)\n\n    max_dist = jnp.float32(H + W)\n\n    # Success: pyramid on grid, not held, Manhattan dist == 1 to square\n    dist_pyr_sq_n = jnp.abs(pyr_y_n - sq_y_n) + jnp.abs(pyr_x_n - sq_x_n)\n    dist_pyr_sq_s = jnp.abs(pyr_y_s - sq_y_s) + jnp.abs(pyr_x_s - sq_x_s)\n    success = pyr_on_grid_n & (~holding_n) & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5)\n\n    # Front cell in next state\n    dir_n = next_state.agent.direction\n    fdy_n = DIRECTIONS[dir_n, 0].astype(jnp.float32)\n    fdx_n = DIRECTIONS[dir_n, 1].astype(jnp.float32)\n    front_y_n = jnp.clip(ay_n + fdy_n, 0.0, jnp.float32(H - 1))\n    front_x_n = jnp.clip(ax_n + fdx_n, 0.0, jnp.float32(W - 1))\n\n    # Front cell in prev state\n    dir_s = state.agent.direction\n    fdy_s = DIRECTIONS[dir_s, 0].astype(jnp.float32)\n    fdx_s = DIRECTIONS[dir_s, 1].astype(jnp.float32)\n    front_y_s = jnp.clip(ay_s + fdy_s, 0.0, jnp.float32(H - 1))\n    front_x_s = jnp.clip(ax_s + fdx_s, 0.0, jnp.float32(W - 1))\n\n    # === PHASE 1: Not holding pyramid \u2192 approach pyramid ===\n    dist_ap_s = jnp.abs(ay_s - pyr_y_s) + jnp.abs(ax_s - pyr_x_s)\n    dist_ap_n = jnp.abs(ay_n - pyr_y_n) + jnp.abs(ax_n - pyr_x_n)\n    not_holding_both = (1.0 - hs) * (1.0 - hn)\n    r_approach_pyr = not_holding_both * (dist_ap_s - dist_ap_n) / max_dist * 3.0\n\n    # === PICKUP BONUS ===\n    r_pickup = just_picked.astype(jnp.float32) * 2.0\n\n    # === PHASE 2: Holding \u2192 navigate so front cell is adjacent to square ===\n    # The key insight: putdown places pyramid in front cell.\n    # So we want front cell to be adjacent (dist=1) to square.\n    # Reward: reduce distance from front cell to square while holding.\n    dist_front_sq_s = jnp.abs(front_y_s - sq_y_s) + jnp.abs(front_x_s - sq_x_s)\n    dist_front_sq_n = jnp.abs(front_y_n - sq_y_n) + jnp.abs(front_x_n - sq_x_n)\n\n    holding_both = hs * hn\n    # Approach square via agent position\n    dist_as_s = jnp.abs(ay_s - sq_y_s) + jnp.abs(ax_s - sq_x_s)\n    dist_as_n = jnp.abs(ay_n - sq_y_n) + jnp.abs(ax_n - sq_x_n)\n    r_approach_sq = holding_both * (dist_as_s - dist_as_n) / max_dist * 3.0\n\n    # Reward front cell being adjacent to square while holding\n    # This is the ideal position for putdown\n    front_adj_to_sq = holding_n & (dist_front_sq_n >= 0.5) & (dist_front_sq_n <= 1.5)\n    r_front_adj = front_adj_to_sq.astype(jnp.float32) * 1.0\n\n    # Progress: front cell getting closer to square while holding\n    r_front_progress = holding_both * (dist_front_sq_s - dist_front_sq_n) / max_dist * 2.0\n\n    # === PUTDOWN REWARD ===\n    placed_adj = just_placed & pyr_on_grid_n & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5)\n    placed_near = just_placed & pyr_on_grid_n & (dist_pyr_sq_n > 1.5) & (dist_pyr_sq_n <= 3.5)\n    placed_far = just_placed & pyr_on_grid_n & (dist_pyr_sq_n > 3.5)\n    r_putdown = (\n        placed_adj.astype(jnp.float32) * 15.0\n        + placed_near.astype(jnp.float32) * 1.0\n        + placed_far.astype(jnp.float32) * (-2.0)\n    )\n\n    # === SUCCESS REWARD ===\n    r_success = success.astype(jnp.float32) * 30.0\n\n    # === PERSISTENT SUCCESS ===\n    was_success = (pyr_cnt_s > 0.5) & (~holding_s) & (dist_pyr_sq_s >= 0.5) & (dist_pyr_sq_s <= 1.5)\n    r_persist = (was_success & success).astype(jnp.float32) * 5.0\n\n    # === SMALL TIME PENALTY ===\n    r_time = jnp.float32(-0.01)\n\n    total = (\n        r_approach_pyr\n        + r_pickup\n        + r_approach_sq\n        + r_front_adj\n        + r_front_progress\n        + r_putdown\n        + r_success\n        + r_persist\n        + r_time\n    )\n\n    return total.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 478.6416015625,
+    "final_length": 240.83750915527344,
+    "success_rate": 0.0,
+    "learning_curve": [
+      412.8822326660156,
+      348.8527526855469,
+      239.63633728027344,
+      114.2390365600586,
+      317.0632019042969,
+      269.259765625,
+      478.6416015625
+    ],
+    "success_curve": [
+      0.08749999850988388,
+      0.07500000298023224,
+      0.0625,
+      0.03750000149011612,
+      0.10000000149011612,
+      0.03750000149011612,
+      0.03750000149011612
+    ],
+    "training_time": 28.53153681755066
+  },
+  "obs_dim": 171,
+  "stage": "short_train_rejected",
+  "generation": 2,
+  "parent_id": "27c673ef-ccee-47ed-a381-889da0101ed9",
+  "island": 0,
+  "timestamp": 1771820617.4141293,
+  "feature_coords": [
+    4,
+    2
+  ]
+}

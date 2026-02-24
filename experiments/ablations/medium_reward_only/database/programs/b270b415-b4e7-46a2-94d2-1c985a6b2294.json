@@ -1,0 +1,37 @@
+{
+  "id": "b270b415-b4e7-46a2-94d2-1c985a6b2294",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    PYRAMID = 5\n    SQUARE = 4\n    YELLOW = 5\n    GREEN = 2\n\n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n\n    def find_obj(grid, tile_id, color_id):\n        mask = (grid[:, :, 0] == tile_id) & (grid[:, :, 1] == color_id)\n        count = jnp.sum(mask).astype(jnp.float32)\n        y = jnp.sum(yy * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        x = jnp.sum(xx * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        return y, x, count\n\n    # Previous state\n    pyr_y_s, pyr_x_s, pyr_cnt_s = find_obj(state.grid, PYRAMID, YELLOW)\n    sq_y_s, sq_x_s, sq_cnt_s = find_obj(state.grid, SQUARE, GREEN)\n    ay_s = state.agent.position[0].astype(jnp.float32)\n    ax_s = state.agent.position[1].astype(jnp.float32)\n    holding_s = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)\n\n    # Next state\n    pyr_y_n, pyr_x_n, pyr_cnt_n = find_obj(next_state.grid, PYRAMID, YELLOW)\n    sq_y_n, sq_x_n, sq_cnt_n = find_obj(next_state.grid, SQUARE, GREEN)\n    ay_n = next_state.agent.position[0].astype(jnp.float32)\n    ax_n = next_state.agent.position[1].astype(jnp.float32)\n    holding_n = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)\n\n    hs = holding_s.astype(jnp.float32)\n    hn = holding_n.astype(jnp.float32)\n    just_picked = (~holding_s) & holding_n\n    just_placed = holding_s & (~holding_n)\n    pyr_on_grid_n = pyr_cnt_n > 0.5\n\n    max_dist = jnp.float32(H + W)\n\n    # Success condition\n    dist_pyr_sq_n = jnp.abs(pyr_y_n - sq_y_n) + jnp.abs(pyr_x_n - sq_x_n)\n    success = pyr_on_grid_n & (~holding_n) & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5)\n\n    # Phase 1: not holding -> go to pyramid\n    dist_ap_s = jnp.abs(ay_s - pyr_y_s) + jnp.abs(ax_s - pyr_x_s)\n    dist_ap_n = jnp.abs(ay_n - pyr_y_n) + jnp.abs(ax_n - pyr_x_n)\n    # Reward reduction in distance to pyramid\n    r_phase1 = (1.0 - hs) * (1.0 - hn) * (dist_ap_s - dist_ap_n) / max_dist * 2.0\n\n    # Pickup bonus\n    r_pickup = just_picked.astype(jnp.float32) * 3.0\n\n    # Phase 2: holding -> go near square\n    # Want agent to be close to square (dist == 1 or 2 is ideal for placing adjacent)\n    dist_as_s = jnp.abs(ay_s - sq_y_s) + jnp.abs(ax_s - sq_x_s)\n    dist_as_n = jnp.abs(ay_n - sq_y_n) + jnp.abs(ax_n - sq_x_n)\n    r_phase2 = hs * hn * (dist_as_s - dist_as_n) / max_dist * 2.0\n\n    # Putdown reward: based on where pyramid lands relative to square\n    dist_pyr_sq_n_safe = jnp.where(pyr_on_grid_n, dist_pyr_sq_n, max_dist)\n    # If placed adjacent: big reward\n    placed_adjacent = just_placed & pyr_on_grid_n & (dist_pyr_sq_n_safe >= 0.5) & (dist_pyr_sq_n_safe <= 1.5)\n    # If placed close (dist 2-3): small reward\n    placed_close = just_placed & pyr_on_grid_n & (dist_pyr_sq_n_safe > 1.5) & (dist_pyr_sq_n_safe <= 3.5)\n    # If placed far: penalty\n    placed_far = just_placed & pyr_on_grid_n & (dist_pyr_sq_n_safe > 3.5)\n\n    r_putdown = (\n        placed_adjacent.astype(jnp.float32) * 10.0\n        + placed_close.astype(jnp.float32) * 1.0\n        + placed_far.astype(jnp.float32) * (-1.0)\n    )\n\n    # Success reward\n    r_success = success.astype(jnp.float32) * 20.0\n\n    # Small dense reward: when pyramid is on grid and not held, reward proximity to square\n    # This persists across steps to maintain signal\n    pyr_placed_n = pyr_on_grid_n & (~holding_n)\n    pyr_placed_s = (pyr_cnt_s > 0.5) & (~holding_s)\n    dist_pyr_sq_s = jnp.abs(pyr_y_s - sq_y_s) + jnp.abs(pyr_x_s - sq_x_s)\n    # Only when pyramid was already placed in previous step too (not just put down)\n    r_placement_improvement = (\n        pyr_placed_n & pyr_placed_s & (~just_placed)\n    ).astype(jnp.float32) * (dist_pyr_sq_s - dist_pyr_sq_n) / max_dist * 1.0\n\n    total = (\n        r_phase1\n        + r_pickup\n        + r_phase2\n        + r_putdown\n        + r_success\n        + r_placement_improvement\n    )\n\n    return total.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 354.5856526692708,
+    "final_length": 237.1916707356771,
+    "success_rate": 0.02,
+    "success_curve": [
+      0.09166666865348816,
+      0.041666667287548385,
+      0.07500000173846881,
+      0.06666666641831398,
+      0.09166666865348816,
+      0.07916666691501935,
+      0.041666667287548385,
+      0.06666666766007741,
+      0.08333333457509677,
+      0.07916666629413764,
+      0.054166667784253754,
+      0.07083333532015483,
+      0.06666666766007741,
+      0.05416666716337204,
+      0.054166666542490326
+    ],
+    "training_time": 74.9050030708313
+  },
+  "obs_dim": 171,
+  "stage": "full_train",
+  "generation": 1,
+  "parent_id": "d56f22a2-8aa1-485e-9376-0bdabab0a6e3",
+  "island": 0,
+  "timestamp": 1771820293.5643332,
+  "feature_coords": [
+    2,
+    2
+  ]
+}

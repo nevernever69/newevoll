@@ -72,6 +72,7 @@ class TrainingConfig:
     total_timesteps: int = 1_000_000
     total_timesteps_full: int = 5_000_000
     lr: float = 0.001
+    lr_schedule: str = "linear"  # "linear", "constant", or "cosine"
     clip_eps: float = 0.2
     gamma: float = 0.99
     gae_lambda: float = 0.95

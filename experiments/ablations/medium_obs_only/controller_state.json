@@ -1,0 +1,122 @@
+{
+  "iteration": 30,
+  "total_llm_tokens": 1220177,
+  "total_input_tokens": 1077852,
+  "total_output_tokens": 142325,
+  "est_llm_cost_usd": 5.3684,
+  "total_eval_time": 5434.163571357727,
+  "wall_time": 3536.1,
+  "task_description": "Place the yellow pyramid adjacent to the green square. Grid 9x9, max_steps=80.",
+  "evolution_mode": "obs_only",
+  "config": {
+    "max_iterations": 30,
+    "candidates_per_iteration": 2,
+    "checkpoint_interval": 50,
+    "log_level": "INFO",
+    "log_dir": null,
+    "random_seed": 42,
+    "evolution_mode": "obs_only",
+    "task_description": null,
+    "environment": {
+      "env_id": "XLand-MiniGrid-R1-9x9",
+      "benchmark_id": null,
+      "ruleset_id": null,
+      "ruleset_file": "tasks/medium_place_near.py",
+      "view_size": 7,
+      "max_steps": null,
+      "adapter_type": "xminigrid",
+      "context_file": "contexts/xminigrid_context.md"
+    },
+    "training": {
+      "num_envs": 8192,
+      "num_steps": 16,
+      "update_epochs": 1,
+      "num_minibatches": 16,
+      "total_timesteps": 1000000,
+      "total_timesteps_full": 2000000,
+      "lr": 0.001,
+      "lr_schedule": "linear",
+      "clip_eps": 0.2,
+      "gamma": 0.99,
+      "gae_lambda": 0.95,
+      "ent_coef": 0.01,
+      "vf_coef": 0.5,
+      "max_grad_norm": 0.5,
+      "eval_episodes": 80,
+      "eval_episodes_for_fitness": 50,
+      "eval_max_steps": 80,
+      "seed": 42,
+      "num_seeds": 3,
+      "enable_bf16": false,
+      "hidden_dim": 256,
+      "rnn_hidden_dim": 512,
+      "rnn_num_layers": 1,
+      "head_hidden_dim": 256,
+      "action_emb_dim": 16
+    },
+    "mdp_interface": {
+      "max_obs_dim": 512,
+      "include_action_transform": false
+    },
+    "crash_filter": {
+      "stage0_timeout": 5,
+      "stage1_timeout": 10,
+      "stage2_timeout": 30,
+      "retry_on_crash": true,
+      "max_crash_retries": 1
+    },
+    "evaluator": {
+      "timeout": 600,
+      "max_retries": 2,
+      "cascade_evaluation": true,
+      "cascade_thresholds": [
+        0.02
+      ],
+      "parallel_evaluations": 1,
+      "enable_artifacts": true,
+      "max_artifact_storage": 104857600
+    },
+    "llm": {
+      "region_name": "us-east-1",
+      "model_name": "claude-sonnet-4-6",
+      "temperature": 0.7,
+      "max_tokens": 16384,
+      "retries": 3,
+      "retry_delay": 1.0,
+      "models": []
+    },
+    "database": {
+      "db_path": null,
+      "in_memory": true,
+      "population_size": 200,
+      "archive_size": 50,
+      "num_islands": 3,
+      "elite_selection_ratio": 0.1,
+      "exploration_ratio": 0.2,
+      "exploitation_ratio": 0.7,
+      "feature_dimensions": [
+        "reward_complexity",
+        "obs_dimensionality"
+      ],
+      "feature_bins": 5,
+      "migration_interval": 20,
+      "migration_rate": 0.1,
+      "random_seed": 42
+    },
+    "prompt": {
+      "num_top_programs": 3,
+      "num_diverse_programs": 2,
+      "num_failure_examples": 2,
+      "include_artifacts": true,
+      "max_artifact_bytes": 20480,
+      "use_stochasticity": true,
+      "num_inspiration_programs": 2
+    },
+    "evolution_trace": {
+      "enabled": true,
+      "include_code": false,
+      "include_prompts": false,
+      "buffer_size": 10
+    }
+  }
+}

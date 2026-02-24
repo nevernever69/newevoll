@@ -1,0 +1,644 @@
+W0223 04:23:42.693908   50112 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML doesn't support extracting fabric info or NVLink is not used by the device.
+W0223 04:23:42.697108   50082 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML doesn't support extracting fabric info or NVLink is not used by the device.
+LLMClient initialized: model=claude-sonnet-4-6 region=us-east-1
+LLMEnsemble initialized: claude-sonnet-4-6 (w=1.00)
+Starting evolution: 30 iterations, 2 candidates/batch, env=XLand-MiniGrid-R4-13x13, model=claude-sonnet-4-6, mode=obs_only
+[Iter 1] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Candidate crashed at stage 2: AttributeError: 'int' object has no attribute 'astype'
+Running crash filter...
+Crash filter passed (obs_dim=90)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=86)
+Running short training (3,000,000 steps)...
+W0223 04:26:08.070472   50271 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[256,256]{1,0} parameter(2)
+  tmp_1 = f32[50,256]{1,0} parameter(0)
+  tmp_2 = f32[256]{0} parameter(1)
+  tmp_3 = f32[50,256]{1,0} broadcast(f32[256]{0} tmp_2), dimensions={1}
+  tmp_4 = f32[50,256]{1,0} add(f32[50,256]{1,0} tmp_1, f32[50,256]{1,0} tmp_3)
+  tmp_5 = f32[] constant(0)
+  tmp_6 = f32[50,256]{1,0} broadcast(f32[] tmp_5), dimensions={}
+  tmp_7 = f32[50,256]{1,0} maximum(f32[50,256]{1,0} tmp_4, f32[50,256]{1,0} tmp_6)
+  tmp_8 = f32[256,50]{0,1} dot(f32[256,256]{1,0} tmp_0, f32[50,256]{1,0} tmp_7), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+  ROOT tmp_9 = f32[50,256]{1,0} bitcast(f32[256,50]{0,1} tmp_8)
+}', version=16>
+W0223 04:26:08.076523   50271 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[50,256]{1,0} parameter(0)
+  tmp_1 = f32[256]{0} parameter(1)
+  tmp_2 = f32[50,256]{1,0} broadcast(f32[256]{0} tmp_1), dimensions={1}
+  tmp_3 = f32[50,256]{1,0} add(f32[50,256]{1,0} tmp_0, f32[50,256]{1,0} tmp_2)
+  tmp_4 = f32[50,256]{1,0} tanh(f32[50,256]{1,0} tmp_3)
+  tmp_5 = f32[256,6]{1,0} parameter(2)
+  ROOT tmp_6 = f32[50,6]{1,0} dot(f32[50,256]{1,0} tmp_4, f32[256,6]{1,0} tmp_5), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:26:08.084301   50271 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,273]{1,0} parameter(0)
+  tmp_1 = f32[1,1,50,273]{3,2,1,0} parameter(1)
+  tmp_2 = f32[273,50]{0,1} bitcast(f32[1,1,50,273]{3,2,1,0} tmp_1)
+  tmp_3 = f32[1536,50]{0,1} dot(f32[1536,273]{1,0} tmp_0, f32[273,50]{0,1} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  ROOT tmp_4 = f32[50,1536]{1,0} bitcast(f32[1536,50]{0,1} tmp_3)
+}', version=16>
+W0223 04:26:08.085191   50271 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,256]{1,0} parameter(1)
+  tmp_1 = f32[1,50,512]{2,1,0} parameter(0)
+  tmp_2 = f32[50,512]{1,0} bitcast(f32[1,50,512]{2,1,0} tmp_1)
+  tmp_3 = f32[256,50]{0,1} dot(f32[512,256]{1,0} tmp_0, f32[50,512]{1,0} tmp_2), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+  ROOT tmp_4 = f32[50,256]{1,0} bitcast(f32[256,50]{0,1} tmp_3)
+}', version=16>
+W0223 04:26:08.088344   50271 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,512]{1,0} parameter(0)
+  tmp_1 = f32[50,1,1,512]{3,2,1,0} parameter(1)
+  tmp_2 = f32[512,50]{0,1} bitcast(f32[50,1,1,512]{3,2,1,0} tmp_1)
+  ROOT tmp_3 = f32[1536,50]{0,1} dot(f32[1536,512]{1,0} tmp_0, f32[512,50]{0,1} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+Short training done: success=0%, length=507.0, time=73.6s
+Short training success 0% < threshold 1% — rejected
+Retry succeeded: short_train_rejected return=0.0000
+[Iter 1] REJECTED (success=0%) | best=0% | 153.3s
+Short training done: success=0%, length=507.0, time=83.8s
+Short training success 0% < threshold 1% — rejected
+[Iter 2] REJECTED (success=0%) | best=0% | 153.3s
+[Iter 3] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=191)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=141)
+Running short training (3,000,000 steps)...
+Short training done: success=0%, length=501.1, time=66.6s
+Short training success 0% < threshold 1% — rejected
+[Iter 3] REJECTED (success=0%) | best=0% | 129.4s
+Short training done: success=0%, length=507.0, time=63.4s
+Short training success 0% < threshold 1% — rejected
+[Iter 4] REJECTED (success=0%) | best=0% | 135.3s
+[Iter 5] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=424)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=330)
+Running short training (3,000,000 steps)...
+Short training done: success=0%, length=497.0, time=48.6s
+Short training success 0% < threshold 1% — rejected
+[Iter 5] REJECTED (success=0%) | best=0% | 94.1s
+Short training done: success=0%, length=507.0, time=80.4s
+Short training success 0% < threshold 1% — rejected
+[Iter 6] REJECTED (success=0%) | best=0% | 149.4s
+[Iter 7] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=425)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=249)
+Running short training (3,000,000 steps)...
+Short training done: success=2%, length=496.7, time=51.5s
+Passed threshold (2% >= 1%). Running full training (5,000,000 steps, 3 seed(s))...
+Short training done: success=0%, length=507.0, time=76.0s
+Short training success 0% < threshold 1% — rejected
+[Iter 7] REJECTED (success=0%) | best=0% | 145.3s
+  Seed 1/3: success=2% length=507.0
+  Seed 2/3: success=2% length=505.4
+  Seed 3/3: success=8% length=483.8
+  Multi-seed avg (3 seeds): success=4% length=498.7
+Full training done: success=4%, length=498.7, time=146.0s
+[Iter 8] full_train success=4% length=498.7 | best=4% | 285.4s *** NEW BEST ***
+[Iter 9] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=431)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=211)
+Running short training (3,000,000 steps)...
+Short training done: success=0%, length=507.0, time=51.4s
+Short training success 0% < threshold 1% — rejected
+[Iter 9] REJECTED (success=0%) | best=4% | 99.6s
+Short training done: success=2%, length=507.0, time=67.7s
+Passed threshold (2% >= 1%). Running full training (5,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=2% length=507.0
+  Seed 2/3: success=2% length=496.3
+  Seed 3/3: success=4% length=495.8
+  Multi-seed avg (3 seeds): success=3% length=499.7
+Full training done: success=3%, length=499.7, time=200.7s
+[Iter 10] full_train success=3% length=499.7 | best=4% | 408.3s
+[Iter 11] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=454)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=465)
+Running short training (3,000,000 steps)...
+Short training done: success=0%, length=507.0, time=57.5s
+Short training success 0% < threshold 1% — rejected
+[Iter 11] REJECTED (success=0%) | best=4% | 121.7s
+Short training done: success=0%, length=501.7, time=57.1s
+Short training success 0% < threshold 1% — rejected
+[Iter 12] REJECTED (success=0%) | best=4% | 127.6s
+[Iter 13] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=277)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=442)
+Running short training (3,000,000 steps)...
+Short training done: success=0%, length=507.0, time=51.1s
+Short training success 0% < threshold 1% — rejected
+[Iter 13] REJECTED (success=0%) | best=4% | 128.1s
+Short training done: success=0%, length=507.0, time=72.7s
+Short training success 0% < threshold 1% — rejected
+[Iter 14] REJECTED (success=0%) | best=4% | 145.4s
+[Iter 15] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Running crash filter...
+Candidate crashed at stage 2: NameError: name 'dir_oh' is not defined
+Crash filter passed (obs_dim=272)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=447)
+Running short training (3,000,000 steps)...
+Short training done: success=2%, length=507.0, time=56.2s
+Passed threshold (2% >= 1%). Running full training (5,000,000 steps, 3 seed(s))...
+Short training done: success=4%, length=493.3, time=71.2s
+Passed threshold (4% >= 1%). Running full training (5,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=0% length=507.0
+  Seed 1/3: success=20% length=461.7
+  Seed 2/3: success=0% length=503.2
+  Seed 3/3: success=2% length=496.8
+  Multi-seed avg (3 seeds): success=1% length=502.3
+Full training done: success=1%, length=502.3, time=168.5s
+Retry succeeded: full_train return=0.0067
+[Iter 15] full_train success=1% length=502.3 | best=4% | 360.7s
+  Seed 2/3: success=2% length=495.9
+  Seed 3/3: success=0% length=499.1
+  Multi-seed avg (3 seeds): success=7% length=485.6
+Full training done: success=7%, length=485.6, time=221.9s
+[Iter 16] full_train success=7% length=485.6 | best=7% | 458.3s *** NEW BEST ***
+[Iter 17] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=276)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=382)
+Running short training (3,000,000 steps)...
+Short training done: success=0%, length=507.0, time=72.4s
+Short training success 0% < threshold 1% — rejected
+[Iter 17] REJECTED (success=0%) | best=7% | 146.3s
+Short training done: success=0%, length=507.0, time=71.9s
+Short training success 0% < threshold 1% — rejected
+[Iter 18] REJECTED (success=0%) | best=7% | 154.4s
+[Iter 19] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=451)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=448)
+Running short training (3,000,000 steps)...
+Short training done: success=2%, length=507.0, time=54.0s
+Passed threshold (2% >= 1%). Running full training (5,000,000 steps, 3 seed(s))...
+Short training done: success=0%, length=507.0, time=57.7s
+Short training success 0% < threshold 1% — rejected
+[Iter 19] REJECTED (success=0%) | best=7% | 127.3s
+  Seed 1/3: success=2% length=507.0
+  Seed 2/3: success=4% length=480.6
+  Seed 3/3: success=8% length=485.1
+  Multi-seed avg (3 seeds): success=5% length=490.9
+Full training done: success=5%, length=490.9, time=147.9s
+[Iter 20] full_train success=5% length=490.9 | best=7% | 315.0s
+[Iter 21] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=454)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=469)
+Running short training (3,000,000 steps)...
+Short training done: success=0%, length=507.0, time=49.8s
+Short training success 0% < threshold 1% — rejected
+[Iter 21] REJECTED (success=0%) | best=7% | 110.3s
+Short training done: success=6%, length=507.0, time=56.6s
+Passed threshold (6% >= 1%). Running full training (5,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=20% length=484.1
+  Seed 2/3: success=0% length=506.1
+  Seed 3/3: success=44% length=307.0
+  Multi-seed avg (3 seeds): success=21% length=432.4
+Full training done: success=21%, length=432.4, time=156.3s
+[Iter 22] full_train success=21% length=432.4 | best=21% | 334.2s *** NEW BEST ***
+[Iter 23] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=468)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=469)
+Running short training (3,000,000 steps)...
+Short training done: success=2%, length=507.0, time=56.2s
+Passed threshold (2% >= 1%). Running full training (5,000,000 steps, 3 seed(s))...
+Short training done: success=0%, length=495.3, time=56.6s
+Short training success 0% < threshold 1% — rejected
+[Iter 23] REJECTED (success=0%) | best=21% | 134.8s
+  Seed 1/3: success=6% length=503.2
+  Seed 2/3: success=0% length=507.0
+  Seed 3/3: success=12% length=463.0
+  Multi-seed avg (3 seeds): success=6% length=491.0
+Full training done: success=6%, length=491.0, time=155.5s
+[Iter 24] full_train success=6% length=491.0 | best=21% | 333.7s
+[Iter 25] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=471)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=472)
+Running short training (3,000,000 steps)...
+Short training done: success=2%, length=501.2, time=59.3s
+Passed threshold (2% >= 1%). Running full training (5,000,000 steps, 3 seed(s))...
+Short training done: success=2%, length=501.3, time=57.8s
+Passed threshold (2% >= 1%). Running full training (5,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=28% length=426.3
+  Seed 1/3: success=58% length=300.7
+  Seed 2/3: success=0% length=507.0
+  Seed 2/3: success=0% length=507.0
+  Seed 3/3: success=0% length=504.8
+  Multi-seed avg (3 seeds): success=9% length=479.4
+Full training done: success=9%, length=479.4, time=192.2s
+[Iter 25] full_train success=9% length=479.4 | best=21% | 381.1s
+  Seed 3/3: success=0% length=500.9
+  Multi-seed avg (3 seeds): success=19% length=436.2
+Full training done: success=19%, length=436.2, time=185.9s
+[Iter 26] full_train success=19% length=436.2 | best=21% | 387.8s
+[Iter 27] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=292)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=472)
+Running short training (3,000,000 steps)...
+Short training done: success=4%, length=495.1, time=53.3s
+Passed threshold (4% >= 1%). Running full training (5,000,000 steps, 3 seed(s))...
+Short training done: success=8%, length=497.2, time=84.0s
+Passed threshold (8% >= 1%). Running full training (5,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=58% length=329.4
+  Seed 1/3: success=22% length=450.3
+  Seed 2/3: success=0% length=507.0
+  Seed 3/3: success=44% length=324.5
+  Multi-seed avg (3 seeds): success=34% length=387.0
+Full training done: success=34%, length=387.0, time=184.3s
+[Iter 27] full_train success=34% length=387.0 | best=34% | 386.8s *** NEW BEST ***
+  Seed 2/3: success=52% length=324.2
+  Seed 3/3: success=2% length=507.0
+  Multi-seed avg (3 seeds): success=25% length=427.2
+Full training done: success=25%, length=427.2, time=246.8s
+[Iter 28] full_train success=25% length=427.2 | best=34% | 506.6s
+[Iter 29] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=472)
+Running short training (3,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=472)
+Running short training (3,000,000 steps)...
+Short training done: success=0%, length=506.8, time=54.2s
+Short training success 0% < threshold 1% — rejected
+[Iter 29] REJECTED (success=0%) | best=34% | 124.3s
+Short training done: success=4%, length=501.0, time=59.5s
+Passed threshold (4% >= 1%). Running full training (5,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=38% length=306.2
+  Seed 2/3: success=0% length=507.0
+  Seed 3/3: success=4% length=480.7
+  Multi-seed avg (3 seeds): success=14% length=431.3
+Full training done: success=14%, length=431.3, time=166.6s
+[Iter 30] full_train success=14% length=431.3 | best=34% | 350.8s
+Database saved to experiments/ablations/hard_obs_only/database (30 programs)
+[Iter 30] Checkpoint saved to experiments/ablations/hard_obs_only
+Evolution trace: 30 events, 11 improvements (37%), best deltas: {'final_return': 0.24682693680127463, 'final_length': 9.741668701171875, 'success_rate': 0.34, 'training_time': 141.5045518875122}
+============================================================
+Evolution complete
+  Mode: obs_only
+  Iterations: 30
+  Wall time: 4246.3s
+  Total programs: 30
+  Total eval time: 5506.2s
+  Total LLM tokens: 1313476
+  Input tokens: 1156378
+  Output tokens: 157098
+  Est. LLM cost: $5.83
+  Recent failures: 18
+  Grid cells filled: [4, 0, 0]
+  Island sizes: [24, 0, 0]
+  Best success rate: 34%
+  Best obs_dim: 472
+  Best program:
+import jax
+import jax.numpy as jnp
+
+def get_observation(state) -> jnp.ndarray:
+    H, W = state.grid.shape[:2]
+    H_f = jnp.float32(H)
+    W_f = jnp.float32(W)
+
+    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)], dtype=jnp.int32)
+
+    agent_y = state.agent.position[0].astype(jnp.float32)
+    agent_x = state.agent.position[1].astype(jnp.float32)
+    norm_ay = agent_y / (H_f - 1)
+    norm_ax = agent_x / (W_f - 1)
+    dir_oh = jax.nn.one_hot(state.agent.direction, 4)
+
+    tile_ids = state.grid[:, :, 0]
+    tile_colors = state.grid[:, :, 1]
+
+    ys = jnp.arange(H)
+    xs = jnp.arange(W)
+    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
+    yy_f = yy.astype(jnp.float32)
+    xx_f = xx.astype(jnp.float32)
+
+    # ---- Pocket ----
+    pocket_empty = (state.agent.pocket[0] == 0).astype(jnp.float32)
+    holding_green_ball = ((state.agent.pocket[0] == 3) & (state.agent.pocket[1] == 2)).astype(jnp.float32)
+    pocket_tile_oh = jax.nn.one_hot(state.agent.pocket[0], 13)
+    pocket_color_oh = jax.nn.one_hot(state.agent.pocket[1], 12)
+
+    # ---- Blue pyramid (tile=5, color=3) ----
+    blue_pyr_mask = (tile_ids == 5) & (tile_colors == 3)
+    blue_pyr_count = jnp.sum(blue_pyr_mask).astype(jnp.float32)
+    blue_pyr_y = jnp.sum(yy_f * blue_pyr_mask) / jnp.maximum(blue_pyr_count, 1.0)
+    blue_pyr_x = jnp.sum(xx_f * blue_pyr_mask) / jnp.maximum(blue_pyr_count, 1.0)
+    blue_pyr_exists = jnp.clip(blue_pyr_count, 0.0, 1.0)
+    rel_pyr_y = (blue_pyr_y - agent_y) / (H_f - 1)
+    rel_pyr_x = (blue_pyr_x - agent_x) / (W_f - 1)
+    dist_pyr = (jnp.abs(blue_pyr_y - agent_y) + jnp.abs(blue_pyr_x - agent_x)) / (H_f + W_f - 2)
+
+    # ---- Yellow hex (tile=11, color=5) ----
+    yel_hex_mask = (tile_ids == 11) & (tile_colors == 5)
+    yel_hex_count = jnp.sum(yel_hex_mask).astype(jnp.float32)
+    yel_hex_y = jnp.sum(yy_f * yel_hex_mask) / jnp.maximum(yel_hex_count, 1.0)
+    yel_hex_x = jnp.sum(xx_f * yel_hex_mask) / jnp.maximum(yel_hex_count, 1.0)
+    yel_hex_exists = jnp.clip(yel_hex_count, 0.0, 1.0)
+    rel_hex_y = (yel_hex_y - agent_y) / (H_f - 1)
+    rel_hex_x = (yel_hex_x - agent_x) / (W_f - 1)
+    dist_hex = (jnp.abs(yel_hex_y - agent_y) + jnp.abs(yel_hex_x - agent_x)) / (H_f + W_f - 2)
+
+    # ---- Task phases ----
+    phase_pickup = (blue_pyr_exists * pocket_empty)
+    phase_place = holding_green_ball
+
+    # ---- Floor tiles adjacent to yellow hex (placement targets) ----
+    adj_to_hex = ((jnp.abs(yy_f - yel_hex_y) + jnp.abs(xx_f - yel_hex_x)) == 1.0)
+    floor_adj_hex_mask = adj_to_hex & (tile_ids == 1)
+    floor_adj_count = jnp.sum(floor_adj_hex_mask).astype(jnp.float32)
+    place_y = jnp.sum(yy_f * floor_adj_hex_mask) / jnp.maximum(floor_adj_count, 1.0)
+    place_x = jnp.sum(xx_f * floor_adj_hex_mask) / jnp.maximum(floor_adj_count, 1.0)
+    rel_place_y = (place_y - agent_y) / (H_f - 1)
+    rel_place_x = (place_x - agent_x) / (W_f - 1)
+    dist_place = (jnp.abs(place_y - agent_y) + jnp.abs(place_x - agent_x)) / (H_f + W_f - 2)
+
+    # Nearest placement spot to agent
+    place_dist_map = jnp.where(floor_adj_hex_mask,
+                                jnp.abs(yy_f - agent_y) + jnp.abs(xx_f - agent_x),
+                                9999.0)
+    nearest_place_flat = jnp.argmin(place_dist_map)
+    nearest_place_y = (nearest_place_flat // W).astype(jnp.float32)
+    nearest_place_x = (nearest_place_flat % W).astype(jnp.float32)
+    rel_nearest_place_y = (nearest_place_y - agent_y) / (H_f - 1)
+    rel_nearest_place_x = (nearest_place_x - agent_x) / (W_f - 1)
+    dist_nearest_place = (jnp.abs(nearest_place_y - agent_y) + jnp.abs(nearest_place_x - agent_x)) / (H_f + W_f - 2)
+
+    # ---- Phase-conditioned target ----
+    target_y = jax.lax.select(phase_place > 0.5, nearest_place_y, blue_pyr_y)
+    target_x = jax.lax.select(phase_place > 0.5, nearest_place_x, blue_pyr_x)
+    rel_target_y = (target_y - agent_y) / (H_f - 1)
+    rel_target_x = (target_x - agent_x) / (W_f - 1)
+    dist_target = (jnp.abs(target_y - agent_y) + jnp.abs(target_x - agent_x)) / (H_f + W_f - 2)
+
+    # Direction to target
+    target_dy = target_y - agent_y
+    target_dx = target_x - agent_x
+    go_up = (target_dy < 0).astype(jnp.float32)
+    go_down = (target_dy > 0).astype(jnp.float32)
+    go_left = (target_dx < 0).astype(jnp.float32)
+    go_right = (target_dx > 0).astype(jnp.float32)
+    facing_target = jnp.sum(jnp.array([
+        go_up * (state.agent.direction == 0).astype(jnp.float32),
+        go_right * (state.agent.direction == 1).astype(jnp.float32),
+        go_down * (state.agent.direction == 2).astype(jnp.float32),
+        go_left * (state.agent.direction == 3).astype(jnp.float32),
+    ]))
+
+    # ---- Front tile ----
+    dy_f = DIRECTIONS[state.agent.direction][0]
+    dx_f = DIRECTIONS[state.agent.direction][1]
+    front_y = jnp.clip(state.agent.position[0].astype(jnp.int32) + dy_f, 0, H - 1)
+    front_x = jnp.clip(state.agent.position[1].astype(jnp.int32) + dx_f, 0, W - 1)
+    front_tile_id = tile_ids[front_y, front_x]
+    front_color_id = tile_colors[front_y, front_x]
+    front_tile_oh = jax.nn.one_hot(front_tile_id, 13)
+    front_color_oh = jax.nn.one_hot(front_color_id, 12)
+    front_is_blue_pyr = ((front_tile_id == 5) & (front_color_id == 3)).astype(jnp.float32)
+    front_is_floor = (front_tile_id == 1).astype(jnp.float32)
+    front_is_closed_door = (front_tile_id == 9).astype(jnp.float32)
+    front_is_locked_door = (front_tile_id == 8).astype(jnp.float32)
+    front_is_open_door = (front_tile_id == 10).astype(jnp.float32)
+    front_to_hex_dist = (jnp.abs(front_y.astype(jnp.float32) - yel_hex_y) +
+                         jnp.abs(front_x.astype(jnp.float32) - yel_hex_x))
+    front_adj_hex = (front_to_hex_dist <= 1.0).astype(jnp.float32)
+    front_floor_adj_hex = front_is_floor * front_adj_hex
+    can_place_now = holding_green_ball * front_floor_adj_hex
+    can_pickup_now = front_is_blue_pyr * pocket_empty
+
+    # Is front tile the nearest placement target?
+    front_is_nearest_place = ((front_y.astype(jnp.float32) == nearest_place_y) &
+                               (front_x.astype(jnp.float32) == nearest_place_x)).astype(jnp.float32)
+
+    # ---- Adjacency ----
+    agent_adj_hex = ((jnp.abs(agent_y - yel_hex_y) + jnp.abs(agent_x - yel_hex_x)) <= 1.0).astype(jnp.float32)
+    agent_adj_pyr = ((jnp.abs(agent_y - blue_pyr_y) + jnp.abs(agent_x - blue_pyr_x)) <= 1.0).astype(jnp.float32)
+    agent_at_place = ((jnp.abs(agent_y - nearest_place_y) + jnp.abs(agent_x - nearest_place_x)) <= 1.0).astype(jnp.float32)
+
+    # ---- All 4 neighbors of hex for placement ----
+    hex_y_int = yel_hex_y.astype(jnp.int32)
+    hex_x_int = yel_hex_x.astype(jnp.int32)
+    n_up_y = jnp.clip(hex_y_int - 1, 0, H - 1)
+    n_dn_y = jnp.clip(hex_y_int + 1, 0, H - 1)
+    n_lt_x = jnp.clip(hex_x_int - 1, 0, W - 1)
+    n_rt_x = jnp.clip(hex_x_int + 1, 0, W - 1)
+    hex_up_floor = (tile_ids[n_up_y, hex_x_int] == 1).astype(jnp.float32)
+    hex_dn_floor = (tile_ids[n_dn_y, hex_x_int] == 1).astype(jnp.float32)
+    hex_lt_floor = (tile_ids[hex_y_int, n_lt_x] == 1).astype(jnp.float32)
+    hex_rt_floor = (tile_ids[hex_y_int, n_rt_x] == 1).astype(jnp.float32)
+    rel_hex_up_y = (n_up_y.astype(jnp.float32) - agent_y) / (H_f - 1)
+    rel_hex_up_x = (hex_x_int.astype(jnp.float32) - agent_x) / (W_f - 1)
+    rel_hex_dn_y = (n_dn_y.astype(jnp.float32) - agent_y) / (H_f - 1)
+    rel_hex_dn_x = (hex_x_int.astype(jnp.float32) - agent_x) / (W_f - 1)
+    rel_hex_lt_y = (hex_y_int.astype(jnp.float32) - agent_y) / (H_f - 1)
+    rel_hex_lt_x = (n_lt_x.astype(jnp.float32) - agent_x) / (W_f - 1)
+    rel_hex_rt_y = (hex_y_int.astype(jnp.float32) - agent_y) / (H_f - 1)
+    rel_hex_rt_x = (n_rt_x.astype(jnp.float32) - agent_x) / (W_f - 1)
+
+    # ---- Door analysis ----
+    closed_door_mask = (tile_ids == 9)
+    locked_door_mask = (tile_ids == 8)
+    open_door_mask = (tile_ids == 10)
+    all_blockable = closed_door_mask | locked_door_mask
+    n_closed = jnp.sum(closed_door_mask).astype(jnp.float32)
+    n_locked = jnp.sum(locked_door_mask).astype(jnp.float32)
+    n_open = jnp.sum(open_door_mask).astype(jnp.float32)
+
+    # Nearest blockable door to agent
+    dist_to_all = jnp.abs(yy_f - agent_y) + jnp.abs(xx_f - agent_x)
+    door_dist_map = jnp.where(all_blockable, dist_to_all, 999.0)
+    nearest_door_dist = jnp.min(door_dist_map)
+    nearest_door_flat = jnp.argmin(door_dist_map)
+    nearest_door_y = (nearest_door_flat // W).astype(jnp.float32)
+    nearest_door_x = (nearest_door_flat % W).astype(jnp.float32)
+    rel_nearest_door_y = (nearest_door_y - agent_y) / (H_f - 1)
+    rel_nearest_door_x = (nearest_door_x - agent_x) / (W_f - 1)
+    nearest_door_dist_norm = nearest_door_dist / (H_f + W_f - 2)
+    has_blockable_door = (jnp.sum(all_blockable) > 0).astype(jnp.float32)
+
+    # Nearest door toward current target
+    dist_to_target_map = jnp.abs(yy_f - target_y) + jnp.abs(xx_f - target_x)
+    door_toward_target = jnp.where(all_blockable, dist_to_target_map, 999.0)
+    nearest_target_door_flat = jnp.argmin(door_toward_target)
+    nearest_target_door_y = (nearest_target_door_flat // W).astype(jnp.float32)
+    nearest_target_door_x = (nearest_target_door_flat % W).astype(jnp.float32)
+    rel_target_door_y = (nearest_target_door_y - agent_y) / (H_f - 1)
+    rel_target_door_x = (nearest_target_door_x - agent_x) / (W_f - 1)
+
+    # ---- Room quadrant ----
+    mid_y = H_f / 2.0
+    mid_x = W_f / 2.0
+    agent_room = jnp.array([
+        ((agent_y < mid_y) & (agent_x < mid_x)).astype(jnp.float32),
+        ((agent_y < mid_y) & (agent_x >= mid_x)).astype(jnp.float32),
+        ((agent_y >= mid_y) & (agent_x < mid_x)).astype(jnp.float32),
+        ((agent_y >= mid_y) & (agent_x >= mid_x)).astype(jnp.float32),
+    ])
+    pyr_room = jnp.array([
+        ((blue_pyr_y < mid_y) & (blue_pyr_x < mid_x)).astype(jnp.float32),
+        ((blue_pyr_y < mid_y) & (blue_pyr_x >= mid_x)).astype(jnp.float32),
+        ((blue_pyr_y >= mid_y) & (blue_pyr_x < mid_x)).astype(jnp.float32),
+        ((blue_pyr_y >= mid_y) & (blue_pyr_x >= mid_x)).astype(jnp.float32),
+    ])
+    hex_room = jnp.array([
+        ((yel_hex_y < mid_y) & (yel_hex_x < mid_x)).astype(jnp.float32),
+        ((yel_hex_y < mid_y) & (yel_hex_x >= mid_x)).astype(jnp.float32),
+        ((yel_hex_y >= mid_y) & (yel_hex_x < mid_x)).astype(jnp.float32),
+        ((yel_hex_y >= mid_y) & (yel_hex_x >= mid_x)).astype(jnp.float32),
+    ])
+    same_room_pyr = jnp.sum(agent_room * pyr_room)
+    same_room_hex = jnp.sum(agent_room * hex_room)
+    same_room_target = jax.lax.select(phase_place > 0.5, same_room_hex, same_room_pyr)
+
+    # ---- Step ----
+    step_norm = state.step_num.astype(jnp.float32) / 400.0
+
+    # ---- Full grid semantic maps ----
+    # Blue pyramid locations (169)
+    blue_pyr_map = blue_pyr_mask.astype(jnp.float32).flatten()
+    # Yellow hex locations (169)
+    yel_hex_map = yel_hex_mask.astype(jnp.float32).flatten()
+
+    # ---- Structured features ----
+    structured = jnp.concatenate([
+        # Agent state (6)
+        jnp.array([norm_ay, norm_ax]),
+        dir_oh,
+
+        # Pocket (13+12+2 = 27)
+        pocket_tile_oh,
+        pocket_color_oh,
+        jnp.array([pocket_empty, holding_green_ball]),
+
+        # Task phase + action readiness (5)
+        jnp.array([phase_pickup, phase_place, can_pickup_now, can_place_now,
+                   holding_green_ball * front_is_nearest_place]),
+
+        # Phase-conditioned target (3)
+        jnp.array([rel_target_y, rel_target_x, dist_target]),
+
+        # Direction to target (5)
+        jnp.array([go_up, go_down, go_left, go_right, facing_target]),
+
+        # Blue pyramid absolute + relative (6)
+        jnp.array([blue_pyr_y / (H_f - 1), blue_pyr_x / (W_f - 1),
+                   rel_pyr_y, rel_pyr_x, dist_pyr, blue_pyr_exists]),
+
+        # Yellow hex absolute + relative (6)
+        jnp.array([yel_hex_y / (H_f - 1), yel_hex_x / (W_f - 1),
+                   rel_hex_y, rel_hex_x, dist_hex, yel_hex_exists]),
+
+        # Placement target - mean + nearest (6)
+        jnp.array([rel_place_y, rel_place_x, dist_place,
+                   rel_nearest_place_y, rel_nearest_place_x, dist_nearest_place]),
+
+        # Hex neighbor floors + relative positions (12)
+        jnp.array([hex_up_floor, rel_hex_up_y, rel_hex_up_x,
+                   hex_dn_floor, rel_hex_dn_y, rel_hex_dn_x,
+                   hex_lt_floor, rel_hex_lt_y, rel_hex_lt_x,
+                   hex_rt_floor, rel_hex_rt_y, rel_hex_rt_x]),
+
+        # Adjacency flags (3)
+        jnp.array([agent_adj_hex, agent_adj_pyr, agent_at_place]),
+
+        # Front tile (13+12+6 = 31)
+        front_tile_oh,
+        front_color_oh,
+        jnp.array([front_is_blue_pyr, front_floor_adj_hex, front_is_floor,
+                   front_is_closed_door, front_is_locked_door, front_is_open_door]),
+
+        # Room info (4+4+4+3 = 15)
+        agent_room,
+        pyr_room,
+        hex_room,
+        jnp.array([same_room_pyr, same_room_hex, same_room_target]),
+
+        # Door navigation (8)
+        jnp.array([rel_nearest_door_y, rel_nearest_door_x,
+                   nearest_door_dist_norm, has_blockable_door,
+                   rel_target_door_y, rel_target_door_x,
+                   n_closed / 4.0, n_open / 4.0]),
+
+        # Step (1)
+        jnp.array([step_norm]),
+    ])
+    # 6+27+5+3+5+6+6+6+12+3+31+15+8+1 = 134
+
+    # Full grid maps: blue_pyr_map (169) + yel_hex_map (169) = 338
+    # Total: 134 + 338 = 472 (under 512)
+    obs = jnp.concatenate([structured, blue_pyr_map, yel_hex_map])
+
+    return obs.astype(jnp.float32)
+  Trace events: 30
+  Improvements: 11 (37%)
+============================================================
+============================================================
+MDP Interface Discovery
+============================================================
+  Task:        Pick up blue pyramid (transforms to green ball in hand), then place green ball next to yellow hex. 4-room 13x13 grid with distractors, max_steps=400.
+  Environment: XLand-MiniGrid-R4-13x13
+  Mode:        obs_only
+  Model:       claude-sonnet-4-6 (us-east-1)
+  Iterations:  30
+  Candidates:  2 per batch
+  Training:    3,000,000 short / 5,000,000 full steps
+  Cascade:     ON (thresholds=[0.01])
+  Stochastic:  ON
+  Tracing:     ON
+  Context:     contexts/xminigrid_context.md
+  Run dir:     experiments/ablations/hard_obs_only
+  Log file:    experiments/ablations/hard_obs_only/evolution.log
+============================================================
+
+
+============================================================
+Evolution complete — 30 iterations in 4246s
+============================================================
+  Best success:  34%
+  Best obs_dim:  472
+  Best program:  experiments/ablations/hard_obs_only/best_interface.py
+  Wall time:     4246.3s (70.8m)
+  Eval time:     5506.2s
+  Input tokens:  1,156,378
+  Output tokens: 157,098
+  Est. LLM cost: $5.83
+  Full logs:     experiments/ablations/hard_obs_only/evolution.log
+  Checkpoint:    experiments/ablations/hard_obs_only
+============================================================

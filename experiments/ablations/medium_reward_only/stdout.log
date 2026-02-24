@@ -1,0 +1,630 @@
+W0223 04:04:02.815583   47549 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML doesn't support extracting fabric info or NVLink is not used by the device.
+W0223 04:04:02.818690   47519 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML doesn't support extracting fabric info or NVLink is not used by the device.
+LLMClient initialized: model=claude-sonnet-4-6 region=us-east-1
+LLMEnsemble initialized: claude-sonnet-4-6 (w=1.00)
+Starting evolution: 30 iterations, 2 candidates/batch, env=XLand-MiniGrid-R1-9x9, model=claude-sonnet-4-6, mode=reward_only
+[Iter 1] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+E0223 04:04:27.172997   47691 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:27.278266   47691 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:27.384204   47691 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:27.486666   47690 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:27.587662   47691 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:27.687250   47690 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:27.787677   47691 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:27.895418   47690 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:28.003254   47690 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:28.106067   47691 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:28.206661   47690 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:28.306853   47691 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:28.407880   47690 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:28.510081   47691 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:28.613115   47690 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:28.722212   47690 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:28.825927   47691 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:28.930703   47690 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:29.030406   47691 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+E0223 04:04:29.131188   47690 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+W0223 04:04:29.131221   47691 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,512]{1,0} parameter(0)
+  tmp_1 = f32[8192,512]{1,0} parameter(1)
+  ROOT tmp_2 = f32[1536,8192]{0,1} dot(f32[1536,512]{1,0} tmp_0, f32[8192,512]{1,0} tmp_1), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+E0223 04:04:29.231944   47691 cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+W0223 04:04:29.281085   47691 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1,8192,273]{2,1,0} parameter(0)
+  tmp_1 = f32[8192,273]{1,0} bitcast(f32[1,8192,273]{2,1,0} tmp_0)
+  tmp_2 = f32[1536,273]{1,0} parameter(1)
+  ROOT tmp_3 = f32[8192,1536]{1,0} dot(f32[8192,273]{1,0} tmp_1, f32[1536,273]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 04:05:09.666750   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,512]{1,0} parameter(0)
+  tmp_1 = f32[80,1,1,512]{3,2,1,0} parameter(1)
+  tmp_2 = f32[512,80]{0,1} bitcast(f32[80,1,1,512]{3,2,1,0} tmp_1)
+  ROOT tmp_3 = f32[1536,80]{0,1} dot(f32[1536,512]{1,0} tmp_0, f32[512,80]{0,1} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.677456   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,16,256]{2,1,0} parameter(0)
+  tmp_1 = f32[8192,256]{1,0} bitcast(f32[512,16,256]{2,1,0} tmp_0)
+  tmp_2 = f32[512,256]{1,0} parameter(1)
+  ROOT tmp_3 = f32[8192,512]{1,0} dot(f32[8192,256]{1,0} tmp_1, f32[512,256]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 04:05:09.692048   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,512]{1,0} parameter(0)
+  tmp_1 = f32[512,512]{1,0} parameter(1)
+  tmp_2 = f32[512,512]{1,0} parameter(2)
+  tmp_3 = f32[512,1536]{1,0} concatenate(f32[512,512]{1,0} tmp_0, f32[512,512]{1,0} tmp_1, f32[512,512]{1,0} tmp_2), dimensions={1}
+  tmp_4 = f32[1536,512]{0,1} bitcast(f32[512,1536]{1,0} tmp_3)
+  tmp_5 = f32[1,512,512]{2,1,0} parameter(3)
+  tmp_6 = f32[512,512]{1,0} bitcast(f32[1,512,512]{2,1,0} tmp_5)
+  ROOT tmp_7 = f32[1536,512]{1,0} dot(f32[1536,512]{0,1} tmp_4, f32[512,512]{1,0} tmp_6), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.698759   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,512]{1,0} parameter(0)
+  tmp_1 = f32[512,512]{1,0} parameter(1)
+  ROOT tmp_2 = f32[1536,512]{0,1} dot(f32[1536,512]{1,0} tmp_0, f32[512,512]{1,0} tmp_1), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 04:05:09.709440   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,256]{1,0} parameter(0)
+  tmp_1 = f32[] constant(0)
+  tmp_2 = f32[8192,256]{1,0} broadcast(f32[] tmp_1), dimensions={}
+  tmp_3 = f32[8192,256]{1,0} maximum(f32[8192,256]{1,0} tmp_0, f32[8192,256]{1,0} tmp_2)
+  tmp_4 = f32[256,512,16]{2,1,0} parameter(1)
+  tmp_5 = f32[256,8192]{1,0} bitcast(f32[256,512,16]{2,1,0} tmp_4)
+  ROOT tmp_6 = f32[256,256]{1,0} dot(f32[8192,256]{1,0} tmp_3, f32[256,8192]{1,0} tmp_5), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+}', version=16>
+W0223 04:05:09.711193   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,16,6]{2,1,0} parameter(0)
+  tmp_1 = f32[8192,6]{1,0} bitcast(f32[512,16,6]{2,1,0} tmp_0)
+  tmp_2 = f32[256,6]{1,0} parameter(1)
+  tmp_3 = f32[8192,256]{1,0} dot(f32[8192,6]{1,0} tmp_1, f32[256,6]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+  ROOT tmp_4 = f32[512,16,256]{2,1,0} bitcast(f32[8192,256]{1,0} tmp_3)
+}', version=16>
+W0223 04:05:09.725507   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,512]{1,0} parameter(0)
+  tmp_1 = f32[512,256]{1,0} parameter(1)
+  ROOT tmp_2 = f32[8192,256]{1,0} dot(f32[8192,512]{1,0} tmp_0, f32[512,256]{1,0} tmp_1), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.748639   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,256]{1,0} parameter(1)
+  tmp_1 = f32[8192,256]{1,0} parameter(2)
+  tmp_2 = f32[8192,512]{1,0} concatenate(f32[8192,256]{1,0} tmp_0, f32[8192,256]{1,0} tmp_1), dimensions={1}
+  tmp_3 = f32[512,8192]{0,1} bitcast(f32[8192,512]{1,0} tmp_2)
+  tmp_4 = f32[512,16,512]{2,1,0} parameter(0)
+  tmp_5 = f32[8192,512]{1,0} bitcast(f32[512,16,512]{2,1,0} tmp_4)
+  tmp_6 = f32[512,512]{0,1} dot(f32[512,8192]{0,1} tmp_3, f32[8192,512]{1,0} tmp_5), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  ROOT tmp_7 = f32[512,512]{1,0} bitcast(f32[512,512]{0,1} tmp_6)
+}', version=16>
+W0223 04:05:09.755899   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,16,256]{2,1,0} parameter(0)
+  tmp_1 = f32[8192,256]{1,0} bitcast(f32[512,16,256]{2,1,0} tmp_0)
+  tmp_2 = f32[256,256]{1,0} parameter(1)
+  ROOT tmp_3 = f32[8192,256]{1,0} dot(f32[8192,256]{1,0} tmp_1, f32[256,256]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 04:05:09.762922   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,256]{1,0} parameter(0)
+  tmp_1 = f32[] constant(0)
+  tmp_2 = f32[8192,256]{1,0} broadcast(f32[] tmp_1), dimensions={}
+  tmp_3 = f32[8192,256]{1,0} maximum(f32[8192,256]{1,0} tmp_0, f32[8192,256]{1,0} tmp_2)
+  tmp_4 = f32[256,256]{1,0} parameter(1)
+  ROOT tmp_5 = f32[8192,256]{1,0} dot(f32[8192,256]{1,0} tmp_3, f32[256,256]{1,0} tmp_4), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.775053   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,256]{1,0} parameter(0)
+  tmp_1 = f32[8192,256]{1,0} tanh(f32[8192,256]{1,0} tmp_0)
+  tmp_2 = f32[512,16,6]{2,1,0} parameter(1)
+  tmp_3 = f32[6,8192]{0,1} bitcast(f32[512,16,6]{2,1,0} tmp_2)
+  ROOT tmp_4 = f32[256,6]{1,0} dot(f32[8192,256]{1,0} tmp_1, f32[6,8192]{0,1} tmp_3), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+}', version=16>
+W0223 04:05:09.776098   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1,80,512]{2,1,0} parameter(0)
+  tmp_1 = f32[80,512]{1,0} bitcast(f32[1,80,512]{2,1,0} tmp_0)
+  tmp_2 = f32[512,256]{1,0} parameter(1)
+  ROOT tmp_3 = f32[80,256]{1,0} dot(f32[80,512]{1,0} tmp_1, f32[512,256]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.782254   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,171]{1,0} parameter(0)
+  tmp_1 = f32[171,256]{1,0} parameter(1)
+  ROOT tmp_2 = f32[8192,256]{1,0} dot(f32[8192,171]{1,0} tmp_0, f32[171,256]{1,0} tmp_1), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.788434   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1,512,16,171]{3,2,1,0} parameter(0)
+  tmp_1 = f32[8192,171]{1,0} bitcast(f32[1,512,16,171]{3,2,1,0} tmp_0)
+  tmp_2 = f32[171,256]{1,0} parameter(1)
+  ROOT tmp_3 = f32[8192,256]{1,0} dot(f32[8192,171]{1,0} tmp_1, f32[171,256]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.826558   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,512]{1,0} parameter(0)
+  tmp_1 = f32[8192,1,512]{2,0,1} parameter(1)
+  tmp_2 = f32[8192,512]{1,0} bitcast(f32[8192,1,512]{2,0,1} tmp_1)
+  ROOT tmp_3 = f32[1536,8192]{0,1} dot(f32[1536,512]{1,0} tmp_0, f32[8192,512]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 04:05:09.829924   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,273]{1,0} parameter(0)
+  tmp_1 = f32[1,1,80,273]{3,2,1,0} parameter(1)
+  tmp_2 = f32[273,80]{0,1} bitcast(f32[1,1,80,273]{3,2,1,0} tmp_1)
+  tmp_3 = f32[1536,80]{0,1} dot(f32[1536,273]{1,0} tmp_0, f32[273,80]{0,1} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  ROOT tmp_4 = f32[80,1536]{1,0} bitcast(f32[1536,80]{0,1} tmp_3)
+}', version=16>
+W0223 04:05:09.838409   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1,512,273]{2,1,0} parameter(0)
+  tmp_1 = f32[512,273]{1,0} bitcast(f32[1,512,273]{2,1,0} tmp_0)
+  tmp_2 = f32[1536,273]{1,0} parameter(1)
+  ROOT tmp_3 = f32[512,1536]{1,0} dot(f32[512,273]{1,0} tmp_1, f32[1536,273]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 04:05:09.848689   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,1536]{1,0} parameter(0)
+  tmp_1 = f32[1536,512]{0,1} bitcast(f32[512,1536]{1,0} tmp_0)
+  tmp_2 = f32[1536,512]{1,0} parameter(1)
+  ROOT tmp_3 = f32[512,512]{1,0} dot(f32[1536,512]{0,1} tmp_1, f32[1536,512]{1,0} tmp_2), lhs_contracting_dims={0}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.855627   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,1536]{1,0} parameter(0)
+  tmp_1 = f32[1536,273]{1,0} parameter(1)
+  tmp_2 = f32[512,273]{1,0} dot(f32[512,1536]{1,0} tmp_0, f32[1536,273]{1,0} tmp_1), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  ROOT tmp_3 = f32[1,512,273]{2,1,0} bitcast(f32[512,273]{1,0} tmp_2)
+}', version=16>
+W0223 04:05:09.867989   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,512]{1,0} parameter(0)
+  tmp_1 = f32[512,512]{1,0} parameter(1)
+  tmp_2 = f32[512,512]{1,0} parameter(2)
+  tmp_3 = f32[512,1536]{1,0} concatenate(f32[512,512]{1,0} tmp_0, f32[512,512]{1,0} tmp_1, f32[512,512]{1,0} tmp_2), dimensions={1}
+  tmp_4 = f32[1,512,273]{2,1,0} parameter(3)
+  tmp_5 = f32[512,273]{1,0} bitcast(f32[1,512,273]{2,1,0} tmp_4)
+  ROOT tmp_6 = f32[1536,273]{1,0} dot(f32[512,1536]{1,0} tmp_3, f32[512,273]{1,0} tmp_5), lhs_contracting_dims={0}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.872261   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[80,256]{1,0} parameter(0)
+  tmp_1 = f32[80,256]{1,0} tanh(f32[80,256]{1,0} tmp_0)
+  tmp_2 = f32[256,6]{1,0} parameter(1)
+  ROOT tmp_3 = f32[80,6]{1,0} dot(f32[80,256]{1,0} tmp_1, f32[256,6]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.881296   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1,512,16,171]{3,2,1,0} parameter(0)
+  tmp_1 = f32[8192,171]{1,0} bitcast(f32[1,512,16,171]{3,2,1,0} tmp_0)
+  tmp_2 = f32[8192,256]{1,0} parameter(1)
+  tmp_3 = f32[256,8192]{0,1} bitcast(f32[8192,256]{1,0} tmp_2)
+  ROOT tmp_4 = f32[171,256]{1,0} dot(f32[8192,171]{1,0} tmp_1, f32[256,8192]{0,1} tmp_3), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+}', version=16>
+W0223 04:05:09.904684   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,256]{1,0} parameter(1)
+  tmp_1 = f32[512,256]{1,0} parameter(2)
+  tmp_2 = f32[512,512]{1,0} concatenate(f32[512,256]{1,0} tmp_0, f32[512,256]{1,0} tmp_1), dimensions={1}
+  tmp_3 = f32[512,16,512]{2,1,0} parameter(0)
+  tmp_4 = f32[8192,512]{1,0} bitcast(f32[512,16,512]{2,1,0} tmp_3)
+  tmp_5 = f32[512,8192]{0,1} dot(f32[512,512]{1,0} tmp_2, f32[8192,512]{1,0} tmp_4), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+  ROOT tmp_6 = f32[8192,512]{1,0} bitcast(f32[512,8192]{0,1} tmp_5)
+}', version=16>
+W0223 04:05:09.910401   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,256]{1,0} parameter(0)
+  tmp_1 = f32[8192,256]{1,0} tanh(f32[8192,256]{1,0} tmp_0)
+  tmp_2 = f32[256,6]{1,0} parameter(1)
+  ROOT tmp_3 = f32[8192,6]{1,0} dot(f32[8192,256]{1,0} tmp_1, f32[256,6]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.911157   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[80,256]{1,0} parameter(0)
+  tmp_1 = f32[] constant(0)
+  tmp_2 = f32[80,256]{1,0} broadcast(f32[] tmp_1), dimensions={}
+  tmp_3 = f32[80,256]{1,0} maximum(f32[80,256]{1,0} tmp_0, f32[80,256]{1,0} tmp_2)
+  tmp_4 = f32[256,256]{1,0} parameter(1)
+  ROOT tmp_5 = f32[80,256]{1,0} dot(f32[80,256]{1,0} tmp_3, f32[256,256]{1,0} tmp_4), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.915562   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[80,171]{1,0} parameter(0)
+  tmp_1 = f32[171,256]{1,0} parameter(1)
+  ROOT tmp_2 = f32[80,256]{1,0} dot(f32[80,171]{1,0} tmp_0, f32[171,256]{1,0} tmp_1), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:09.939284   47690 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,256]{1,0} parameter(1)
+  tmp_1 = f32[512,256]{1,0} parameter(2)
+  tmp_2 = f32[512,512]{1,0} concatenate(f32[512,256]{1,0} tmp_0, f32[512,256]{1,0} tmp_1), dimensions={1}
+  tmp_3 = f32[8192,512]{1,0} parameter(0)
+  tmp_4 = f32[512,8192]{0,1} dot(f32[512,512]{1,0} tmp_2, f32[8192,512]{1,0} tmp_3), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+  ROOT tmp_5 = f32[8192,512]{1,0} bitcast(f32[512,8192]{0,1} tmp_4)
+}', version=16>
+W0223 04:05:41.586709   47691 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[50,256]{1,0} parameter(0)
+  tmp_1 = f32[256]{0} parameter(1)
+  tmp_2 = f32[50,256]{1,0} broadcast(f32[256]{0} tmp_1), dimensions={1}
+  tmp_3 = f32[50,256]{1,0} add(f32[50,256]{1,0} tmp_0, f32[50,256]{1,0} tmp_2)
+  tmp_4 = f32[50,256]{1,0} tanh(f32[50,256]{1,0} tmp_3)
+  tmp_5 = f32[256,6]{1,0} parameter(2)
+  ROOT tmp_6 = f32[50,6]{1,0} dot(f32[50,256]{1,0} tmp_4, f32[256,6]{1,0} tmp_5), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 04:05:41.591261   47691 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[171,256]{1,0} parameter(1)
+  tmp_1 = f32[50,171]{1,0} parameter(0)
+  tmp_2 = f32[256,50]{0,1} dot(f32[171,256]{1,0} tmp_0, f32[50,171]{1,0} tmp_1), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+  ROOT tmp_3 = f32[50,256]{1,0} bitcast(f32[256,50]{0,1} tmp_2)
+}', version=16>
+W0223 04:05:41.591890   47691 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,256]{1,0} parameter(1)
+  tmp_1 = f32[1,50,512]{2,1,0} parameter(0)
+  tmp_2 = f32[50,512]{1,0} bitcast(f32[1,50,512]{2,1,0} tmp_1)
+  tmp_3 = f32[256,50]{0,1} dot(f32[512,256]{1,0} tmp_0, f32[50,512]{1,0} tmp_2), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+  ROOT tmp_4 = f32[50,256]{1,0} bitcast(f32[256,50]{0,1} tmp_3)
+}', version=16>
+W0223 04:05:41.594825   47691 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,273]{1,0} parameter(0)
+  tmp_1 = f32[1,1,50,273]{3,2,1,0} parameter(1)
+  tmp_2 = f32[273,50]{0,1} bitcast(f32[1,1,50,273]{3,2,1,0} tmp_1)
+  tmp_3 = f32[1536,50]{0,1} dot(f32[1536,273]{1,0} tmp_0, f32[273,50]{0,1} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  ROOT tmp_4 = f32[50,1536]{1,0} bitcast(f32[1536,50]{0,1} tmp_3)
+}', version=16>
+W0223 04:05:41.595878   47691 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[256,256]{1,0} parameter(2)
+  tmp_1 = f32[50,256]{1,0} parameter(0)
+  tmp_2 = f32[256]{0} parameter(1)
+  tmp_3 = f32[50,256]{1,0} broadcast(f32[256]{0} tmp_2), dimensions={1}
+  tmp_4 = f32[50,256]{1,0} add(f32[50,256]{1,0} tmp_1, f32[50,256]{1,0} tmp_3)
+  tmp_5 = f32[] constant(0)
+  tmp_6 = f32[50,256]{1,0} broadcast(f32[] tmp_5), dimensions={}
+  tmp_7 = f32[50,256]{1,0} maximum(f32[50,256]{1,0} tmp_4, f32[50,256]{1,0} tmp_6)
+  tmp_8 = f32[256,50]{0,1} dot(f32[256,256]{1,0} tmp_0, f32[50,256]{1,0} tmp_7), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+  ROOT tmp_9 = f32[50,256]{1,0} bitcast(f32[256,50]{0,1} tmp_8)
+}', version=16>
+W0223 04:05:41.598913   47691 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,512]{1,0} parameter(0)
+  tmp_1 = f32[50,1,1,512]{3,2,1,0} parameter(1)
+  tmp_2 = f32[512,50]{0,1} bitcast(f32[50,1,1,512]{3,2,1,0} tmp_1)
+  ROOT tmp_3 = f32[1536,50]{0,1} dot(f32[1536,512]{1,0} tmp_0, f32[512,50]{0,1} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+Short training done: success=8%, length=230.2, time=60.1s
+Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=0%, length=239.1, time=60.1s
+Short training success 0% < threshold 2% — rejected
+[Iter 1] REJECTED (success=0%) | best=0% | 99.0s
+  Seed 1/3: success=0% length=238.0
+  Seed 2/3: success=0% length=240.5
+  Seed 3/3: success=2% length=239.4
+  Multi-seed avg (3 seeds): success=1% length=239.3
+Full training done: success=1%, length=239.3, time=73.4s
+[Iter 2] full_train success=1% length=239.3 | best=1% | 194.4s *** NEW BEST ***
+[Iter 3] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=238.2, time=27.3s
+Short training success 0% < threshold 2% — rejected
+[Iter 3] REJECTED (success=0%) | best=1% | 58.9s
+Short training done: success=0%, length=238.0, time=27.4s
+Short training success 0% < threshold 2% — rejected
+[Iter 4] REJECTED (success=0%) | best=1% | 62.4s
+[Iter 5] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=242.9, time=26.5s
+Short training success 0% < threshold 2% — rejected
+[Iter 5] REJECTED (success=0%) | best=1% | 56.7s
+Short training done: success=0%, length=238.8, time=26.1s
+Short training success 0% < threshold 2% — rejected
+[Iter 6] REJECTED (success=0%) | best=1% | 60.9s
+[Iter 7] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=239.7, time=25.9s
+Short training success 0% < threshold 2% — rejected
+[Iter 7] REJECTED (success=0%) | best=1% | 58.3s
+Short training done: success=0%, length=242.0, time=26.1s
+Short training success 0% < threshold 2% — rejected
+[Iter 8] REJECTED (success=0%) | best=1% | 63.2s
+[Iter 9] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=241.6, time=26.4s
+Short training success 0% < threshold 2% — rejected
+[Iter 9] REJECTED (success=0%) | best=1% | 56.3s
+Short training done: success=0%, length=240.7, time=26.3s
+Short training success 0% < threshold 2% — rejected
+[Iter 10] REJECTED (success=0%) | best=1% | 60.1s
+[Iter 11] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=239.6, time=26.5s
+Short training success 0% < threshold 2% — rejected
+[Iter 11] REJECTED (success=0%) | best=1% | 57.1s
+Short training done: success=0%, length=236.8, time=26.7s
+Short training success 0% < threshold 2% — rejected
+[Iter 12] REJECTED (success=0%) | best=1% | 61.6s
+[Iter 13] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=240.5, time=26.2s
+Short training success 0% < threshold 2% — rejected
+[Iter 13] REJECTED (success=0%) | best=1% | 60.0s
+Short training done: success=0%, length=240.3, time=27.3s
+Short training success 0% < threshold 2% — rejected
+[Iter 14] REJECTED (success=0%) | best=1% | 64.6s
+[Iter 15] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=239.6, time=25.3s
+Short training success 0% < threshold 2% — rejected
+[Iter 15] REJECTED (success=0%) | best=1% | 54.5s
+Short training done: success=0%, length=239.4, time=26.3s
+Short training success 0% < threshold 2% — rejected
+[Iter 16] REJECTED (success=0%) | best=1% | 58.6s
+[Iter 17] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=235.4, time=26.8s
+Short training success 0% < threshold 2% — rejected
+[Iter 17] REJECTED (success=0%) | best=1% | 59.1s
+Short training done: success=0%, length=239.3, time=26.8s
+Short training success 0% < threshold 2% — rejected
+[Iter 18] REJECTED (success=0%) | best=1% | 62.9s
+[Iter 19] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=2%, length=237.3, time=26.5s
+Passed threshold (2% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=0%, length=231.6, time=26.5s
+Short training success 0% < threshold 2% — rejected
+[Iter 19] REJECTED (success=0%) | best=1% | 62.5s
+  Seed 1/3: success=0% length=237.3
+  Seed 2/3: success=2% length=234.9
+  Seed 3/3: success=4% length=239.4
+  Multi-seed avg (3 seeds): success=2% length=237.2
+Full training done: success=2%, length=237.2, time=74.9s
+[Iter 20] full_train success=2% length=237.2 | best=2% | 157.8s *** NEW BEST ***
+[Iter 21] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=237.3, time=25.8s
+Short training success 0% < threshold 2% — rejected
+[Iter 21] REJECTED (success=0%) | best=2% | 56.9s
+Short training done: success=0%, length=238.2, time=27.0s
+Short training success 0% < threshold 2% — rejected
+[Iter 22] REJECTED (success=0%) | best=2% | 61.7s
+[Iter 23] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=236.0, time=25.9s
+Short training success 0% < threshold 2% — rejected
+[Iter 23] REJECTED (success=0%) | best=2% | 60.1s
+Short training done: success=0%, length=240.1, time=26.9s
+Short training success 0% < threshold 2% — rejected
+[Iter 24] REJECTED (success=0%) | best=2% | 65.3s
+[Iter 25] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=237.3, time=27.3s
+Short training success 0% < threshold 2% — rejected
+[Iter 25] REJECTED (success=0%) | best=2% | 64.2s
+Short training done: success=0%, length=239.0, time=28.1s
+Short training success 0% < threshold 2% — rejected
+[Iter 26] REJECTED (success=0%) | best=2% | 69.4s
+[Iter 27] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=240.4, time=27.1s
+Short training success 0% < threshold 2% — rejected
+[Iter 27] REJECTED (success=0%) | best=2% | 57.3s
+Short training done: success=0%, length=242.9, time=28.5s
+Short training success 0% < threshold 2% — rejected
+[Iter 28] REJECTED (success=0%) | best=2% | 62.2s
+[Iter 29] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=236.0, time=28.4s
+Short training success 0% < threshold 2% — rejected
+[Iter 29] REJECTED (success=0%) | best=2% | 61.3s
+Short training done: success=0%, length=240.8, time=28.5s
+Short training success 0% < threshold 2% — rejected
+[Iter 30] REJECTED (success=0%) | best=2% | 65.1s
+Database saved to experiments/ablations/medium_reward_only/database (30 programs)
+[Iter 30] Checkpoint saved to experiments/ablations/medium_reward_only
+Evolution trace: 30 events, 1 improvements (3%), best deltas: {'final_return': 2161.259449005127, 'final_length': 4.1999969482421875, 'success_rate': 0.02, 'training_time': 14.845704317092896}
+============================================================
+Evolution complete
+  Mode: reward_only
+  Iterations: 30
+  Wall time: 1170.3s
+  Total programs: 30
+  Total eval time: 1395.1s
+  Total LLM tokens: 561940
+  Input tokens: 495512
+  Output tokens: 66428
+  Est. LLM cost: $2.48
+  Recent failures: 20
+  Grid cells filled: [4, 0, 0]
+  Island sizes: [29, 0, 0]
+  Best success rate: 2%
+  Best obs_dim: 171
+  Best program:
+import jax
+import jax.numpy as jnp
+
+def compute_reward(state, action, next_state):
+    PYRAMID = 5
+    SQUARE = 4
+    YELLOW = 5
+    GREEN = 2
+
+    H, W = next_state.grid.shape[:2]
+    ys = jnp.arange(H)
+    xs = jnp.arange(W)
+    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
+
+    def find_obj(grid, tile_id, color_id):
+        mask = (grid[:, :, 0] == tile_id) & (grid[:, :, 1] == color_id)
+        count = jnp.sum(mask).astype(jnp.float32)
+        y = jnp.sum(yy * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)
+        x = jnp.sum(xx * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)
+        return y, x, count
+
+    # Previous state
+    pyr_y_s, pyr_x_s, pyr_cnt_s = find_obj(state.grid, PYRAMID, YELLOW)
+    sq_y_s, sq_x_s, sq_cnt_s = find_obj(state.grid, SQUARE, GREEN)
+    ay_s = state.agent.position[0].astype(jnp.float32)
+    ax_s = state.agent.position[1].astype(jnp.float32)
+    holding_s = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)
+
+    # Next state
+    pyr_y_n, pyr_x_n, pyr_cnt_n = find_obj(next_state.grid, PYRAMID, YELLOW)
+    sq_y_n, sq_x_n, sq_cnt_n = find_obj(next_state.grid, SQUARE, GREEN)
+    ay_n = next_state.agent.position[0].astype(jnp.float32)
+    ax_n = next_state.agent.position[1].astype(jnp.float32)
+    holding_n = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)
+
+    hs = holding_s.astype(jnp.float32)
+    hn = holding_n.astype(jnp.float32)
+    just_picked = (~holding_s) & holding_n
+    just_placed = holding_s & (~holding_n)
+    pyr_on_grid_n = pyr_cnt_n > 0.5
+
+    max_dist = jnp.float32(H + W)
+
+    # Success condition
+    dist_pyr_sq_n = jnp.abs(pyr_y_n - sq_y_n) + jnp.abs(pyr_x_n - sq_x_n)
+    success = pyr_on_grid_n & (~holding_n) & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5)
+
+    # Phase 1: not holding -> go to pyramid
+    dist_ap_s = jnp.abs(ay_s - pyr_y_s) + jnp.abs(ax_s - pyr_x_s)
+    dist_ap_n = jnp.abs(ay_n - pyr_y_n) + jnp.abs(ax_n - pyr_x_n)
+    # Reward reduction in distance to pyramid
+    r_phase1 = (1.0 - hs) * (1.0 - hn) * (dist_ap_s - dist_ap_n) / max_dist * 2.0
+
+    # Pickup bonus
+    r_pickup = just_picked.astype(jnp.float32) * 3.0
+
+    # Phase 2: holding -> go near square
+    # Want agent to be close to square (dist == 1 or 2 is ideal for placing adjacent)
+    dist_as_s = jnp.abs(ay_s - sq_y_s) + jnp.abs(ax_s - sq_x_s)
+    dist_as_n = jnp.abs(ay_n - sq_y_n) + jnp.abs(ax_n - sq_x_n)
+    r_phase2 = hs * hn * (dist_as_s - dist_as_n) / max_dist * 2.0
+
+    # Putdown reward: based on where pyramid lands relative to square
+    dist_pyr_sq_n_safe = jnp.where(pyr_on_grid_n, dist_pyr_sq_n, max_dist)
+    # If placed adjacent: big reward
+    placed_adjacent = just_placed & pyr_on_grid_n & (dist_pyr_sq_n_safe >= 0.5) & (dist_pyr_sq_n_safe <= 1.5)
+    # If placed close (dist 2-3): small reward
+    placed_close = just_placed & pyr_on_grid_n & (dist_pyr_sq_n_safe > 1.5) & (dist_pyr_sq_n_safe <= 3.5)
+    # If placed far: penalty
+    placed_far = just_placed & pyr_on_grid_n & (dist_pyr_sq_n_safe > 3.5)
+
+    r_putdown = (
+        placed_adjacent.astype(jnp.float32) * 10.0
+        + placed_close.astype(jnp.float32) * 1.0
+        + placed_far.astype(jnp.float32) * (-1.0)
+    )
+
+    # Success reward
+    r_success = success.astype(jnp.float32) * 20.0
+
+    # Small dense reward: when pyramid is on grid and not held, reward proximity to square
+    # This persists across steps to maintain signal
+    pyr_placed_n = pyr_on_grid_n & (~holding_n)
+    pyr_placed_s = (pyr_cnt_s > 0.5) & (~holding_s)
+    dist_pyr_sq_s = jnp.abs(pyr_y_s - sq_y_s) + jnp.abs(pyr_x_s - sq_x_s)
+    # Only when pyramid was already placed in previous step too (not just put down)
+    r_placement_improvement = (
+        pyr_placed_n & pyr_placed_s & (~just_placed)
+    ).astype(jnp.float32) * (dist_pyr_sq_s - dist_pyr_sq_n) / max_dist * 1.0
+
+    total = (
+        r_phase1
+        + r_pickup
+        + r_phase2
+        + r_putdown
+        + r_success
+        + r_placement_improvement
+    )
+
+    return total.astype(jnp.float32)
+  Trace events: 30
+  Improvements: 1 (3%)
+============================================================
+============================================================
+MDP Interface Discovery
+============================================================
+  Task:        Place the yellow pyramid adjacent to the green square. Grid 9x9, max_steps=80.
+  Environment: XLand-MiniGrid-R1-9x9
+  Mode:        reward_only
+  Model:       claude-sonnet-4-6 (us-east-1)
+  Iterations:  30
+  Candidates:  2 per batch
+  Training:    1,000,000 short / 2,000,000 full steps
+  Cascade:     ON (thresholds=[0.02])
+  Stochastic:  ON
+  Tracing:     ON
+  Context:     contexts/xminigrid_context.md
+  Run dir:     experiments/ablations/medium_reward_only
+  Log file:    experiments/ablations/medium_reward_only/evolution.log
+============================================================
+
+
+============================================================
+Evolution complete — 30 iterations in 1170s
+============================================================
+  Best success:  2%
+  Best obs_dim:  171
+  Best program:  experiments/ablations/medium_reward_only/best_interface.py
+  Wall time:     1170.3s (19.5m)
+  Eval time:     1395.1s
+  Input tokens:  495,512
+  Output tokens: 66,428
+  Est. LLM cost: $2.48
+  Full logs:     experiments/ablations/medium_reward_only/evolution.log
+  Checkpoint:    experiments/ablations/medium_reward_only
+============================================================

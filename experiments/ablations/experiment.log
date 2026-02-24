@@ -1,0 +1,66 @@
+
+============================================================
+Ablation Experiments — Sun Feb 22 17:56:16 UTC 2026
+  Iterations: 30
+  Candidates: 2 per iteration
+  Training seeds: 3 per candidate
+  Model: claude-sonnet-4-6
+  Modes: obs_only, reward_only
+============================================================
+
+>>> EASY obs_only: Pick up blue pyramid (evolve obs, env reward)
+[17:56:16] easy/obs_only starting
+
+============================================================
+Ablation Experiments — Mon Feb 23 02:22:26 UTC 2026
+  Iterations: 30
+  Candidates: 2 per iteration
+  Training seeds: 3 per candidate
+  Model: claude-sonnet-4-6
+  Modes: obs_only, reward_only
+============================================================
+[02:22:26] EASY obs_only: SKIPPED (already complete)
+
+>>> EASY reward_only: Pick up blue pyramid (default obs, evolve reward)
+[02:22:26] easy/reward_only starting
+[03:04:48] EASY reward_only complete: 2542s (42.3m)
+
+>>> MEDIUM obs_only: Place pyramid near square (evolve obs, env reward)
+[03:04:48] medium/obs_only starting
+[04:04:01] MEDIUM obs_only complete: 3553s (59.2m)
+
+>>> MEDIUM reward_only: Place pyramid near square (default obs, evolve reward)
+[04:04:01] medium/reward_only starting
+[04:23:41] MEDIUM reward_only complete: 1180s (19.6m)
+
+>>> HARD obs_only: Rule chain + placement (evolve obs, env reward)
+[04:23:41] hard/obs_only starting
+[05:34:47] HARD obs_only complete: 4266s (71.1m)
+
+>>> HARD reward_only: Rule chain + placement (default obs, evolve reward)
+[05:34:47] hard/reward_only starting
+[06:38:36] HARD reward_only complete: 3829s (63.8m)
+
+============================================================
+ABLATION EXPERIMENTS COMPLETE — Mon Feb 23 06:38:36 UTC 2026
+  Easy   obs_only:    0s (0m)
+  Easy   reward_only: 2542s (42.3m)
+  Medium obs_only:    3553s (59.2m)
+  Medium reward_only: 1180s (19.6m)
+  Hard   obs_only:    4266s (71.1m)
+  Hard   reward_only: 3829s (63.8m)
+  Total:              15370s (256.1m)
+============================================================
+
+--- Per-run cost breakdown ---
+  easy_obs_only            : input=   523,595 output=  72,972 cost=$2.67 wall=5609s
+  easy_reward_only         : input=   387,782 output=  54,746 cost=$1.98 wall=2526s
+  hard_obs_only            : input= 1,156,378 output= 157,098 cost=$5.83 wall=4246s
+  hard_reward_only         : input=   626,568 output=  89,888 cost=$3.23 wall=3811s
+  medium_obs_only          : input= 1,077,852 output= 142,325 cost=$5.37 wall=3536s
+  medium_reward_only       : input=   495,512 output=  66,428 cost=$2.48 wall=1170s
+
+  TOTAL input:  4,267,687
+  TOTAL output: 583,457
+  TOTAL cost:   $21.55
+  Saved to experiments/ablations/summary.json

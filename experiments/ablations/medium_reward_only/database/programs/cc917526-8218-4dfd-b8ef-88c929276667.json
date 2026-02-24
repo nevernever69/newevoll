@@ -1,0 +1,37 @@
+{
+  "id": "cc917526-8218-4dfd-b8ef-88c929276667",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    PYRAMID = 5\n    SQUARE = 4\n    YELLOW = 5\n    GREEN = 2\n\n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n\n    # Find yellow pyramid on the grid\n    pyramid_mask = (next_state.grid[:, :, 0] == PYRAMID) & (next_state.grid[:, :, 1] == YELLOW)\n    pyramid_count = jnp.sum(pyramid_mask)\n    pyramid_y = jnp.sum(yy * pyramid_mask) / jnp.maximum(pyramid_count, 1)\n    pyramid_x = jnp.sum(xx * pyramid_mask) / jnp.maximum(pyramid_count, 1)\n\n    # Find green square on the grid\n    square_mask = (next_state.grid[:, :, 0] == SQUARE) & (next_state.grid[:, :, 1] == GREEN)\n    square_count = jnp.sum(square_mask)\n    square_y = jnp.sum(yy * square_mask) / jnp.maximum(square_count, 1)\n    square_x = jnp.sum(xx * square_mask) / jnp.maximum(square_count, 1)\n\n    agent_y = next_state.agent.position[0].astype(jnp.float32)\n    agent_x = next_state.agent.position[1].astype(jnp.float32)\n\n    # Check if agent is holding the yellow pyramid\n    holding_pyramid = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)\n    holding_pyramid_f = holding_pyramid.astype(jnp.float32)\n\n    # Distance from agent to yellow pyramid (when not holding)\n    dist_agent_to_pyramid = jnp.abs(agent_y - pyramid_y) + jnp.abs(agent_x - pyramid_x)\n\n    # Distance from agent to green square (when holding)\n    dist_agent_to_square = jnp.abs(agent_y - square_y) + jnp.abs(agent_x - square_x)\n\n    # Distance from yellow pyramid to green square (when placed)\n    dist_pyramid_to_square = jnp.abs(pyramid_y - square_y) + jnp.abs(pyramid_x - square_x)\n\n    # Normalize distances by grid size\n    max_dist = jnp.float32(H + W)\n\n    # Success: yellow pyramid is adjacent to green square (manhattan distance == 1)\n    # This means pyramid is on the grid (not held) and next to the square\n    pyramid_on_grid = pyramid_count > 0\n    pyramid_adjacent = (dist_pyramid_to_square <= 1.5) & pyramid_on_grid  # <=1 manhattan\n    pyramid_adjacent_f = pyramid_adjacent.astype(jnp.float32)\n\n    # Milestone 1: reward for picking up the yellow pyramid\n    pickup_reward = holding_pyramid_f * 0.3\n\n    # Milestone 2: when holding pyramid, reward for being close to green square\n    # Normalized: 0 when far, up to 0.3 when adjacent\n    dist_to_square_norm = dist_agent_to_square / max_dist\n    approach_square_reward = holding_pyramid_f * (1.0 - dist_to_square_norm) * 0.3\n\n    # Milestone 3: when not holding, reward for being close to yellow pyramid\n    not_holding = 1.0 - holding_pyramid_f\n    dist_to_pyramid_norm = dist_agent_to_pyramid / max_dist\n    approach_pyramid_reward = not_holding * (1.0 - dist_to_pyramid_norm) * 0.1\n\n    # Success reward: pyramid placed adjacent to square\n    success_reward = pyramid_adjacent_f * 1.0\n\n    total_reward = (\n        approach_pyramid_reward\n        + pickup_reward\n        + approach_square_reward\n        + success_reward\n    )\n\n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 60.893175760904946,
+    "final_length": 239.3166707356771,
+    "success_rate": 0.006666666666666667,
+    "success_curve": [
+      0.08750000099341075,
+      0.09166666865348816,
+      0.07916666691501935,
+      0.05000000074505806,
+      0.08333333457509677,
+      0.11666666964689891,
+      0.10000000397364299,
+      0.07916666815678279,
+      0.08333333333333333,
+      0.11666666964689891,
+      0.08750000099341075,
+      0.0625000015522043,
+      0.06666666890184085,
+      0.07500000049670537,
+      0.03750000149011612
+    ],
+    "training_time": 73.38142418861389
+  },
+  "obs_dim": 171,
+  "stage": "full_train",
+  "generation": 0,
+  "parent_id": null,
+  "island": 0,
+  "timestamp": 1771819641.5336025,
+  "feature_coords": [
+    0,
+    2
+  ]
+}

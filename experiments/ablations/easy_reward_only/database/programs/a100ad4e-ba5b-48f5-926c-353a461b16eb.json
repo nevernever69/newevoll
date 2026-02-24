@@ -1,0 +1,29 @@
+{
+  "id": "a100ad4e-ba5b-48f5-926c-353a461b16eb",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    \"\"\"\n    Reward for picking up the blue pyramid.\n    \n    Structurally different approach:\n    - Stronger distance-based shaping (potential-based)\n    - Larger facing/adjacency bonus\n    - Larger success reward\n    - No step penalty (to avoid discouraging exploration)\n    \"\"\"\n    PYRAMID = 5\n    BLUE = 3\n    \n    H, W = next_state.grid.shape[:2]\n    \n    # Check pocket states\n    holding_blue_pyramid = (\n        (next_state.agent.pocket[0] == PYRAMID) & \n        (next_state.agent.pocket[1] == BLUE)\n    )\n    was_holding_blue_pyramid = (\n        (state.agent.pocket[0] == PYRAMID) & \n        (state.agent.pocket[1] == BLUE)\n    )\n    \n    just_picked_up = holding_blue_pyramid & (~was_holding_blue_pyramid)\n    \n    # Find blue pyramid position in current state\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    \n    pyramid_mask_curr = (\n        (state.grid[:, :, 0] == PYRAMID) & \n        (state.grid[:, :, 1] == BLUE)\n    )\n    pyramid_mask_next = (\n        (next_state.grid[:, :, 0] == PYRAMID) & \n        (next_state.grid[:, :, 1] == BLUE)\n    )\n    \n    count_curr = jnp.sum(pyramid_mask_curr).astype(jnp.float32)\n    count_next = jnp.sum(pyramid_mask_next).astype(jnp.float32)\n    \n    pyr_y_curr = jnp.sum(yy * pyramid_mask_curr).astype(jnp.float32) / jnp.maximum(count_curr, 1.0)\n    pyr_x_curr = jnp.sum(xx * pyramid_mask_curr).astype(jnp.float32) / jnp.maximum(count_curr, 1.0)\n    \n    pyr_y_next = jnp.sum(yy * pyramid_mask_next).astype(jnp.float32) / jnp.maximum(count_next, 1.0)\n    pyr_x_next = jnp.sum(xx * pyramid_mask_next).astype(jnp.float32) / jnp.maximum(count_next, 1.0)\n    \n    # Agent positions\n    agent_y_curr = state.agent.position[0].astype(jnp.float32)\n    agent_x_curr = state.agent.position[1].astype(jnp.float32)\n    agent_y_next = next_state.agent.position[0].astype(jnp.float32)\n    agent_x_next = next_state.agent.position[1].astype(jnp.float32)\n    \n    # Manhattan distances\n    dist_curr = jnp.abs(agent_y_curr - pyr_y_curr) + jnp.abs(agent_x_curr - pyr_x_curr)\n    dist_next = jnp.abs(agent_y_next - pyr_y_next) + jnp.abs(agent_x_next - pyr_x_next)\n    \n    # Potential-based shaping: reward for reducing distance\n    # Use gamma=1 potential shaping: r_shape = phi(s') - phi(s)\n    # phi(s) = -dist (so closer = higher potential)\n    max_dist = jnp.float32(H + W - 2)\n    \n    # Normalize distances to [0, 1]\n    norm_dist_curr = dist_curr / max_dist\n    norm_dist_next = dist_next / max_dist\n    \n    # Shaping reward: improvement in normalized distance\n    # Only when pyramid is on grid and not yet holding\n    pyramid_on_grid = count_curr > 0\n    not_holding = ~holding_blue_pyramid\n    \n    dist_improvement = norm_dist_curr - norm_dist_next  # positive when getting closer\n    shaping_reward = jnp.where(\n        pyramid_on_grid & not_holding,\n        dist_improvement * jnp.float32(0.3),\n        jnp.float32(0.0)\n    )\n    \n    # Bonus for being adjacent to the blue pyramid (distance == 1)\n    adjacent_bonus = jnp.where(\n        (dist_next <= 1.0) & pyramid_on_grid & not_holding,\n        jnp.float32(0.05),\n        jnp.float32(0.0)\n    )\n    \n    # Bonus for facing the blue pyramid\n    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)], dtype=jnp.int32)\n    dy = DIRECTIONS[next_state.agent.direction, 0]\n    dx = DIRECTIONS[next_state.agent.direction, 1]\n    front_y = jnp.clip(next_state.agent.position[0].astype(jnp.int32) + dy, 0, H - 1)\n    front_x = jnp.clip(next_state.agent.position[1].astype(jnp.int32) + dx, 0, W - 1)\n    \n    front_is_blue_pyramid = (\n        (next_state.grid[front_y, front_x, 0] == PYRAMID) &\n        (next_state.grid[front_y, front_x, 1] == BLUE)\n    )\n    \n    facing_reward = jnp.where(\n        front_is_blue_pyramid & not_holding,\n        jnp.float32(0.1),\n        jnp.float32(0.0)\n    )\n    \n    # Large success reward\n    success_reward = jnp.where(just_picked_up, jnp.float32(5.0), jnp.float32(0.0))\n    \n    # Persistent reward for holding the blue pyramid (keeps signal after pickup)\n    holding_reward = jnp.where(holding_blue_pyramid, jnp.float32(0.1), jnp.float32(0.0))\n    \n    total_reward = success_reward + shaping_reward + facing_reward + adjacent_bonus + holding_reward\n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 3.660078287124634,
+    "final_length": 158.9750010172526,
+    "success_rate": 0.24666666666666667,
+    "success_curve": [
+      0.3750000099341075,
+      0.44583334525426227,
+      0.4166666766007741,
+      0.49166667461395264,
+      0.5291666785875956,
+      0.4875000019868215,
+      0.5541666746139526
+    ],
+    "training_time": 80.06890082359314
+  },
+  "obs_dim": 171,
+  "stage": "full_train",
+  "generation": 1,
+  "parent_id": "0526cc2d-d009-4d1a-97bc-f25e364c9d67",
+  "island": 0,
+  "timestamp": 1771813709.3496492,
+  "feature_coords": [
+    4,
+    2
+  ]
+}

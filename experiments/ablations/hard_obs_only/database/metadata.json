@@ -1,0 +1,73 @@
+{
+  "best_program_id": "dec93649-b067-4f79-8aa2-1280d2118c45",
+  "current_island": 1,
+  "island_generations": [
+    12,
+    9,
+    9
+  ],
+  "last_migration_gen": 0,
+  "total_added": 30,
+  "archive": [
+    "956d804b-a849-4ad2-bc84-2f4934474e8d",
+    "5c3ccf29-e809-4869-94f8-f37c30bce91b",
+    "4793626b-4190-41a6-8d95-21f39b3eee56",
+    "a6aadf80-a37d-4a33-bbc5-8eb020ffeccf",
+    "ace3a4e9-1700-45cd-a7f7-e330517ee6c2",
+    "23ec0413-47b1-4557-861c-54dcd796ec5d",
+    "78002682-bb7f-44dd-b3cb-4a6818039ed5",
+    "a2a5e492-c044-4a9e-9e49-baf3ad68b545",
+    "dec93649-b067-4f79-8aa2-1280d2118c45",
+    "66c21207-48a6-4efe-b6e5-25c6d5291b6d"
+  ],
+  "islands": [
+    [
+      "8eb73fdf-9588-46e3-8e69-9bab2490b52f",
+      "e3d369cd-05b7-4f7b-8e1b-53415e987bff",
+      "233a5f27-89d8-4f28-a74d-f770911120e3",
+      "5fb976ba-da68-4d25-8f7c-6a5dfed5243f",
+      "5d692546-6be0-4866-aa99-5377915ce872",
+      "cf5ed750-f961-4d99-ac2b-00d97834da37",
+      "a981ee97-4e03-491a-833c-179143cbbf70",
+      "d1b16c6a-a521-44d2-88eb-2f8575204632",
+      "a527b9ef-4b6e-4091-b820-5e90dafda5fa",
+      "66c21207-48a6-4efe-b6e5-25c6d5291b6d",
+      "8cdb51ce-67c7-425a-aba3-a4174476039c",
+      "f983163a-ee76-4a19-a913-a083b64ccb7c",
+      "0dc2d438-a8d3-4433-ab52-2f69bb47ad39",
+      "4793626b-4190-41a6-8d95-21f39b3eee56",
+      "b91a4d13-03f8-4f47-852f-ac2d43099c7a",
+      "efbd1d35-11c4-4b85-a3b8-4e42f129e9c9",
+      "b8519eff-03ba-4d84-88dd-8a1c57c540f0",
+      "70a2fb5b-dc90-4beb-890c-caf240528aaf",
+      "c9c25eda-5e3e-40e2-ae3e-718bc7859fa4",
+      "dec93649-b067-4f79-8aa2-1280d2118c45",
+      "d13b72cb-b8e9-497c-943b-dcd329617475",
+      "ace3a4e9-1700-45cd-a7f7-e330517ee6c2",
+      "0209f2e8-bd23-4150-b7c1-d6bca540972f",
+      "75ab7a7e-c111-4bc9-9372-fcea49b73e68"
+    ],
+    [],
+    []
+  ],
+  "grid": [
+    {
+      "2-2": "66c21207-48a6-4efe-b6e5-25c6d5291b6d",
+      "2-4": "dec93649-b067-4f79-8aa2-1280d2118c45",
+      "2-3": "4793626b-4190-41a6-8d95-21f39b3eee56",
+      "2-1": "ace3a4e9-1700-45cd-a7f7-e330517ee6c2"
+    },
+    {},
+    {}
+  ],
+  "feature_stats": {
+    "reward_complexity": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "obs_dimensionality": {
+      "min": 86.0,
+      "max": 472.0
+    }
+  }
+}

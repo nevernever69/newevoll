@@ -1,0 +1,284 @@
+#!/usr/bin/env python3
+"""Benchmark: Best Evolved vs Ablation Spaces (obs_only, reward_only) vs Sparse.
+
+Per-task budgets: Easy 2M, Medium 5M, Hard 10M.
+- evolved: full MDP interface (obs + reward) from main experiments
+- obs_only: ablation observation + env built-in reward
+- reward_only: ablation reward + default observation  
+- sparse: adapter.get_default_obs_fn() + env built-in reward
+"""
+
+import json
+import os
+import time
+
+import jax
+import jax.numpy as jnp
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+
+from mdp_discovery.config import Config
+from mdp_discovery.mdp_interface import MDPInterface
+from mdp_discovery.train import run_training
+from mdp_discovery.adapters.xminigrid_adapter import XMinigridAdapter
+
+SEED = 42
+
+TASKS = [
+    {
+        "name": "Easy\n(Pick up blue pyramid)",
+        "short": "easy",
+        "config": "configs/easy_pickup.yaml",
+        "evolved": "experiments/main/easy/best_interface.py",
+        "obs_only": "experiments/ablations/easy_obs_only/best_interface.py",
+        "reward_only": "experiments/ablations/easy_reward_only/best_interface.py",
+        "timesteps": 2_000_000,
+    },
+    {
+        "name": "Medium\n(Place pyramid near square)",
+        "short": "medium",
+        "config": "configs/medium_place_near.yaml",
+        "evolved": "experiments/main/medium/best_interface.py",
+        "obs_only": "experiments/ablations/medium_obs_only/best_interface.py",
+        "reward_only": "experiments/ablations/medium_reward_only/best_interface.py",
+        "timesteps": 4_000_000,
+    },
+    {
+        "name": "Hard\n(Rule chain + placement)",
+        "short": "hard",
+        "config": "configs/hard_rule_chain.yaml",
+        "evolved": "experiments/main/hard/best_interface.py",
+        "obs_only": "experiments/ablations/hard_obs_only/best_interface.py",
+        "reward_only": "experiments/ablations/hard_reward_only/best_interface.py",
+        "timesteps": 10_000_000,
+    },
+]
+
+
+def load_ablation_observation(config, adapter, obs_only_file):
+    """Load obs_only interface and extract just the observation function."""
+    obs_interface = MDPInterface.from_file(obs_only_file)
+    dummy_state = adapter.get_dummy_state()
+    obs_interface.validate(dummy_state)
+    return obs_interface.get_observation, obs_interface.obs_dim
+
+
+def load_ablation_reward(config, adapter, reward_only_file):
+    """Load reward_only interface and extract just the reward function."""
+    rew_interface = MDPInterface.from_file(reward_only_file)
+    dummy_state = adapter.get_dummy_state()
+    # For reward_only, obs_dim is 0 or detected from default obs
+    rew_interface.validate(dummy_state)
+    return rew_interface.compute_reward
+
+
+def main():
+    print("=" * 70)
+    print("Best Evolved Interface vs Ablation Spaces vs Sparse Baseline")
+    print(f"  Seed: {SEED} | Devices: {jax.local_device_count()}")
+    print(f"  Budgets: Easy=2M, Medium=5M, Hard=10M")
+    print(f"  obs_only = ablation obs + env built-in reward")
+    print(f"  reward_only = default obs + ablation reward")
+    print(f"  sparse = default obs + env built-in reward")
+    print("=" * 70)
+
+    all_results = {}
+
+    for task in TASKS:
+        ts = task["timesteps"]
+        print(f"\n{'─'*70}")
+        print(f"Task: {task['short'].upper()} — {ts/1e6:.0f}M steps")
+        print(f"{'─'*70}")
+
+        config = Config.from_yaml(task["config"])
+        config.training.seed = SEED
+        config.training.lr_schedule = "cosine"
+        adapter = XMinigridAdapter(config)
+        dummy_state = adapter.get_dummy_state()
+
+        # Evolved interface (from file)
+        evolved = MDPInterface.from_file(task["evolved"])
+        evolved_obs = evolved.validate(dummy_state)
+        print(f"  Evolved obs_dim: {evolved_obs}")
+
+        # obs_only: ablation observation + env built-in reward (None)
+        obs_only_fn, obs_only_dim = load_ablation_observation(config, adapter, task["obs_only"])
+        obs_only = MDPInterface(
+            get_observation=obs_only_fn,
+            compute_reward=None,
+        )
+        print(f"  obs_only obs_dim:  {obs_only_dim}")
+
+        # reward_only: default obs + ablation reward
+        rew_only_fn = load_ablation_reward(config, adapter, task["reward_only"])
+        rew_only = MDPInterface(
+            get_observation=adapter.get_default_obs_fn(),
+            compute_reward=rew_only_fn,
+        )
+        rew_only_obs = rew_only.detect_obs_dim(dummy_state)
+        print(f"  reward_only obs_dim: {rew_only_obs}")
+
+        # Sparse interface: default obs + env built-in reward (None)
+        sparse = MDPInterface(
+            get_observation=adapter.get_default_obs_fn(),
+            compute_reward=None,
+        )
+        sparse_obs = sparse.detect_obs_dim(dummy_state)
+        print(f"  Sparse obs_dim:  {sparse_obs}")
+
+        task_results = {}
+        for label, interface, obs_dim in [
+            ("evolved", evolved, evolved_obs),
+            ("obs_only", obs_only, obs_only_dim),
+            ("reward_only", rew_only, rew_only_obs),
+            ("sparse", sparse, sparse_obs),
+        ]:
+            print(f"\n  Training {label} (obs_dim={obs_dim}) for {ts/1e6:.0f}M ...", flush=True)
+            t0 = time.time()
+            metrics = run_training(config, adapter, interface, obs_dim, total_timesteps=ts)
+            elapsed = time.time() - t0
+            print(f"    {elapsed:.1f}s — success={metrics['success_rate']*100:.1f}%  len={metrics['final_length']:.1f}")
+            task_results[label] = metrics
+
+        all_results[task["short"]] = {
+            "name": task["name"],
+            "results": task_results,
+            "timesteps": ts,
+            "num_envs": config.training.num_envs,
+            "num_steps": config.training.num_steps,
+        }
+
+    # ─── Save JSON ────────────────────────────────────────────────────────
+    os.makedirs("results", exist_ok=True)
+    json_path = "results/ablation_spaces.json"
+    json_data = {}
+    for key, val in all_results.items():
+        json_data[key] = {
+            "name": val["name"],
+            "timesteps": val["timesteps"],
+            "num_envs": val["num_envs"],
+            "num_steps": val["num_steps"],
+        }
+        for variant in ["evolved", "obs_only", "reward_only", "sparse"]:
+            m = val["results"][variant]
+            json_data[key][variant] = {
+                "success_rate": m["success_rate"],
+                "final_return": m["final_return"],
+                "final_length": m["final_length"],
+                "training_time": m["training_time"],
+                "success_curve": m["success_curve"],
+            }
+    with open(json_path, "w") as f:
+        json.dump(json_data, f, indent=2)
+    print(f"\nResults saved to {json_path}")
+
+    # ─── Plot ─────────────────────────────────────────────────────────────
+    fig, axes = plt.subplots(1, 3, figsize=(21, 5.5))
+    fig.suptitle(
+        "Evolved vs Ablation Spaces vs Sparse Baseline  (1 seed)",
+        fontsize=15, fontweight="bold", y=1.02,
+    )
+
+    palette = {
+        "evolved": "#1976D2",      # blue
+        "obs_only": "#388E3C",     # green
+        "reward_only": "#F57C00",  # orange
+        "sparse": "#D32F2F",       # red
+    }
+    nice_label = {
+        "evolved": "Evolved (full obs + reward)",
+        "obs_only": "obs_only (ablation obs + env reward)",
+        "reward_only": "reward_only (default obs + ablation reward)",
+        "sparse": "Sparse (default obs + env reward)",
+    }
+
+    for ax, task_key in zip(axes, ["easy", "medium", "hard"]):
+        r = all_results[task_key]
+        ts_per_update = r["num_envs"] * r["num_steps"]
+        total_ts = r["timesteps"]
+
+        for variant in ["evolved", "obs_only", "reward_only", "sparse"]:
+            curve = r["results"][variant]["success_curve"]
+            xs = [(i + 1) * ts_per_update / 1e6 for i in range(len(curve))]
+            ys = [v * 100 for v in curve]
+            ax.plot(
+                xs, ys,
+                color=palette[variant],
+                label=nice_label[variant],
+                linewidth=2.2,
+                alpha=0.9,
+            )
+
+            # Annotate final success rate
+            final_sr = r["results"][variant]["success_rate"] * 100
+            ax.plot(xs[-1], ys[-1], "o", color=palette[variant], markersize=7)
+            
+            # Adjust annotation offset to avoid overlap
+            offsets = {
+                ("easy", "evolved"): (-25, 6),
+                ("easy", "obs_only"): (-25, -12),
+                ("easy", "reward_only"): (-25, -28),
+                ("easy", "sparse"): (-25, -44),
+                ("medium", "evolved"): (-25, 6),
+                ("medium", "obs_only"): (-25, -12),
+                ("medium", "reward_only"): (-25, -28),
+                ("medium", "sparse"): (-25, -44),
+                ("hard", "evolved"): (-25, 6),
+                ("hard", "obs_only"): (-25, -12),
+                ("hard", "reward_only"): (-25, -28),
+                ("hard", "sparse"): (-25, -44),
+            }
+            offset_x, offset_y = offsets.get((task_key, variant), (-25, 6))
+            ax.annotate(
+                f"{final_sr:.0f}%",
+                xy=(xs[-1], ys[-1]),
+                xytext=(offset_x, offset_y),
+                textcoords="offset points",
+                fontsize=10, fontweight="bold",
+                color=palette[variant],
+            )
+
+        ax.set_title(r["name"], fontsize=12, fontweight="bold")
+        ax.set_xlabel("Training Timesteps (millions)", fontsize=11)
+        ax.set_ylabel("Success Rate (%)", fontsize=11)
+        ax.set_ylim(-5, 105)
+        ax.set_xlim(0, total_ts / 1e6 + 0.1)
+        ax.grid(True, alpha=0.25)
+        ax.legend(fontsize=8, loc="lower right")
+
+    plt.tight_layout()
+    out_path = "results/ablation_spaces.png"
+    plt.savefig(out_path, dpi=150, bbox_inches="tight")
+    print(f"Plot saved to {out_path}")
+    plt.close()
+
+    # ─── Summary ──────────────────────────────────────────────────────────
+    print(f"\n{'='*70}")
+    print(f"{'Task':<12} {'Budget':>8} {'Evolved':>10} {'obs_only':>10} {'rew_only':>10} {'Sparse':>10}")
+    print(f"{'='*70}")
+    for k in ["easy", "medium", "hard"]:
+        budget = all_results[k]["timesteps"]
+        e = all_results[k]["results"]["evolved"]["success_rate"] * 100
+        o = all_results[k]["results"]["obs_only"]["success_rate"] * 100
+        r = all_results[k]["results"]["reward_only"]["success_rate"] * 100
+        s = all_results[k]["results"]["sparse"]["success_rate"] * 100
+        print(f"{k:<12} {budget/1e6:>7.0f}M {e:>9.1f}% {o:>9.1f}% {r:>9.1f}% {s:>9.1f}%")
+    print(f"{'='*70}")
+    
+    # ─── Delta Analysis ───────────────────────────────────────────────────
+    print(f"\n{'='*70}")
+    print("Delta Analysis (vs evolved)")
+    print(f"{'='*70}")
+    for k in ["easy", "medium", "hard"]:
+        e = all_results[k]["results"]["evolved"]["success_rate"] * 100
+        o = all_results[k]["results"]["obs_only"]["success_rate"] * 100
+        r = all_results[k]["results"]["reward_only"]["success_rate"] * 100
+        s = all_results[k]["results"]["sparse"]["success_rate"] * 100
+        print(f"{k}: obs_only={o-e:+.1f}%  reward_only={r-e:+.1f}%  sparse={s-e:+.1f}%")
+    print(f"{'='*70}")
+
+
+if __name__ == "__main__":
+    main()

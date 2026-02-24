@@ -1,0 +1,38 @@
+{
+  "id": "6c0aad30-8802-41f5-abc9-2a579e864424",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    PYRAMID = 5\n    SQUARE = 4\n    YELLOW = 5\n    GREEN = 2\n\n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n\n    # Find yellow pyramid on the grid (next state)\n    pyr_mask_next = (next_state.grid[:, :, 0] == PYRAMID) & (next_state.grid[:, :, 1] == YELLOW)\n    pyr_count_next = jnp.sum(pyr_mask_next).astype(jnp.float32)\n    pyr_y_next = jnp.sum(yy * pyr_mask_next).astype(jnp.float32) / jnp.maximum(pyr_count_next, 1.0)\n    pyr_x_next = jnp.sum(xx * pyr_mask_next).astype(jnp.float32) / jnp.maximum(pyr_count_next, 1.0)\n\n    # Find yellow pyramid on the grid (current state)\n    pyr_mask_cur = (state.grid[:, :, 0] == PYRAMID) & (state.grid[:, :, 1] == YELLOW)\n    pyr_count_cur = jnp.sum(pyr_mask_cur).astype(jnp.float32)\n    pyr_y_cur = jnp.sum(yy * pyr_mask_cur).astype(jnp.float32) / jnp.maximum(pyr_count_cur, 1.0)\n    pyr_x_cur = jnp.sum(xx * pyr_mask_cur).astype(jnp.float32) / jnp.maximum(pyr_count_cur, 1.0)\n\n    # Find green square on the grid\n    sq_mask = (next_state.grid[:, :, 0] == SQUARE) & (next_state.grid[:, :, 1] == GREEN)\n    sq_count = jnp.sum(sq_mask).astype(jnp.float32)\n    sq_y = jnp.sum(yy * sq_mask).astype(jnp.float32) / jnp.maximum(sq_count, 1.0)\n    sq_x = jnp.sum(xx * sq_mask).astype(jnp.float32) / jnp.maximum(sq_count, 1.0)\n\n    agent_y_next = next_state.agent.position[0].astype(jnp.float32)\n    agent_x_next = next_state.agent.position[1].astype(jnp.float32)\n    agent_y_cur = state.agent.position[0].astype(jnp.float32)\n    agent_x_cur = state.agent.position[1].astype(jnp.float32)\n\n    # Holding status\n    holding_next = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)\n    holding_cur = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)\n    holding_next_f = holding_next.astype(jnp.float32)\n    holding_cur_f = holding_cur.astype(jnp.float32)\n\n    max_dist = jnp.float32(H + W)\n\n    # === Phase 1: Not holding pyramid \u2014 guide agent toward pyramid ===\n    dist_agent_to_pyr_next = jnp.abs(agent_y_next - pyr_y_next) + jnp.abs(agent_x_next - pyr_x_next)\n    dist_agent_to_pyr_cur = jnp.abs(agent_y_cur - pyr_y_cur) + jnp.abs(agent_x_cur - pyr_x_cur)\n\n    # Progress toward pyramid (positive if getting closer)\n    progress_to_pyr = (dist_agent_to_pyr_cur - dist_agent_to_pyr_next) / max_dist\n\n    # === Phase 2: Holding pyramid \u2014 guide agent toward green square ===\n    dist_agent_to_sq_next = jnp.abs(agent_y_next - sq_y) + jnp.abs(agent_x_next - sq_x)\n    dist_agent_to_sq_cur = jnp.abs(agent_y_cur - sq_y) + jnp.abs(agent_x_cur - sq_x)\n\n    # Progress toward square (positive if getting closer)\n    progress_to_sq = (dist_agent_to_sq_cur - dist_agent_to_sq_next) / max_dist\n\n    # === Milestone: pickup event ===\n    just_picked_up = holding_next & (~holding_cur)\n    pickup_bonus = jnp.where(just_picked_up, jnp.float32(0.5), jnp.float32(0.0))\n\n    # === Milestone: putdown event ===\n    just_put_down = (~holding_next) & holding_cur\n    # Check if pyramid is now adjacent to square\n    dist_pyr_to_sq_next = jnp.abs(pyr_y_next - sq_y) + jnp.abs(pyr_x_next - sq_x)\n    placed_adjacent = (dist_pyr_to_sq_next < 1.5) & (pyr_count_next > 0.5)\n    putdown_bonus = jnp.where(just_put_down & placed_adjacent, jnp.float32(1.0), jnp.float32(0.0))\n    # Small penalty for putting down in wrong place\n    putdown_penalty = jnp.where(just_put_down & (~placed_adjacent), jnp.float32(-0.2), jnp.float32(0.0))\n\n    # === Success: pyramid on grid adjacent to square ===\n    pyr_on_grid = pyr_count_next > 0.5\n    dist_pyr_to_sq = jnp.abs(pyr_y_next - sq_y) + jnp.abs(pyr_x_next - sq_x)\n    success = pyr_on_grid & (~holding_next) & (dist_pyr_to_sq < 1.5) & (dist_pyr_to_sq > 0.4)\n    success_reward = jnp.where(success, jnp.float32(1.0), jnp.float32(0.0))\n\n    # === Dense shaping ===\n    # When not holding: reward progress toward pyramid\n    # When holding: reward progress toward square\n    dense_phase1 = (1.0 - holding_next_f) * progress_to_pyr * 1.0\n    dense_phase2 = holding_next_f * progress_to_sq * 1.0\n\n    # Additional dense: absolute distance rewards (small)\n    # When holding, also reward being close to square\n    close_to_sq = holding_next_f * (max_dist - dist_agent_to_sq_next) / max_dist * 0.1\n    # When not holding, reward being close to pyramid\n    close_to_pyr = (1.0 - holding_next_f) * (max_dist - dist_agent_to_pyr_next) / max_dist * 0.05\n\n    total_reward = (\n        dense_phase1\n        + dense_phase2\n        + close_to_sq\n        + close_to_pyr\n        + pickup_bonus\n        + putdown_bonus\n        + putdown_penalty\n        + success_reward\n    )\n\n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 25.350440979003906,
+    "final_length": 238.03750610351562,
+    "success_rate": 0.0,
+    "learning_curve": [
+      22.880903244018555,
+      19.96625328063965,
+      14.300692558288574,
+      14.229522705078125,
+      15.927882194519043,
+      19.582447052001953,
+      25.350440979003906
+    ],
+    "success_curve": [
+      0.08749999850988388,
+      0.07500000298023224,
+      0.10000000149011612,
+      0.05000000074505806,
+      0.07500000298023224,
+      0.10000000149011612,
+      0.02500000037252903
+    ],
+    "training_time": 27.44224190711975
+  },
+  "obs_dim": 171,
+  "stage": "short_train_rejected",
+  "generation": 1,
+  "parent_id": "d56f22a2-8aa1-485e-9376-0bdabab0a6e3",
+  "island": 0,
+  "timestamp": 1771819703.9596877,
+  "feature_coords": [
+    4,
+    2
+  ]
+}

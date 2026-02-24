@@ -1,0 +1,38 @@
+{
+  "id": "42234bf9-1aa3-422f-b20a-b5fc028242f7",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    PYRAMID = 5\n    SQUARE = 4\n    YELLOW = 5\n    GREEN = 2\n\n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n\n    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)])\n\n    def find_object(grid, tile_id, color_id):\n        mask = (grid[:, :, 0] == tile_id) & (grid[:, :, 1] == color_id)\n        count = jnp.sum(mask).astype(jnp.float32)\n        y = jnp.sum(yy * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        x = jnp.sum(xx * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        return y, x, count\n\n    # Current state\n    pyr_y_s, pyr_x_s, pyr_cnt_s = find_object(state.grid, PYRAMID, YELLOW)\n    sq_y_s, sq_x_s, sq_cnt_s = find_object(state.grid, SQUARE, GREEN)\n    ay_s = state.agent.position[0].astype(jnp.float32)\n    ax_s = state.agent.position[1].astype(jnp.float32)\n    holding_s = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)\n\n    # Next state\n    pyr_y_n, pyr_x_n, pyr_cnt_n = find_object(next_state.grid, PYRAMID, YELLOW)\n    sq_y_n, sq_x_n, sq_cnt_n = find_object(next_state.grid, SQUARE, GREEN)\n    ay_n = next_state.agent.position[0].astype(jnp.float32)\n    ax_n = next_state.agent.position[1].astype(jnp.float32)\n    holding_n = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)\n\n    hs = holding_s.astype(jnp.float32)\n    hn = holding_n.astype(jnp.float32)\n\n    just_picked = (~holding_s) & holding_n\n    just_placed = holding_s & (~holding_n)\n\n    pyr_on_grid_n = pyr_cnt_n > 0.5\n    max_dist = jnp.float32(H + W)\n\n    # ===== SUCCESS =====\n    dist_pyr_sq_n = jnp.abs(pyr_y_n - sq_y_n) + jnp.abs(pyr_x_n - sq_x_n)\n    dist_pyr_sq_s = jnp.abs(pyr_y_s - sq_y_s) + jnp.abs(pyr_x_s - sq_x_s)\n\n    success = pyr_on_grid_n & (~holding_n) & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5)\n    r_success = success.astype(jnp.float32) * 10.0\n\n    # ===== PHASE 1: Not holding \u2192 move toward pyramid =====\n    dist_agent_pyr_s = jnp.abs(ay_s - pyr_y_s) + jnp.abs(ax_s - pyr_x_s)\n    dist_agent_pyr_n = jnp.abs(ay_n - pyr_y_n) + jnp.abs(ax_n - pyr_x_n)\n\n    phase1 = (1.0 - hs) * (1.0 - hn)\n    r_phase1 = phase1 * (dist_agent_pyr_s - dist_agent_pyr_n) / max_dist * 2.0\n\n    # ===== PICKUP BONUS =====\n    r_pickup = just_picked.astype(jnp.float32) * 2.0\n\n    # ===== PHASE 2: Holding \u2192 position front cell adjacent to square =====\n    # Key insight: pyramid is placed in front of agent.\n    # We want the FRONT CELL to be adjacent (dist=1) to the square.\n    # So we want dist(front_cell, square) == 1\n    # Equivalently dist(front_cell, square) to be minimized toward 1.\n\n    # Front cell in current state\n    dir_s = state.agent.direction\n    dy_s = DIRECTIONS[dir_s, 0].astype(jnp.float32)\n    dx_s = DIRECTIONS[dir_s, 1].astype(jnp.float32)\n    front_y_s = ay_s + dy_s\n    front_x_s = ax_s + dx_s\n    dist_front_sq_s = jnp.abs(front_y_s - sq_y_s) + jnp.abs(front_x_s - sq_x_s)\n\n    # Front cell in next state\n    dir_n = next_state.agent.direction\n    dy_n = DIRECTIONS[dir_n, 0].astype(jnp.float32)\n    dx_n = DIRECTIONS[dir_n, 1].astype(jnp.float32)\n    front_y_n = ay_n + dy_n\n    front_x_n = ax_n + dx_n\n    dist_front_sq_n = jnp.abs(front_y_n - sq_y_n) + jnp.abs(front_x_n - sq_x_n)\n\n    # Reward: front cell getting closer to being adjacent to square\n    # Target: dist_front_sq == 1\n    # We want to minimize |dist_front_sq - 1|\n    target_dist = 1.0\n    front_error_s = jnp.abs(dist_front_sq_s - target_dist)\n    front_error_n = jnp.abs(dist_front_sq_n - target_dist)\n\n    phase2 = hs * hn\n    r_phase2 = phase2 * (front_error_s - front_error_n) / max_dist * 3.0\n\n    # Bonus: front cell is exactly adjacent to square while holding (ready to place)\n    front_adjacent = hn * (dist_front_sq_n >= 0.5).astype(jnp.float32) * (dist_front_sq_n <= 1.5).astype(jnp.float32)\n    r_ready = front_adjacent * 0.5\n\n    # ===== PUTDOWN REWARD =====\n    r_putdown = jax.lax.select(\n        just_placed & pyr_on_grid_n & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5),\n        jnp.float32(8.0),\n        jax.lax.select(\n            just_placed & pyr_on_grid_n,\n            jnp.float32(-0.5),\n            jnp.float32(0.0)\n        )\n    )\n\n    # ===== SMALL ABSOLUTE SHAPING =====\n    # When not holding: small signal for being close to pyramid\n    r_abs_pyr = (1.0 - hn) * (max_dist - dist_agent_pyr_n) / max_dist * 0.2\n    # When holding: small signal for front cell being close to adjacency\n    r_abs_front = hn * jnp.maximum(0.0, max_dist - front_error_n) / max_dist * 0.3\n\n    total = (\n        r_phase1\n        + r_pickup\n        + r_phase2\n        + r_ready\n        + r_putdown\n        + r_success\n        + r_abs_pyr\n        + r_abs_front\n    )\n\n    return total.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 165.8192901611328,
+    "final_length": 239.4499969482422,
+    "success_rate": 0.0,
+    "learning_curve": [
+      187.0026397705078,
+      136.86070251464844,
+      81.76759338378906,
+      85.96305084228516,
+      155.122314453125,
+      94.5213851928711,
+      165.8192901611328
+    ],
+    "success_curve": [
+      0.10000000149011612,
+      0.07500000298023224,
+      0.125,
+      0.02500000037252903,
+      0.08749999850988388,
+      0.05000000074505806,
+      0.02500000037252903
+    ],
+    "training_time": 26.286484479904175
+  },
+  "obs_dim": 171,
+  "stage": "short_train_rejected",
+  "generation": 3,
+  "parent_id": "fe10b90a-50f2-4dd3-bff1-d7cb87c7fd51",
+  "island": 0,
+  "timestamp": 1771820072.9436903,
+  "feature_coords": [
+    4,
+    2
+  ]
+}

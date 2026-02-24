@@ -1,0 +1,38 @@
+{
+  "id": "2852546c-229f-4c7f-b35a-dfa073bb69f4",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    PYRAMID = 5\n    SQUARE = 4\n    YELLOW = 5\n    GREEN = 2\n\n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)])\n\n    def find_obj(grid, tile_id, color_id):\n        mask = (grid[:, :, 0] == tile_id) & (grid[:, :, 1] == color_id)\n        count = jnp.sum(mask).astype(jnp.float32)\n        y = jnp.sum(yy * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        x = jnp.sum(xx * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        return y, x, count\n\n    # --- Next state quantities ---\n    pyr_y_n, pyr_x_n, pyr_cnt_n = find_obj(next_state.grid, PYRAMID, YELLOW)\n    sq_y_n, sq_x_n, sq_cnt_n = find_obj(next_state.grid, SQUARE, GREEN)\n    ay_n = next_state.agent.position[0].astype(jnp.float32)\n    ax_n = next_state.agent.position[1].astype(jnp.float32)\n    holding_n = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)\n\n    # --- Current state quantities ---\n    pyr_y_s, pyr_x_s, pyr_cnt_s = find_obj(state.grid, PYRAMID, YELLOW)\n    sq_y_s, sq_x_s, sq_cnt_s = find_obj(state.grid, SQUARE, GREEN)\n    ay_s = state.agent.position[0].astype(jnp.float32)\n    ax_s = state.agent.position[1].astype(jnp.float32)\n    holding_s = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)\n\n    max_dist = jnp.float32(H + W)\n\n    # Transition flags\n    just_picked = (~holding_s) & holding_n\n    just_placed = holding_s & (~holding_n)\n    pyr_on_grid_n = pyr_cnt_n > 0.5\n\n    # --- SUCCESS CONDITION ---\n    dist_pyr_sq_n = jnp.abs(pyr_y_n - sq_y_n) + jnp.abs(pyr_x_n - sq_x_n)\n    success = pyr_on_grid_n & (~holding_n) & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5)\n\n    # --- FRONT CELL of agent in next state ---\n    dir_n = next_state.agent.direction\n    dy_n = DIRECTIONS[dir_n, 0].astype(jnp.float32)\n    dx_n = DIRECTIONS[dir_n, 1].astype(jnp.float32)\n    front_y_n = ay_n + dy_n\n    front_x_n = ax_n + dx_n\n\n    # Distance from front cell to square (when holding, we want to putdown adjacent to square)\n    dist_front_to_sq_n = jnp.abs(front_y_n - sq_y_n) + jnp.abs(front_x_n - sq_x_n)\n\n    # --- FRONT CELL of agent in current state ---\n    dir_s = state.agent.direction\n    dy_s = DIRECTIONS[dir_s, 0].astype(jnp.float32)\n    dx_s = DIRECTIONS[dir_s, 1].astype(jnp.float32)\n    front_y_s = ay_s + dy_s\n    front_x_s = ax_s + dx_s\n    dist_front_to_sq_s = jnp.abs(front_y_s - sq_y_s) + jnp.abs(front_x_s - sq_x_s)\n\n    # --- PHASE 1: Not holding \u2192 approach pyramid ---\n    dist_agent_pyr_s = jnp.abs(ay_s - pyr_y_s) + jnp.abs(ax_s - pyr_x_s)\n    dist_agent_pyr_n = jnp.abs(ay_n - pyr_y_n) + jnp.abs(ax_n - pyr_x_n)\n\n    # Potential-based: reward for reducing distance to pyramid\n    phase1_active = (~holding_s) & (~holding_n)\n    r_approach_pyr = jax.lax.select(\n        phase1_active,\n        (dist_agent_pyr_s - dist_agent_pyr_n) / max_dist * 2.0,\n        jnp.float32(0.0)\n    )\n\n    # --- PICKUP MILESTONE ---\n    r_pickup = just_picked.astype(jnp.float32) * 3.0\n\n    # --- PHASE 2: Holding \u2192 position front cell adjacent to square ---\n    # Want dist_front_to_sq == 1 so putdown places pyramid adjacent to square\n    phase2_active = holding_s & holding_n\n    # Reward for reducing the \"error\" from target distance of 1\n    err_s = jnp.abs(dist_front_to_sq_s - 1.0)\n    err_n = jnp.abs(dist_front_to_sq_n - 1.0)\n    r_position_for_place = jax.lax.select(\n        phase2_active,\n        (err_s - err_n) / max_dist * 2.0,\n        jnp.float32(0.0)\n    )\n\n    # Bonus: front cell is exactly adjacent to square (ready to place)\n    front_adj_n = holding_n & (dist_front_to_sq_n >= 0.5) & (dist_front_to_sq_n <= 1.5)\n    r_ready_to_place = front_adj_n.astype(jnp.float32) * 0.5\n\n    # --- PUTDOWN MILESTONE ---\n    # Big bonus if placed adjacent, penalty if placed far\n    putdown_adj = just_placed & pyr_on_grid_n & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5)\n    putdown_near = just_placed & pyr_on_grid_n & (dist_pyr_sq_n > 1.5) & (dist_pyr_sq_n <= 3.0)\n    putdown_far = just_placed & pyr_on_grid_n & (dist_pyr_sq_n > 3.0)\n    r_putdown = (\n        putdown_adj.astype(jnp.float32) * 8.0\n        + putdown_near.astype(jnp.float32) * 0.5\n        + putdown_far.astype(jnp.float32) * (-1.0)\n    )\n\n    # --- SUCCESS REWARD ---\n    r_success = success.astype(jnp.float32) * 10.0\n\n    # --- SMALL ABSOLUTE SHAPING ---\n    # When not holding: absolute reward for being close to pyramid\n    r_abs_pyr = jax.lax.select(\n        ~holding_n,\n        (max_dist - dist_agent_pyr_n) / max_dist * 0.3,\n        jnp.float32(0.0)\n    )\n    # When holding: absolute reward for front cell being close to adjacent position\n    r_abs_front = jax.lax.select(\n        holding_n,\n        (max_dist - err_n) / max_dist * 0.3,\n        jnp.float32(0.0)\n    )\n\n    total = (\n        r_approach_pyr\n        + r_pickup\n        + r_position_for_place\n        + r_ready_to_place\n        + r_putdown\n        + r_success\n        + r_abs_pyr\n        + r_abs_front\n    )\n\n    return total.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 135.4989013671875,
+    "final_length": 231.5749969482422,
+    "success_rate": 0.0,
+    "learning_curve": [
+      199.96446228027344,
+      105.48616790771484,
+      137.5720672607422,
+      115.1307601928711,
+      154.8157196044922,
+      111.81123352050781,
+      135.4989013671875
+    ],
+    "success_curve": [
+      0.08749999850988388,
+      0.08749999850988388,
+      0.125,
+      0.05000000074505806,
+      0.0625,
+      0.03750000149011612,
+      0.11250000447034836
+    ],
+    "training_time": 26.485153913497925
+  },
+  "obs_dim": 171,
+  "stage": "short_train_rejected",
+  "generation": 1,
+  "parent_id": "d56f22a2-8aa1-485e-9376-0bdabab0a6e3",
+  "island": 0,
+  "timestamp": 1771820198.3001132,
+  "feature_coords": [
+    4,
+    2
+  ]
+}

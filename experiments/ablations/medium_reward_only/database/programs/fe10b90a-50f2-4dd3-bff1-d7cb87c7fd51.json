@@ -1,0 +1,38 @@
+{
+  "id": "fe10b90a-50f2-4dd3-bff1-d7cb87c7fd51",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    PYRAMID = 5\n    SQUARE = 4\n    YELLOW = 5\n    GREEN = 2\n\n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n\n    def find_object(grid, tile_id, color_id):\n        mask = (grid[:, :, 0] == tile_id) & (grid[:, :, 1] == color_id)\n        count = jnp.sum(mask).astype(jnp.float32)\n        y = jnp.sum(yy * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        x = jnp.sum(xx * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        return y, x, count\n\n    # Current state objects\n    pyr_y_s, pyr_x_s, pyr_count_s = find_object(state.grid, PYRAMID, YELLOW)\n    sq_y_s, sq_x_s, sq_count_s = find_object(state.grid, SQUARE, GREEN)\n    agent_y_s = state.agent.position[0].astype(jnp.float32)\n    agent_x_s = state.agent.position[1].astype(jnp.float32)\n    holding_s = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)\n    holding_s_f = holding_s.astype(jnp.float32)\n\n    # Next state objects\n    pyr_y_n, pyr_x_n, pyr_count_n = find_object(next_state.grid, PYRAMID, YELLOW)\n    sq_y_n, sq_x_n, sq_count_n = find_object(next_state.grid, SQUARE, GREEN)\n    agent_y_n = next_state.agent.position[0].astype(jnp.float32)\n    agent_x_n = next_state.agent.position[1].astype(jnp.float32)\n    holding_n = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)\n    holding_n_f = holding_n.astype(jnp.float32)\n\n    max_dist = jnp.float32(H + W - 2)\n\n    # ---- SUCCESS CONDITION ----\n    # Pyramid on grid, not held, adjacent (Manhattan dist == 1) to square\n    pyr_on_grid_n = pyr_count_n > 0.5\n    dist_pyr_sq_n = jnp.abs(pyr_y_n - sq_y_n) + jnp.abs(pyr_x_n - sq_x_n)\n    dist_pyr_sq_s = jnp.abs(pyr_y_s - sq_y_s) + jnp.abs(pyr_x_s - sq_x_s)\n    \n    success_n = pyr_on_grid_n & (~holding_n) & (dist_pyr_sq_n <= 1.5) & (dist_pyr_sq_n >= 0.5)\n    success_reward = success_n.astype(jnp.float32) * 10.0\n\n    # ---- PHASE DETECTION ----\n    just_picked_up = (~holding_s) & holding_n\n    just_put_down = holding_s & (~holding_n)\n\n    # ---- PHASE 1: Not holding pyramid \u2192 approach pyramid ----\n    dist_agent_pyr_s = jnp.abs(agent_y_s - pyr_y_s) + jnp.abs(agent_x_s - pyr_x_s)\n    dist_agent_pyr_n = jnp.abs(agent_y_n - pyr_y_n) + jnp.abs(agent_x_n - pyr_x_n)\n    \n    # Progress toward pyramid\n    approach_pyr_progress = (dist_agent_pyr_s - dist_agent_pyr_n) / max_dist\n    # Only active when not holding in both states\n    phase1_active = (1.0 - holding_s_f) * (1.0 - holding_n_f)\n    approach_pyr_reward = phase1_active * approach_pyr_progress * 2.0\n\n    # ---- PICKUP BONUS ----\n    pickup_bonus = just_picked_up.astype(jnp.float32) * 2.0\n\n    # ---- PHASE 2: Holding pyramid \u2192 approach green square ----\n    dist_agent_sq_s = jnp.abs(agent_y_s - sq_y_s) + jnp.abs(agent_x_s - sq_x_s)\n    dist_agent_sq_n = jnp.abs(agent_y_n - sq_y_n) + jnp.abs(agent_x_n - sq_x_n)\n    \n    # Progress toward square\n    approach_sq_progress = (dist_agent_sq_s - dist_agent_sq_n) / max_dist\n    # Only active when holding in both states\n    phase2_active = holding_s_f * holding_n_f\n    approach_sq_reward = phase2_active * approach_sq_progress * 2.0\n\n    # ---- PUTDOWN REWARD ----\n    # When agent puts down pyramid, reward based on how close pyramid is to square\n    # If adjacent: large bonus; otherwise small or negative\n    putdown_adjacent = just_put_down & pyr_on_grid_n & (dist_pyr_sq_n <= 1.5)\n    putdown_not_adjacent = just_put_down & pyr_on_grid_n & (dist_pyr_sq_n > 1.5)\n    putdown_reward = (\n        putdown_adjacent.astype(jnp.float32) * 5.0\n        + putdown_not_adjacent.astype(jnp.float32) * (-0.5)\n    )\n\n    # ---- DENSE SHAPING: when holding, absolute closeness to square ----\n    # Reward being close to square while holding (not just progress)\n    close_to_sq_holding = holding_n_f * (max_dist - dist_agent_sq_n) / max_dist * 0.5\n\n    # ---- DENSE SHAPING: when not holding, absolute closeness to pyramid ----\n    close_to_pyr_not_holding = (1.0 - holding_n_f) * (max_dist - dist_agent_pyr_n) / max_dist * 0.3\n\n    total_reward = (\n        approach_pyr_reward\n        + pickup_bonus\n        + approach_sq_reward\n        + close_to_sq_holding\n        + close_to_pyr_not_holding\n        + putdown_reward\n        + success_reward\n    )\n\n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 147.74217224121094,
+    "final_length": 238.75,
+    "success_rate": 0.0,
+    "learning_curve": [
+      208.00218200683594,
+      144.54571533203125,
+      144.5701904296875,
+      101.19799041748047,
+      175.2169647216797,
+      97.880615234375,
+      147.74217224121094
+    ],
+    "success_curve": [
+      0.10000000149011612,
+      0.0625,
+      0.08749999850988388,
+      0.0625,
+      0.0625,
+      0.03750000149011612,
+      0.05000000074505806
+    ],
+    "training_time": 26.119475603103638
+  },
+  "obs_dim": 171,
+  "stage": "short_train_rejected",
+  "generation": 2,
+  "parent_id": "27c673ef-ccee-47ed-a381-889da0101ed9",
+  "island": 0,
+  "timestamp": 1771819764.8846986,
+  "feature_coords": [
+    3,
+    2
+  ]
+}

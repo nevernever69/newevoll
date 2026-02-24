@@ -1,0 +1,38 @@
+{
+  "id": "ccbc9a6a-8e15-4e24-ad94-689a6d60520b",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    PYRAMID = 5\n    SQUARE = 4\n    YELLOW = 5\n    GREEN = 2\n\n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)])\n\n    def find_obj(grid, tile_id, color_id):\n        mask = (grid[:, :, 0] == tile_id) & (grid[:, :, 1] == color_id)\n        count = jnp.sum(mask).astype(jnp.float32)\n        y = jnp.sum(yy * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        x = jnp.sum(xx * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        return y, x, count\n\n    pyr_y_s, pyr_x_s, pyr_cnt_s = find_obj(state.grid, PYRAMID, YELLOW)\n    sq_y_s, sq_x_s, _ = find_obj(state.grid, SQUARE, GREEN)\n    ay_s = state.agent.position[0].astype(jnp.float32)\n    ax_s = state.agent.position[1].astype(jnp.float32)\n    holding_s = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)\n\n    pyr_y_n, pyr_x_n, pyr_cnt_n = find_obj(next_state.grid, PYRAMID, YELLOW)\n    sq_y_n, sq_x_n, _ = find_obj(next_state.grid, SQUARE, GREEN)\n    ay_n = next_state.agent.position[0].astype(jnp.float32)\n    ax_n = next_state.agent.position[1].astype(jnp.float32)\n    holding_n = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)\n\n    just_picked = (~holding_s) & holding_n\n    just_placed = holding_s & (~holding_n)\n    pyr_on_grid_n = pyr_cnt_n > 0.5\n\n    max_dist = jnp.float32(H + W)\n\n    # Success\n    dist_pyr_sq_n = jnp.abs(pyr_y_n - sq_y_n) + jnp.abs(pyr_x_n - sq_x_n)\n    success = pyr_on_grid_n & (~holding_n) & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5)\n\n    # Front cell of agent in next state\n    dir_n = next_state.agent.direction\n    dy_n = DIRECTIONS[dir_n, 0].astype(jnp.float32)\n    dx_n = DIRECTIONS[dir_n, 1].astype(jnp.float32)\n    front_y_n = ay_n + dy_n\n    front_x_n = ax_n + dx_n\n\n    # Front cell of agent in current state\n    dir_s = state.agent.direction\n    dy_s = DIRECTIONS[dir_s, 0].astype(jnp.float32)\n    dx_s = DIRECTIONS[dir_s, 1].astype(jnp.float32)\n    front_y_s = ay_s + dy_s\n    front_x_s = ax_s + dx_s\n\n    # Phase 1: not holding -> approach pyramid\n    dist_ap_s = jnp.abs(ay_s - pyr_y_s) + jnp.abs(ax_s - pyr_x_s)\n    dist_ap_n = jnp.abs(ay_n - pyr_y_n) + jnp.abs(ax_n - pyr_x_n)\n    phase1 = (~holding_s) & (~holding_n)\n    r_phase1 = phase1.astype(jnp.float32) * (dist_ap_s - dist_ap_n) / max_dist * 3.0\n\n    # Pickup bonus\n    r_pickup = just_picked.astype(jnp.float32) * 2.0\n\n    # Phase 2: holding -> position front cell adjacent to square\n    # Distance from front cell to square\n    dist_front_sq_s = jnp.abs(front_y_s - sq_y_s) + jnp.abs(front_x_s - sq_x_s)\n    dist_front_sq_n = jnp.abs(front_y_n - sq_y_n) + jnp.abs(front_x_n - sq_x_n)\n\n    # When holding, want dist_front_sq == 1 (so putdown places pyramid adjacent to square)\n    # Use improvement in |dist_front_sq - 1|\n    phase2 = holding_s & holding_n\n    err_s = jnp.abs(dist_front_sq_s - 1.0)\n    err_n = jnp.abs(dist_front_sq_n - 1.0)\n    r_phase2 = phase2.astype(jnp.float32) * (err_s - err_n) / max_dist * 3.0\n\n    # Also reward being close to square while holding (absolute)\n    dist_as_n = jnp.abs(ay_n - sq_y_n) + jnp.abs(ax_n - sq_x_n)\n    r_holding_close = holding_n.astype(jnp.float32) * (max_dist - dist_as_n) / max_dist * 0.5\n\n    # Putdown reward\n    dist_pyr_sq_n_safe = jnp.where(pyr_on_grid_n, dist_pyr_sq_n, max_dist)\n    placed_adj = just_placed & pyr_on_grid_n & (dist_pyr_sq_n_safe >= 0.5) & (dist_pyr_sq_n_safe <= 1.5)\n    placed_near = just_placed & pyr_on_grid_n & (dist_pyr_sq_n_safe > 1.5) & (dist_pyr_sq_n_safe <= 3.0)\n    placed_far = just_placed & pyr_on_grid_n & (dist_pyr_sq_n_safe > 3.0)\n\n    r_putdown = (\n        placed_adj.astype(jnp.float32) * 10.0\n        + placed_near.astype(jnp.float32) * 1.0\n        + placed_far.astype(jnp.float32) * (-2.0)\n    )\n\n    # Success reward\n    r_success = success.astype(jnp.float32) * 20.0\n\n    total = r_phase1 + r_pickup + r_phase2 + r_holding_close + r_putdown + r_success\n    return total.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 190.1732635498047,
+    "final_length": 238.1875,
+    "success_rate": 0.0,
+    "learning_curve": [
+      301.3350830078125,
+      192.4520721435547,
+      122.12361145019531,
+      124.8454818725586,
+      165.16839599609375,
+      48.39338302612305,
+      190.1732635498047
+    ],
+    "success_curve": [
+      0.07500000298023224,
+      0.07500000298023224,
+      0.11250000447034836,
+      0.02500000037252903,
+      0.0625,
+      0.05000000074505806,
+      0.05000000074505806
+    ],
+    "training_time": 27.035483837127686
+  },
+  "obs_dim": 171,
+  "stage": "short_train_rejected",
+  "generation": 2,
+  "parent_id": "b270b415-b4e7-46a2-94d2-1c985a6b2294",
+  "island": 0,
+  "timestamp": 1771820355.3406434,
+  "feature_coords": [
+    3,
+    2
+  ]
+}

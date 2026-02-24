@@ -1,0 +1,654 @@
+W0223 03:04:49.536033   41580 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML doesn't support extracting fabric info or NVLink is not used by the device.
+W0223 03:04:49.539234   41550 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML doesn't support extracting fabric info or NVLink is not used by the device.
+LLMClient initialized: model=claude-sonnet-4-6 region=us-east-1
+LLMEnsemble initialized: claude-sonnet-4-6 (w=1.00)
+Starting evolution: 30 iterations, 2 candidates/batch, env=XLand-MiniGrid-R1-9x9, model=claude-sonnet-4-6, mode=obs_only
+[Iter 1] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=31)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=44)
+Running short training (1,000,000 steps)...
+W0223 03:06:25.949484   41737 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[256,256]{1,0} parameter(2)
+  tmp_1 = f32[50,256]{1,0} parameter(0)
+  tmp_2 = f32[256]{0} parameter(1)
+  tmp_3 = f32[50,256]{1,0} broadcast(f32[256]{0} tmp_2), dimensions={1}
+  tmp_4 = f32[50,256]{1,0} add(f32[50,256]{1,0} tmp_1, f32[50,256]{1,0} tmp_3)
+  tmp_5 = f32[] constant(0)
+  tmp_6 = f32[50,256]{1,0} broadcast(f32[] tmp_5), dimensions={}
+  tmp_7 = f32[50,256]{1,0} maximum(f32[50,256]{1,0} tmp_4, f32[50,256]{1,0} tmp_6)
+  tmp_8 = f32[256,50]{0,1} dot(f32[256,256]{1,0} tmp_0, f32[50,256]{1,0} tmp_7), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+  ROOT tmp_9 = f32[50,256]{1,0} bitcast(f32[256,50]{0,1} tmp_8)
+}', version=16>
+W0223 03:06:25.952925   41737 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,512]{1,0} parameter(0)
+  tmp_1 = f32[50,1,1,512]{3,2,1,0} parameter(1)
+  tmp_2 = f32[512,50]{0,1} bitcast(f32[50,1,1,512]{3,2,1,0} tmp_1)
+  ROOT tmp_3 = f32[1536,50]{0,1} dot(f32[1536,512]{1,0} tmp_0, f32[512,50]{0,1} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 03:06:25.961772   41737 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,273]{1,0} parameter(0)
+  tmp_1 = f32[1,1,50,273]{3,2,1,0} parameter(1)
+  tmp_2 = f32[273,50]{0,1} bitcast(f32[1,1,50,273]{3,2,1,0} tmp_1)
+  tmp_3 = f32[1536,50]{0,1} dot(f32[1536,273]{1,0} tmp_0, f32[273,50]{0,1} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  ROOT tmp_4 = f32[50,1536]{1,0} bitcast(f32[1536,50]{0,1} tmp_3)
+}', version=16>
+W0223 03:06:25.967530   41737 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[50,256]{1,0} parameter(0)
+  tmp_1 = f32[256]{0} parameter(1)
+  tmp_2 = f32[50,256]{1,0} broadcast(f32[256]{0} tmp_1), dimensions={1}
+  tmp_3 = f32[50,256]{1,0} add(f32[50,256]{1,0} tmp_0, f32[50,256]{1,0} tmp_2)
+  tmp_4 = f32[50,256]{1,0} tanh(f32[50,256]{1,0} tmp_3)
+  tmp_5 = f32[256,6]{1,0} parameter(2)
+  ROOT tmp_6 = f32[50,6]{1,0} dot(f32[50,256]{1,0} tmp_4, f32[256,6]{1,0} tmp_5), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 03:06:25.968310   41737 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,256]{1,0} parameter(1)
+  tmp_1 = f32[1,50,512]{2,1,0} parameter(0)
+  tmp_2 = f32[50,512]{1,0} bitcast(f32[1,50,512]{2,1,0} tmp_1)
+  tmp_3 = f32[256,50]{0,1} dot(f32[512,256]{1,0} tmp_0, f32[50,512]{1,0} tmp_2), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+  ROOT tmp_4 = f32[50,256]{1,0} bitcast(f32[256,50]{0,1} tmp_3)
+}', version=16>
+Short training done: success=4%, length=227.6, time=48.2s
+Passed threshold (4% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=0%, length=237.9, time=43.7s
+Short training success 0% < threshold 2% — rejected
+[Iter 1] REJECTED (success=0%) | best=0% | 102.8s
+  Seed 1/3: success=62% length=81.7
+  Seed 2/3: success=70% length=66.3
+  Seed 3/3: success=18% length=159.7
+  Multi-seed avg (3 seeds): success=50% length=102.6
+Full training done: success=50%, length=102.6, time=78.1s
+[Iter 2] full_train success=50% length=102.6 | best=50% | 202.7s *** NEW BEST ***
+[Iter 3] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=38)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=44)
+Running short training (1,000,000 steps)...
+Short training done: success=6%, length=221.9, time=28.4s
+Passed threshold (6% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=14%, length=218.4, time=30.8s
+Passed threshold (14% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=66% length=67.9
+  Seed 1/3: success=92% length=39.8
+  Seed 2/3: success=2% length=229.8
+  Seed 2/3: success=0% length=239.6
+  Seed 3/3: success=100% length=27.4
+  Multi-seed avg (3 seeds): success=56% length=108.4
+Full training done: success=56%, length=108.4, time=95.5s
+[Iter 3] full_train success=56% length=108.4 | best=56% | 201.6s *** NEW BEST ***
+  Seed 3/3: success=12% length=179.3
+  Multi-seed avg (3 seeds): success=35% length=152.9
+Full training done: success=35%, length=152.9, time=93.0s
+[Iter 4] full_train success=35% length=152.9 | best=56% | 222.3s
+[Iter 5] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=105)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=56)
+Running short training (1,000,000 steps)...
+Short training done: success=16%, length=189.9, time=35.9s
+Passed threshold (16% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=6%, length=234.9, time=33.7s
+Passed threshold (6% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=100% length=27.1
+  Seed 1/3: success=92% length=54.8
+  Seed 2/3: success=96% length=34.0
+  Seed 2/3: success=98% length=23.0
+  Seed 3/3: success=98% length=33.8
+  Multi-seed avg (3 seeds): success=98% length=31.7
+Full training done: success=98%, length=31.7, time=100.6s
+[Iter 5] full_train success=98% length=31.7 | best=98% | 243.6s *** NEW BEST ***
+  Seed 3/3: success=100% length=19.9
+  Multi-seed avg (3 seeds): success=97% length=32.6
+Full training done: success=97%, length=32.6, time=96.9s
+[Iter 6] full_train success=97% length=32.6 | best=98% | 259.3s
+[Iter 7] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=206)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=108)
+Running short training (1,000,000 steps)...
+Short training done: success=4%, length=222.6, time=41.4s
+Passed threshold (4% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=8%, length=207.6, time=39.3s
+Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=16% length=216.2
+  Seed 1/3: success=88% length=33.6
+  Seed 2/3: success=96% length=46.8
+  Seed 2/3: success=98% length=22.4
+  Seed 3/3: success=84% length=62.7
+  Multi-seed avg (3 seeds): success=65% length=108.6
+Full training done: success=65%, length=108.6, time=108.5s
+[Iter 7] full_train success=65% length=108.6 | best=98% | 249.5s
+  Seed 3/3: success=100% length=25.9
+  Multi-seed avg (3 seeds): success=95% length=27.3
+Full training done: success=95%, length=27.3, time=110.7s
+[Iter 8] full_train success=95% length=27.3 | best=98% | 257.1s
+[Iter 9] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=97)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=108)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=225.2, time=33.6s
+Short training success 0% < threshold 2% — rejected
+[Iter 9] REJECTED (success=0%) | best=98% | 78.2s
+Short training done: success=8%, length=207.6, time=34.2s
+Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=92% length=44.9
+  Seed 2/3: success=98% length=21.7
+  Seed 3/3: success=98% length=25.9
+  Multi-seed avg (3 seeds): success=96% length=30.8
+Full training done: success=96%, length=30.8, time=93.6s
+[Iter 10] full_train success=96% length=30.8 | best=98% | 213.5s
+[Iter 11] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=52)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=222)
+Running short training (1,000,000 steps)...
+Short training done: success=6%, length=228.8, time=34.4s
+Passed threshold (6% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=20%, length=158.9, time=38.2s
+Passed threshold (20% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=70% length=64.0
+  Seed 1/3: success=98% length=24.9
+  Seed 2/3: success=100% length=21.0
+  Seed 2/3: success=92% length=38.7
+  Seed 3/3: success=98% length=20.4
+  Multi-seed avg (3 seeds): success=89% length=35.2
+Full training done: success=89%, length=35.2, time=109.8s
+[Iter 11] full_train success=89% length=35.2 | best=98% | 235.2s
+  Seed 3/3: success=84% length=42.9
+  Multi-seed avg (3 seeds): success=91% length=35.5
+Full training done: success=91%, length=35.5, time=119.4s
+[Iter 12] full_train success=91% length=35.5 | best=98% | 267.4s
+[Iter 13] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=108)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=108)
+Running short training (1,000,000 steps)...
+Short training done: success=8%, length=207.6, time=36.4s
+Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=8%, length=207.6, time=34.1s
+Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=96% length=38.6
+  Seed 1/3: success=92% length=44.9
+  Seed 2/3: success=100% length=22.1
+  Seed 2/3: success=96% length=23.6
+  Seed 3/3: success=100% length=29.3
+  Multi-seed avg (3 seeds): success=99% length=30.0
+Full training done: success=99%, length=30.0, time=113.4s
+[Iter 13] full_train success=99% length=30.0 | best=99% | 240.5s *** NEW BEST ***
+  Seed 3/3: success=98% length=25.5
+  Multi-seed avg (3 seeds): success=95% length=31.3
+Full training done: success=95%, length=31.3, time=115.9s
+[Iter 14] full_train success=95% length=31.3 | best=99% | 246.9s
+[Iter 15] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=219)
+Running crash filter...
+Running short training (1,000,000 steps)...
+Crash filter passed (obs_dim=113)
+Running short training (1,000,000 steps)...
+Short training done: success=2%, length=229.3, time=40.9s
+Passed threshold (2% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=2%, length=195.8, time=40.4s
+Passed threshold (2% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=90% length=64.0
+  Seed 1/3: success=98% length=35.0
+  Seed 2/3: success=98% length=26.6
+  Seed 2/3: success=92% length=40.5
+  Seed 3/3: success=54% length=72.3
+  Multi-seed avg (3 seeds): success=81% length=54.3
+Full training done: success=81%, length=54.3, time=119.7s
+[Iter 15] full_train success=81% length=54.3 | best=99% | 266.6s
+  Seed 3/3: success=96% length=23.8
+  Multi-seed avg (3 seeds): success=95% length=33.1
+Full training done: success=95%, length=33.1, time=118.3s
+[Iter 16] full_train success=95% length=33.1 | best=99% | 274.8s
+[Iter 17] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=206)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=115)
+Running short training (1,000,000 steps)...
+Short training done: success=12%, length=199.9, time=37.5s
+Passed threshold (12% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=16%, length=194.4, time=37.9s
+Passed threshold (16% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=84% length=56.1
+  Seed 1/3: success=94% length=30.1
+  Seed 2/3: success=72% length=66.6
+  Seed 2/3: success=82% length=48.6
+  Seed 3/3: success=72% length=70.5
+  Multi-seed avg (3 seeds): success=76% length=64.4
+Full training done: success=76%, length=64.4, time=112.3s
+[Iter 17] full_train success=76% length=64.4 | best=99% | 250.1s
+  Seed 3/3: success=88% length=41.2
+  Multi-seed avg (3 seeds): success=88% length=40.0
+Full training done: success=88%, length=40.0, time=123.0s
+[Iter 18] full_train success=88% length=40.0 | best=99% | 262.8s
+[Iter 19] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=108)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=158)
+Running short training (1,000,000 steps)...
+Short training done: success=8%, length=207.6, time=35.3s
+Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=4%, length=227.9, time=46.7s
+Passed threshold (4% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=98% length=33.8
+  Seed 1/3: success=86% length=45.9
+  Seed 2/3: success=98% length=23.1
+  Seed 2/3: success=84% length=46.8
+  Seed 3/3: success=100% length=29.2
+  Multi-seed avg (3 seeds): success=99% length=28.7
+Full training done: success=99%, length=28.7, time=106.1s
+[Iter 19] full_train success=99% length=28.7 | best=99% | 239.2s
+  Seed 3/3: success=70% length=55.5
+  Multi-seed avg (3 seeds): success=80% length=49.4
+Full training done: success=80%, length=49.4, time=113.5s
+[Iter 20] full_train success=80% length=49.4 | best=99% | 258.6s
+[Iter 21] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=108)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=164)
+Running short training (1,000,000 steps)...
+Short training done: success=8%, length=207.6, time=35.9s
+Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=14%, length=183.0, time=38.2s
+Passed threshold (14% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=92% length=44.9
+  Seed 1/3: success=92% length=29.4
+  Seed 2/3: success=98% length=22.4
+  Seed 2/3: success=96% length=42.6
+  Seed 3/3: success=100% length=25.9
+  Multi-seed avg (3 seeds): success=97% length=31.1
+Full training done: success=97%, length=31.1, time=114.0s
+[Iter 21] full_train success=97% length=31.1 | best=99% | 240.9s
+  Seed 3/3: success=94% length=29.7
+  Multi-seed avg (3 seeds): success=94% length=33.9
+Full training done: success=94%, length=33.9, time=108.4s
+[Iter 22] full_train success=94% length=33.9 | best=99% | 247.8s
+[Iter 23] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=160)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=214)
+Running short training (1,000,000 steps)...
+Short training done: success=0%, length=230.0, time=36.6s
+Short training success 0% < threshold 2% — rejected
+[Iter 23] REJECTED (success=0%) | best=99% | 92.9s
+Short training done: success=0%, length=237.7, time=41.0s
+Short training success 0% < threshold 2% — rejected
+[Iter 24] REJECTED (success=0%) | best=99% | 101.3s
+[Iter 25] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=104)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=164)
+Running short training (1,000,000 steps)...
+Short training done: success=2%, length=233.0, time=33.1s
+Passed threshold (2% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=14%, length=180.8, time=34.0s
+Passed threshold (14% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=74% length=62.8
+  Seed 1/3: success=96% length=28.1
+  Seed 2/3: success=96% length=39.2
+  Seed 2/3: success=92% length=41.4
+  Seed 3/3: success=60% length=67.2
+  Multi-seed avg (3 seeds): success=77% length=56.4
+Full training done: success=77%, length=56.4, time=104.9s
+[Iter 25] full_train success=77% length=56.4 | best=99% | 224.0s
+  Seed 3/3: success=94% length=30.2
+  Multi-seed avg (3 seeds): success=94% length=33.2
+Full training done: success=94%, length=33.2, time=110.1s
+[Iter 26] full_train success=94% length=33.2 | best=99% | 238.0s
+[Iter 27] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=111)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=165)
+Running short training (1,000,000 steps)...
+Short training done: success=12%, length=216.1, time=37.0s
+Passed threshold (12% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=2%, length=232.4, time=37.2s
+Passed threshold (2% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=96% length=27.7
+  Seed 1/3: success=68% length=81.3
+  Seed 2/3: success=94% length=40.0
+  Seed 2/3: success=80% length=44.2
+  Seed 3/3: success=96% length=36.4
+  Multi-seed avg (3 seeds): success=95% length=34.7
+Full training done: success=95%, length=34.7, time=108.0s
+[Iter 27] full_train success=95% length=34.7 | best=99% | 244.0s
+  Seed 3/3: success=10% length=199.8
+  Multi-seed avg (3 seeds): success=53% length=108.4
+Full training done: success=53%, length=108.4, time=110.0s
+[Iter 28] full_train success=53% length=108.4 | best=99% | 250.8s
+[Iter 29] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=102)
+Running short training (1,000,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=108)
+Running short training (1,000,000 steps)...
+Short training done: success=8%, length=201.4, time=33.8s
+Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+Short training done: success=8%, length=207.6, time=33.5s
+Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=94% length=40.1
+  Seed 1/3: success=96% length=38.6
+  Seed 2/3: success=98% length=25.9
+  Seed 2/3: success=96% length=23.6
+  Seed 3/3: success=100% length=23.2
+  Multi-seed avg (3 seeds): success=97% length=29.7
+Full training done: success=97%, length=29.7, time=106.6s
+[Iter 29] full_train success=97% length=29.7 | best=99% | 225.3s
+  Seed 3/3: success=100% length=25.9
+  Multi-seed avg (3 seeds): success=97% length=29.4
+Full training done: success=97%, length=29.4, time=102.4s
+[Iter 30] full_train success=97% length=29.4 | best=99% | 232.5s
+Database saved to experiments/ablations/medium_obs_only/database (30 programs)
+[Iter 30] Checkpoint saved to experiments/ablations/medium_obs_only
+Evolution trace: 30 events, 15 improvements (50%), best deltas: {'final_return': 0.8741820914049944, 'final_length': 207.6750087738037, 'success_rate': 0.9866666666666667, 'training_time': 72.13414287567139}
+============================================================
+Evolution complete
+  Mode: obs_only
+  Iterations: 30
+  Wall time: 3536.1s
+  Total programs: 30
+  Total eval time: 5434.2s
+  Total LLM tokens: 1220177
+  Input tokens: 1077852
+  Output tokens: 142325
+  Est. LLM cost: $5.37
+  Recent failures: 4
+  Grid cells filled: [5, 0, 0]
+  Island sizes: [22, 0, 0]
+  Best success rate: 99%
+  Best obs_dim: 108
+  Best program:
+import jax
+import jax.numpy as jnp
+
+def get_observation(state) -> jnp.ndarray:
+    H, W = state.grid.shape[:2]
+    
+    DIRECTIONS = jnp.array([[-1, 0], [0, 1], [1, 0], [0, -1]], dtype=jnp.float32)
+    
+    # Agent info
+    agent_y = state.agent.position[0].astype(jnp.float32)
+    agent_x = state.agent.position[1].astype(jnp.float32)
+    norm_agent_y = agent_y / (H - 1)
+    norm_agent_x = agent_x / (W - 1)
+    dir_one_hot = jax.nn.one_hot(state.agent.direction, 4)
+    
+    # Pocket info
+    pocket_tile = state.agent.pocket[0].astype(jnp.float32) / 12.0
+    pocket_color = state.agent.pocket[1].astype(jnp.float32) / 11.0
+    holding_yellow_pyramid = ((state.agent.pocket[0] == 5) & (state.agent.pocket[1] == 5)).astype(jnp.float32)
+    pocket_empty = (state.agent.pocket[0] == 0).astype(jnp.float32)
+    
+    # Grid coordinates
+    ys = jnp.arange(H)
+    xs = jnp.arange(W)
+    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
+    yy_f = yy.astype(jnp.float32)
+    xx_f = xx.astype(jnp.float32)
+    
+    # Find yellow pyramid (tile=5, color=5)
+    pyr_mask = (state.grid[:, :, 0] == 5) & (state.grid[:, :, 1] == 5)
+    pyr_count = jnp.sum(pyr_mask).astype(jnp.float32)
+    pyr_y = jnp.sum(yy_f * pyr_mask) / jnp.maximum(pyr_count, 1.0)
+    pyr_x = jnp.sum(xx_f * pyr_mask) / jnp.maximum(pyr_count, 1.0)
+    pyr_found = jnp.minimum(pyr_count, 1.0)
+    
+    # Find green square (tile=4, color=2)
+    sq_mask = (state.grid[:, :, 0] == 4) & (state.grid[:, :, 1] == 2)
+    sq_count = jnp.sum(sq_mask).astype(jnp.float32)
+    sq_y = jnp.sum(yy_f * sq_mask) / jnp.maximum(sq_count, 1.0)
+    sq_x = jnp.sum(xx_f * sq_mask) / jnp.maximum(sq_count, 1.0)
+    sq_found = jnp.minimum(sq_count, 1.0)
+    
+    # Effective pyramid position (agent pos if held)
+    eff_pyr_y = jnp.where(holding_yellow_pyramid > 0, agent_y, pyr_y)
+    eff_pyr_x = jnp.where(holding_yellow_pyramid > 0, agent_x, pyr_x)
+    
+    # Normalized positions
+    norm_pyr_y = pyr_y / (H - 1)
+    norm_pyr_x = pyr_x / (W - 1)
+    norm_sq_y = sq_y / (H - 1)
+    norm_sq_x = sq_x / (W - 1)
+    norm_eff_pyr_y = eff_pyr_y / (H - 1)
+    norm_eff_pyr_x = eff_pyr_x / (W - 1)
+    
+    # Relative vectors: agent -> pyramid (on grid)
+    rel_pyr_y = (pyr_y - agent_y) / (H - 1)
+    rel_pyr_x = (pyr_x - agent_x) / (W - 1)
+    dist_to_pyr = (jnp.abs(pyr_y - agent_y) + jnp.abs(pyr_x - agent_x)) / (H + W - 2)
+    
+    # Relative vectors: agent -> square
+    rel_sq_y = (sq_y - agent_y) / (H - 1)
+    rel_sq_x = (sq_x - agent_x) / (W - 1)
+    dist_to_sq = (jnp.abs(sq_y - agent_y) + jnp.abs(sq_x - agent_x)) / (H + W - 2)
+    
+    # Relative vectors: effective pyramid -> square
+    rel_eff_pyr_to_sq_y = (sq_y - eff_pyr_y) / (H - 1)
+    rel_eff_pyr_to_sq_x = (sq_x - eff_pyr_x) / (W - 1)
+    dist_eff_pyr_to_sq = (jnp.abs(sq_y - eff_pyr_y) + jnp.abs(sq_x - eff_pyr_x)) / (H + W - 2)
+    
+    # Pyramid on grid to square distance
+    dist_pyr_to_sq = (jnp.abs(sq_y - pyr_y) + jnp.abs(sq_x - pyr_x)) / (H + W - 2)
+    
+    # Is pyramid adjacent to green square?
+    pyr_adj_to_sq = (jnp.abs(pyr_y - sq_y) + jnp.abs(pyr_x - sq_x) <= 1.0).astype(jnp.float32) * pyr_found
+    
+    # Front tile info
+    dy = DIRECTIONS[state.agent.direction, 0]
+    dx = DIRECTIONS[state.agent.direction, 1]
+    front_y = jnp.clip(agent_y + dy, 0, H - 1).astype(jnp.int32)
+    front_x = jnp.clip(agent_x + dx, 0, W - 1).astype(jnp.int32)
+    front_tile_id = state.grid[front_y, front_x, 0].astype(jnp.float32) / 12.0
+    front_tile_color = state.grid[front_y, front_x, 1].astype(jnp.float32) / 11.0
+    front_is_pyr = ((state.grid[front_y, front_x, 0] == 5) & (state.grid[front_y, front_x, 1] == 5)).astype(jnp.float32)
+    front_is_sq = ((state.grid[front_y, front_x, 0] == 4) & (state.grid[front_y, front_x, 1] == 2)).astype(jnp.float32)
+    front_adj_to_sq = ((jnp.abs(front_y - sq_y) + jnp.abs(front_x - sq_x)) <= 1.0).astype(jnp.float32)
+    front_is_floor = (state.grid[front_y, front_x, 0] == 1).astype(jnp.float32)
+    front_good_putdown = front_is_floor * front_adj_to_sq
+    
+    # Agent adjacency to square
+    agent_adj_to_sq = ((jnp.abs(agent_y - sq_y) + jnp.abs(agent_x - sq_x)) <= 1.0).astype(jnp.float32)
+    
+    # Facing toward pyramid
+    dir_dy = DIRECTIONS[state.agent.direction, 0]
+    dir_dx = DIRECTIONS[state.agent.direction, 1]
+    pyr_dy_sign = jnp.sign(pyr_y - agent_y)
+    pyr_dx_sign = jnp.sign(pyr_x - agent_x)
+    facing_pyr = jnp.clip((pyr_dy_sign * dir_dy + pyr_dx_sign * dir_dx) / 2.0, -1.0, 1.0)
+    
+    # Facing toward square
+    sq_dy_sign = jnp.sign(sq_y - agent_y)
+    sq_dx_sign = jnp.sign(sq_x - agent_x)
+    facing_sq = jnp.clip((sq_dy_sign * dir_dy + sq_dx_sign * dir_dx) / 2.0, -1.0, 1.0)
+    
+    # 4 neighbors of green square
+    sq_y_int = sq_y.astype(jnp.int32)
+    sq_x_int = sq_x.astype(jnp.int32)
+    
+    n_up_y = jnp.clip(sq_y_int - 1, 0, H - 1)
+    n_dn_y = jnp.clip(sq_y_int + 1, 0, H - 1)
+    n_lt_x = jnp.clip(sq_x_int - 1, 0, W - 1)
+    n_rt_x = jnp.clip(sq_x_int + 1, 0, W - 1)
+    
+    # Check if neighbors are walkable floor
+    n_up_floor = (state.grid[n_up_y, sq_x_int, 0] == 1).astype(jnp.float32)
+    n_dn_floor = (state.grid[n_dn_y, sq_x_int, 0] == 1).astype(jnp.float32)
+    n_lt_floor = (state.grid[sq_y_int, n_lt_x, 0] == 1).astype(jnp.float32)
+    n_rt_floor = (state.grid[sq_y_int, n_rt_x, 0] == 1).astype(jnp.float32)
+    
+    # Normalized neighbor positions
+    norm_n_up_y = n_up_y.astype(jnp.float32) / (H - 1)
+    norm_n_dn_y = n_dn_y.astype(jnp.float32) / (H - 1)
+    norm_n_lt_x = n_lt_x.astype(jnp.float32) / (W - 1)
+    norm_n_rt_x = n_rt_x.astype(jnp.float32) / (W - 1)
+    
+    # Distance from agent to each valid neighbor of square
+    dist_to_n_up = (jnp.abs(agent_y - n_up_y) + jnp.abs(agent_x - sq_x_int)) / (H + W - 2)
+    dist_to_n_dn = (jnp.abs(agent_y - n_dn_y) + jnp.abs(agent_x - sq_x_int)) / (H + W - 2)
+    dist_to_n_lt = (jnp.abs(agent_y - sq_y_int) + jnp.abs(agent_x - n_lt_x)) / (H + W - 2)
+    dist_to_n_rt = (jnp.abs(agent_y - sq_y_int) + jnp.abs(agent_x - n_rt_x)) / (H + W - 2)
+    
+    # Best (closest valid floor) neighbor distance
+    best_n_dist = jnp.minimum(
+        jnp.minimum(
+            jnp.where(n_up_floor > 0, dist_to_n_up, 1.0),
+            jnp.where(n_dn_floor > 0, dist_to_n_dn, 1.0)
+        ),
+        jnp.minimum(
+            jnp.where(n_lt_floor > 0, dist_to_n_lt, 1.0),
+            jnp.where(n_rt_floor > 0, dist_to_n_rt, 1.0)
+        )
+    )
+    
+    # Best neighbor position (closest valid floor neighbor)
+    best_n_y = jnp.where(
+        jnp.where(n_up_floor > 0, dist_to_n_up, 1.0) <= jnp.where(n_dn_floor > 0, dist_to_n_dn, 1.0),
+        jnp.where(n_up_floor > 0, n_up_y.astype(jnp.float32), n_dn_y.astype(jnp.float32)),
+        jnp.where(n_dn_floor > 0, n_dn_y.astype(jnp.float32), n_up_y.astype(jnp.float32))
+    )
+    best_n_x = jnp.where(
+        jnp.where(n_lt_floor > 0, dist_to_n_lt, 1.0) <= jnp.where(n_rt_floor > 0, dist_to_n_rt, 1.0),
+        jnp.where(n_lt_floor > 0, n_lt_x.astype(jnp.float32), n_rt_x.astype(jnp.float32)),
+        jnp.where(n_rt_floor > 0, n_rt_x.astype(jnp.float32), n_lt_x.astype(jnp.float32))
+    )
+    
+    # Relative: agent -> best neighbor
+    rel_to_best_n_y = (best_n_y - agent_y) / (H - 1)
+    rel_to_best_n_x = (best_n_x - agent_x) / (W - 1)
+    
+    # Task phase indicators
+    phase_pickup = ((holding_yellow_pyramid < 0.5) & (pyr_found > 0.5)).astype(jnp.float32)
+    phase_place = holding_yellow_pyramid
+    phase_done = pyr_adj_to_sq
+    
+    # Step progress
+    step_norm = state.step_num.astype(jnp.float32) / 80.0
+    
+    # Local 5x5 view around agent
+    view_radius = 2
+    agent_y_int = state.agent.position[0].astype(jnp.int32)
+    agent_x_int = state.agent.position[1].astype(jnp.int32)
+    
+    offsets = jnp.arange(-view_radius, view_radius + 1)
+    oy, ox = jnp.meshgrid(offsets, offsets, indexing='ij')
+    
+    view_ys = jnp.clip(agent_y_int + oy, 0, H - 1)
+    view_xs = jnp.clip(agent_x_int + ox, 0, W - 1)
+    
+    view_tiles = state.grid[view_ys, view_xs, 0].astype(jnp.float32) / 12.0
+    view_colors = state.grid[view_ys, view_xs, 1].astype(jnp.float32) / 11.0
+    
+    local_tiles = view_tiles.reshape(-1)   # 25
+    local_colors = view_colors.reshape(-1) # 25
+    
+    obs = jnp.concatenate([
+        jnp.array([
+            norm_agent_y, norm_agent_x,                      # 2
+            norm_pyr_y, norm_pyr_x,                          # 2
+            norm_eff_pyr_y, norm_eff_pyr_x,                  # 2
+            norm_sq_y, norm_sq_x,                            # 2
+            rel_pyr_y, rel_pyr_x,                            # 2
+            rel_sq_y, rel_sq_x,                              # 2
+            rel_eff_pyr_to_sq_y, rel_eff_pyr_to_sq_x,       # 2
+            dist_to_pyr,                                      # 1
+            dist_to_sq,                                       # 1
+            dist_pyr_to_sq,                                   # 1
+            dist_eff_pyr_to_sq,                               # 1
+            pyr_found,                                        # 1
+            sq_found,                                         # 1
+            holding_yellow_pyramid,                           # 1
+            pocket_empty,                                     # 1
+            pocket_tile, pocket_color,                        # 2
+            front_tile_id, front_tile_color,                  # 2
+            front_is_pyr,                                     # 1
+            front_is_sq,                                      # 1
+            front_adj_to_sq,                                  # 1
+            front_is_floor,                                   # 1
+            front_good_putdown,                               # 1
+            agent_adj_to_sq,                                  # 1
+            pyr_adj_to_sq,                                    # 1
+            facing_pyr,                                       # 1
+            facing_sq,                                        # 1
+            best_n_dist,                                      # 1
+            rel_to_best_n_y, rel_to_best_n_x,               # 2
+            norm_n_up_y, norm_n_dn_y,                        # 2
+            norm_n_lt_x, norm_n_rt_x,                        # 2
+            n_up_floor, n_dn_floor, n_lt_floor, n_rt_floor,  # 4
+            dist_to_n_up, dist_to_n_dn,                      # 2
+            dist_to_n_lt, dist_to_n_rt,                      # 2
+            phase_pickup, phase_place, phase_done,            # 3
+            step_norm,                                        # 1
+        ], dtype=jnp.float32),
+        dir_one_hot,   # 4
+        local_tiles,   # 25
+        local_colors,  # 25
+    ])
+    
+    return obs.astype(jnp.float32)
+  Trace events: 30
+  Improvements: 15 (50%)
+============================================================
+============================================================
+MDP Interface Discovery
+============================================================
+  Task:        Place the yellow pyramid adjacent to the green square. Grid 9x9, max_steps=80.
+  Environment: XLand-MiniGrid-R1-9x9
+  Mode:        obs_only
+  Model:       claude-sonnet-4-6 (us-east-1)
+  Iterations:  30
+  Candidates:  2 per batch
+  Training:    1,000,000 short / 2,000,000 full steps
+  Cascade:     ON (thresholds=[0.02])
+  Stochastic:  ON
+  Tracing:     ON
+  Context:     contexts/xminigrid_context.md
+  Run dir:     experiments/ablations/medium_obs_only
+  Log file:    experiments/ablations/medium_obs_only/evolution.log
+============================================================
+
+
+============================================================
+Evolution complete — 30 iterations in 3536s
+============================================================
+  Best success:  99%
+  Best obs_dim:  108
+  Best program:  experiments/ablations/medium_obs_only/best_interface.py
+  Wall time:     3536.1s (58.9m)
+  Eval time:     5434.2s
+  Input tokens:  1,077,852
+  Output tokens: 142,325
+  Est. LLM cost: $5.37
+  Full logs:     experiments/ablations/medium_obs_only/evolution.log
+  Checkpoint:    experiments/ablations/medium_obs_only
+============================================================

@@ -1,0 +1,339 @@
+2026-02-23 04:04:07 INFO mdp_discovery.llm_client: LLMClient initialized: model=claude-sonnet-4-6 region=us-east-1
+2026-02-23 04:04:07 INFO mdp_discovery.llm_client: LLMEnsemble initialized: claude-sonnet-4-6 (w=1.00)
+2026-02-23 04:04:07 INFO mdp_discovery.controller: Starting evolution: 30 iterations, 2 candidates/batch, env=XLand-MiniGrid-R1-9x9, model=claude-sonnet-4-6, mode=reward_only
+2026-02-23 04:04:07 INFO mdp_discovery.controller: [Iter 1] Submitting batch of 2 candidate(s)...
+2026-02-23 04:04:19 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:04:20 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:04:20 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:04:22 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:04:22 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:04:23 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:05:46 INFO mdp_discovery.evaluator: Short training done: success=8%, length=230.2, time=60.1s
+2026-02-23 04:05:46 INFO mdp_discovery.evaluator: Passed threshold (8% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-23 04:05:46 INFO mdp_discovery.evaluator: Short training done: success=0%, length=239.1, time=60.1s
+2026-02-23 04:05:46 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:05:46 DEBUG mdp_discovery.database: Added program d56f22a2 to island 0 cell 2-2 (fitness=0.0000)
+2026-02-23 04:05:46 INFO mdp_discovery.controller: [Iter 1] REJECTED (success=0%) | best=0% | 99.0s
+2026-02-23 04:06:17 INFO mdp_discovery.evaluator:   Seed 1/3: success=0% length=238.0
+2026-02-23 04:06:49 INFO mdp_discovery.evaluator:   Seed 2/3: success=0% length=240.5
+2026-02-23 04:07:21 INFO mdp_discovery.evaluator:   Seed 3/3: success=2% length=239.4
+2026-02-23 04:07:21 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=1% length=239.3
+2026-02-23 04:07:21 INFO mdp_discovery.evaluator: Full training done: success=1%, length=239.3, time=73.4s
+2026-02-23 04:07:21 DEBUG mdp_discovery.database: Added program cc917526 to island 0 cell 0-2 (fitness=0.0067)
+2026-02-23 04:07:21 INFO mdp_discovery.controller: [Iter 2] full_train success=1% length=239.3 | best=1% | 194.4s *** NEW BEST ***
+2026-02-23 04:07:21 INFO mdp_discovery.controller: [Iter 3] Submitting batch of 2 candidate(s)...
+2026-02-23 04:07:43 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:07:44 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:07:44 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:07:45 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:07:48 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:07:48 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:08:20 INFO mdp_discovery.evaluator: Short training done: success=0%, length=238.2, time=27.3s
+2026-02-23 04:08:20 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:08:20 DEBUG mdp_discovery.database: Added program 27c673ef to island 0 cell 4-2 (fitness=0.0000)
+2026-02-23 04:08:20 INFO mdp_discovery.controller: [Iter 3] REJECTED (success=0%) | best=1% | 58.9s
+2026-02-23 04:08:23 INFO mdp_discovery.evaluator: Short training done: success=0%, length=238.0, time=27.4s
+2026-02-23 04:08:23 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:08:23 INFO mdp_discovery.controller: [Iter 4] REJECTED (success=0%) | best=1% | 62.4s
+2026-02-23 04:08:23 INFO mdp_discovery.controller: [Iter 5] Submitting batch of 2 candidate(s)...
+2026-02-23 04:08:45 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:08:45 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:08:45 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:08:47 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:08:50 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:08:50 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:09:20 INFO mdp_discovery.evaluator: Short training done: success=0%, length=242.9, time=26.5s
+2026-02-23 04:09:20 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:09:20 INFO mdp_discovery.controller: [Iter 5] REJECTED (success=0%) | best=1% | 56.7s
+2026-02-23 04:09:24 INFO mdp_discovery.evaluator: Short training done: success=0%, length=238.8, time=26.1s
+2026-02-23 04:09:24 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:09:24 DEBUG mdp_discovery.database: Added program fe10b90a to island 0 cell 3-2 (fitness=0.0000)
+2026-02-23 04:09:24 INFO mdp_discovery.controller: [Iter 6] REJECTED (success=0%) | best=1% | 60.9s
+2026-02-23 04:09:24 INFO mdp_discovery.controller: [Iter 7] Submitting batch of 2 candidate(s)...
+2026-02-23 04:09:46 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:09:46 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:09:47 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:09:53 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:09:53 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:09:53 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:10:23 INFO mdp_discovery.evaluator: Short training done: success=0%, length=239.7, time=25.9s
+2026-02-23 04:10:23 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:10:23 INFO mdp_discovery.controller: [Iter 7] REJECTED (success=0%) | best=1% | 58.3s
+2026-02-23 04:10:28 INFO mdp_discovery.evaluator: Short training done: success=0%, length=242.0, time=26.1s
+2026-02-23 04:10:28 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:10:28 INFO mdp_discovery.controller: [Iter 8] REJECTED (success=0%) | best=1% | 63.2s
+2026-02-23 04:10:28 INFO mdp_discovery.controller: [Iter 9] Submitting batch of 2 candidate(s)...
+2026-02-23 04:10:49 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:10:49 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:10:49 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:10:50 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:10:54 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:10:54 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:11:24 INFO mdp_discovery.evaluator: Short training done: success=0%, length=241.6, time=26.4s
+2026-02-23 04:11:24 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:11:24 INFO mdp_discovery.controller: [Iter 9] REJECTED (success=0%) | best=1% | 56.3s
+2026-02-23 04:11:28 INFO mdp_discovery.evaluator: Short training done: success=0%, length=240.7, time=26.3s
+2026-02-23 04:11:28 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:11:28 DEBUG mdp_discovery.evolution_trace: Flushed 10 trace events to experiments/ablations/medium_reward_only/evolution_trace.jsonl
+2026-02-23 04:11:28 INFO mdp_discovery.controller: [Iter 10] REJECTED (success=0%) | best=1% | 60.1s
+2026-02-23 04:11:28 INFO mdp_discovery.controller: [Iter 11] Submitting batch of 2 candidate(s)...
+2026-02-23 04:11:49 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:11:49 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:11:50 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:11:53 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:11:54 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:11:54 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:12:25 INFO mdp_discovery.evaluator: Short training done: success=0%, length=239.6, time=26.5s
+2026-02-23 04:12:25 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:12:25 INFO mdp_discovery.controller: [Iter 11] REJECTED (success=0%) | best=1% | 57.1s
+2026-02-23 04:12:29 INFO mdp_discovery.evaluator: Short training done: success=0%, length=236.8, time=26.7s
+2026-02-23 04:12:29 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:12:29 INFO mdp_discovery.controller: [Iter 12] REJECTED (success=0%) | best=1% | 61.6s
+2026-02-23 04:12:29 INFO mdp_discovery.controller: [Iter 13] Submitting batch of 2 candidate(s)...
+2026-02-23 04:12:54 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:12:54 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:12:54 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:12:54 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:12:54 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:12:54 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:13:29 INFO mdp_discovery.evaluator: Short training done: success=0%, length=240.5, time=26.2s
+2026-02-23 04:13:29 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:13:29 INFO mdp_discovery.controller: [Iter 13] REJECTED (success=0%) | best=1% | 60.0s
+2026-02-23 04:13:34 INFO mdp_discovery.evaluator: Short training done: success=0%, length=240.3, time=27.3s
+2026-02-23 04:13:34 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:13:34 INFO mdp_discovery.controller: [Iter 14] REJECTED (success=0%) | best=1% | 64.6s
+2026-02-23 04:13:34 INFO mdp_discovery.controller: [Iter 15] Submitting batch of 2 candidate(s)...
+2026-02-23 04:13:54 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:13:54 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:13:54 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:13:58 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:13:58 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:13:59 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:14:28 INFO mdp_discovery.evaluator: Short training done: success=0%, length=239.6, time=25.3s
+2026-02-23 04:14:28 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:14:28 INFO mdp_discovery.controller: [Iter 15] REJECTED (success=0%) | best=1% | 54.5s
+2026-02-23 04:14:32 INFO mdp_discovery.evaluator: Short training done: success=0%, length=239.4, time=26.3s
+2026-02-23 04:14:32 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:14:32 INFO mdp_discovery.controller: [Iter 16] REJECTED (success=0%) | best=1% | 58.6s
+2026-02-23 04:14:32 INFO mdp_discovery.controller: [Iter 17] Submitting batch of 2 candidate(s)...
+2026-02-23 04:14:56 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:14:56 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:14:56 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:14:56 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:15:01 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:15:01 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:15:32 INFO mdp_discovery.evaluator: Short training done: success=0%, length=235.4, time=26.8s
+2026-02-23 04:15:32 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:15:32 INFO mdp_discovery.controller: [Iter 17] REJECTED (success=0%) | best=1% | 59.1s
+2026-02-23 04:15:35 INFO mdp_discovery.evaluator: Short training done: success=0%, length=239.3, time=26.8s
+2026-02-23 04:15:35 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:15:35 INFO mdp_discovery.controller: [Iter 18] REJECTED (success=0%) | best=1% | 62.9s
+2026-02-23 04:15:35 INFO mdp_discovery.controller: [Iter 19] Submitting batch of 2 candidate(s)...
+2026-02-23 04:15:58 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:15:58 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:15:59 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:16:02 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:16:03 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:16:03 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:16:33 INFO mdp_discovery.evaluator: Short training done: success=2%, length=237.3, time=26.5s
+2026-02-23 04:16:33 INFO mdp_discovery.evaluator: Passed threshold (2% >= 2%). Running full training (2,000,000 steps, 3 seed(s))...
+2026-02-23 04:16:38 INFO mdp_discovery.evaluator: Short training done: success=0%, length=231.6, time=26.5s
+2026-02-23 04:16:38 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:16:38 INFO mdp_discovery.controller: [Iter 19] REJECTED (success=0%) | best=1% | 62.5s
+2026-02-23 04:17:07 INFO mdp_discovery.evaluator:   Seed 1/3: success=0% length=237.3
+2026-02-23 04:17:40 INFO mdp_discovery.evaluator:   Seed 2/3: success=2% length=234.9
+2026-02-23 04:18:13 INFO mdp_discovery.evaluator:   Seed 3/3: success=4% length=239.4
+2026-02-23 04:18:13 INFO mdp_discovery.evaluator:   Multi-seed avg (3 seeds): success=2% length=237.2
+2026-02-23 04:18:13 INFO mdp_discovery.evaluator: Full training done: success=2%, length=237.2, time=74.9s
+2026-02-23 04:18:13 DEBUG mdp_discovery.database: Added program b270b415 to island 0 cell 2-2 (fitness=0.0200)
+2026-02-23 04:18:13 DEBUG mdp_discovery.evolution_trace: Flushed 10 trace events to experiments/ablations/medium_reward_only/evolution_trace.jsonl
+2026-02-23 04:18:13 INFO mdp_discovery.controller: [Iter 20] full_train success=2% length=237.2 | best=2% | 157.8s *** NEW BEST ***
+2026-02-23 04:18:13 INFO mdp_discovery.controller: [Iter 21] Submitting batch of 2 candidate(s)...
+2026-02-23 04:18:35 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:18:35 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:18:35 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:18:36 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:18:39 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:18:39 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:19:10 INFO mdp_discovery.evaluator: Short training done: success=0%, length=237.3, time=25.8s
+2026-02-23 04:19:10 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:19:10 INFO mdp_discovery.controller: [Iter 21] REJECTED (success=0%) | best=2% | 56.9s
+2026-02-23 04:19:15 INFO mdp_discovery.evaluator: Short training done: success=0%, length=238.2, time=27.0s
+2026-02-23 04:19:15 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:19:15 INFO mdp_discovery.controller: [Iter 22] REJECTED (success=0%) | best=2% | 61.7s
+2026-02-23 04:19:15 INFO mdp_discovery.controller: [Iter 23] Submitting batch of 2 candidate(s)...
+2026-02-23 04:19:40 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:19:40 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:19:40 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:19:40 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:19:44 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:19:44 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:20:15 INFO mdp_discovery.evaluator: Short training done: success=0%, length=236.0, time=25.9s
+2026-02-23 04:20:15 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:20:15 INFO mdp_discovery.controller: [Iter 23] REJECTED (success=0%) | best=2% | 60.1s
+2026-02-23 04:20:20 INFO mdp_discovery.evaluator: Short training done: success=0%, length=240.1, time=26.9s
+2026-02-23 04:20:20 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:20:20 INFO mdp_discovery.controller: [Iter 24] REJECTED (success=0%) | best=2% | 65.3s
+2026-02-23 04:20:20 INFO mdp_discovery.controller: [Iter 25] Submitting batch of 2 candidate(s)...
+2026-02-23 04:20:48 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:20:48 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:20:48 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:20:48 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:20:52 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:20:52 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:21:24 INFO mdp_discovery.evaluator: Short training done: success=0%, length=237.3, time=27.3s
+2026-02-23 04:21:24 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:21:24 INFO mdp_discovery.controller: [Iter 25] REJECTED (success=0%) | best=2% | 64.2s
+2026-02-23 04:21:30 INFO mdp_discovery.evaluator: Short training done: success=0%, length=239.0, time=28.1s
+2026-02-23 04:21:30 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:21:30 INFO mdp_discovery.controller: [Iter 26] REJECTED (success=0%) | best=2% | 69.4s
+2026-02-23 04:21:30 INFO mdp_discovery.controller: [Iter 27] Submitting batch of 2 candidate(s)...
+2026-02-23 04:21:51 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:21:51 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:21:52 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:21:54 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:21:55 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:21:55 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:22:27 INFO mdp_discovery.evaluator: Short training done: success=0%, length=240.4, time=27.1s
+2026-02-23 04:22:27 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:22:27 INFO mdp_discovery.controller: [Iter 27] REJECTED (success=0%) | best=2% | 57.3s
+2026-02-23 04:22:32 INFO mdp_discovery.evaluator: Short training done: success=0%, length=242.9, time=28.5s
+2026-02-23 04:22:32 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:22:32 INFO mdp_discovery.controller: [Iter 28] REJECTED (success=0%) | best=2% | 62.2s
+2026-02-23 04:22:32 INFO mdp_discovery.controller: [Iter 29] Submitting batch of 2 candidate(s)...
+2026-02-23 04:22:54 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:22:54 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:22:55 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:22:59 INFO mdp_discovery.evaluator: Running crash filter...
+2026-02-23 04:23:00 INFO mdp_discovery.evaluator: Crash filter passed (obs_dim=0)
+2026-02-23 04:23:00 INFO mdp_discovery.evaluator: Running short training (1,000,000 steps)...
+2026-02-23 04:23:33 INFO mdp_discovery.evaluator: Short training done: success=0%, length=236.0, time=28.4s
+2026-02-23 04:23:33 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:23:33 INFO mdp_discovery.controller: [Iter 29] REJECTED (success=0%) | best=2% | 61.3s
+2026-02-23 04:23:37 INFO mdp_discovery.evaluator: Short training done: success=0%, length=240.8, time=28.5s
+2026-02-23 04:23:37 INFO mdp_discovery.evaluator: Short training success 0% < threshold 2% — rejected
+2026-02-23 04:23:37 DEBUG mdp_discovery.evolution_trace: Flushed 10 trace events to experiments/ablations/medium_reward_only/evolution_trace.jsonl
+2026-02-23 04:23:37 INFO mdp_discovery.controller: [Iter 30] REJECTED (success=0%) | best=2% | 65.1s
+2026-02-23 04:23:37 INFO mdp_discovery.database: Database saved to experiments/ablations/medium_reward_only/database (30 programs)
+2026-02-23 04:23:37 INFO mdp_discovery.controller: [Iter 30] Checkpoint saved to experiments/ablations/medium_reward_only
+2026-02-23 04:23:37 INFO mdp_discovery.evolution_trace: Evolution trace: 30 events, 1 improvements (3%), best deltas: {'final_return': 2161.259449005127, 'final_length': 4.1999969482421875, 'success_rate': 0.02, 'training_time': 14.845704317092896}
+2026-02-23 04:23:37 INFO mdp_discovery.controller: ============================================================
+2026-02-23 04:23:37 INFO mdp_discovery.controller: Evolution complete
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Mode: reward_only
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Iterations: 30
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Wall time: 1170.3s
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Total programs: 30
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Total eval time: 1395.1s
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Total LLM tokens: 561940
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Input tokens: 495512
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Output tokens: 66428
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Est. LLM cost: $2.48
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Recent failures: 20
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Grid cells filled: [4, 0, 0]
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Island sizes: [29, 0, 0]
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Best success rate: 2%
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Best obs_dim: 171
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Best program:
+import jax
+import jax.numpy as jnp
+
+def compute_reward(state, action, next_state):
+    PYRAMID = 5
+    SQUARE = 4
+    YELLOW = 5
+    GREEN = 2
+
+    H, W = next_state.grid.shape[:2]
+    ys = jnp.arange(H)
+    xs = jnp.arange(W)
+    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
+
+    def find_obj(grid, tile_id, color_id):
+        mask = (grid[:, :, 0] == tile_id) & (grid[:, :, 1] == color_id)
+        count = jnp.sum(mask).astype(jnp.float32)
+        y = jnp.sum(yy * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)
+        x = jnp.sum(xx * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)
+        return y, x, count
+
+    # Previous state
+    pyr_y_s, pyr_x_s, pyr_cnt_s = find_obj(state.grid, PYRAMID, YELLOW)
+    sq_y_s, sq_x_s, sq_cnt_s = find_obj(state.grid, SQUARE, GREEN)
+    ay_s = state.agent.position[0].astype(jnp.float32)
+    ax_s = state.agent.position[1].astype(jnp.float32)
+    holding_s = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)
+
+    # Next state
+    pyr_y_n, pyr_x_n, pyr_cnt_n = find_obj(next_state.grid, PYRAMID, YELLOW)
+    sq_y_n, sq_x_n, sq_cnt_n = find_obj(next_state.grid, SQUARE, GREEN)
+    ay_n = next_state.agent.position[0].astype(jnp.float32)
+    ax_n = next_state.agent.position[1].astype(jnp.float32)
+    holding_n = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)
+
+    hs = holding_s.astype(jnp.float32)
+    hn = holding_n.astype(jnp.float32)
+    just_picked = (~holding_s) & holding_n
+    just_placed = holding_s & (~holding_n)
+    pyr_on_grid_n = pyr_cnt_n > 0.5
+
+    max_dist = jnp.float32(H + W)
+
+    # Success condition
+    dist_pyr_sq_n = jnp.abs(pyr_y_n - sq_y_n) + jnp.abs(pyr_x_n - sq_x_n)
+    success = pyr_on_grid_n & (~holding_n) & (dist_pyr_sq_n >= 0.5) & (dist_pyr_sq_n <= 1.5)
+
+    # Phase 1: not holding -> go to pyramid
+    dist_ap_s = jnp.abs(ay_s - pyr_y_s) + jnp.abs(ax_s - pyr_x_s)
+    dist_ap_n = jnp.abs(ay_n - pyr_y_n) + jnp.abs(ax_n - pyr_x_n)
+    # Reward reduction in distance to pyramid
+    r_phase1 = (1.0 - hs) * (1.0 - hn) * (dist_ap_s - dist_ap_n) / max_dist * 2.0
+
+    # Pickup bonus
+    r_pickup = just_picked.astype(jnp.float32) * 3.0
+
+    # Phase 2: holding -> go near square
+    # Want agent to be close to square (dist == 1 or 2 is ideal for placing adjacent)
+    dist_as_s = jnp.abs(ay_s - sq_y_s) + jnp.abs(ax_s - sq_x_s)
+    dist_as_n = jnp.abs(ay_n - sq_y_n) + jnp.abs(ax_n - sq_x_n)
+    r_phase2 = hs * hn * (dist_as_s - dist_as_n) / max_dist * 2.0
+
+    # Putdown reward: based on where pyramid lands relative to square
+    dist_pyr_sq_n_safe = jnp.where(pyr_on_grid_n, dist_pyr_sq_n, max_dist)
+    # If placed adjacent: big reward
+    placed_adjacent = just_placed & pyr_on_grid_n & (dist_pyr_sq_n_safe >= 0.5) & (dist_pyr_sq_n_safe <= 1.5)
+    # If placed close (dist 2-3): small reward
+    placed_close = just_placed & pyr_on_grid_n & (dist_pyr_sq_n_safe > 1.5) & (dist_pyr_sq_n_safe <= 3.5)
+    # If placed far: penalty
+    placed_far = just_placed & pyr_on_grid_n & (dist_pyr_sq_n_safe > 3.5)
+
+    r_putdown = (
+        placed_adjacent.astype(jnp.float32) * 10.0
+        + placed_close.astype(jnp.float32) * 1.0
+        + placed_far.astype(jnp.float32) * (-1.0)
+    )
+
+    # Success reward
+    r_success = success.astype(jnp.float32) * 20.0
+
+    # Small dense reward: when pyramid is on grid and not held, reward proximity to square
+    # This persists across steps to maintain signal
+    pyr_placed_n = pyr_on_grid_n & (~holding_n)
+    pyr_placed_s = (pyr_cnt_s > 0.5) & (~holding_s)
+    dist_pyr_sq_s = jnp.abs(pyr_y_s - sq_y_s) + jnp.abs(pyr_x_s - sq_x_s)
+    # Only when pyramid was already placed in previous step too (not just put down)
+    r_placement_improvement = (
+        pyr_placed_n & pyr_placed_s & (~just_placed)
+    ).astype(jnp.float32) * (dist_pyr_sq_s - dist_pyr_sq_n) / max_dist * 1.0
+
+    total = (
+        r_phase1
+        + r_pickup
+        + r_phase2
+        + r_putdown
+        + r_success
+        + r_placement_improvement
+    )
+
+    return total.astype(jnp.float32)
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Trace events: 30
+2026-02-23 04:23:37 INFO mdp_discovery.controller:   Improvements: 1 (3%)
+2026-02-23 04:23:37 INFO mdp_discovery.controller: ============================================================

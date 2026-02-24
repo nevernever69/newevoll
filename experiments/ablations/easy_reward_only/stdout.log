@@ -1,0 +1,728 @@
+W0223 02:22:27.023710   34961 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML doesn't support extracting fabric info or NVLink is not used by the device.
+W0223 02:22:27.027023   34921 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML doesn't support extracting fabric info or NVLink is not used by the device.
+LLMClient initialized: model=claude-sonnet-4-6 region=us-east-1
+LLMEnsemble initialized: claude-sonnet-4-6 (w=1.00)
+Starting evolution: 30 iterations, 2 candidates/batch, env=XLand-MiniGrid-R1-9x9, model=claude-sonnet-4-6, mode=reward_only
+[Iter 1] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running short training (500,000 steps)...
+W0223 02:22:49.745145   35141 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1,8192,273]{2,1,0} parameter(0)
+  tmp_1 = f32[8192,273]{1,0} bitcast(f32[1,8192,273]{2,1,0} tmp_0)
+  tmp_2 = f32[1536,273]{1,0} parameter(1)
+  ROOT tmp_3 = f32[8192,1536]{1,0} dot(f32[8192,273]{1,0} tmp_1, f32[1536,273]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 02:22:49.783268   35141 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,512]{1,0} parameter(0)
+  tmp_1 = f32[8192,512]{1,0} parameter(1)
+  ROOT tmp_2 = f32[1536,8192]{0,1} dot(f32[1536,512]{1,0} tmp_0, f32[8192,512]{1,0} tmp_1), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 02:23:30.890137   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,512]{1,0} parameter(0)
+  tmp_1 = f32[512,512]{1,0} parameter(1)
+  tmp_2 = f32[512,512]{1,0} parameter(2)
+  tmp_3 = f32[512,1536]{1,0} concatenate(f32[512,512]{1,0} tmp_0, f32[512,512]{1,0} tmp_1, f32[512,512]{1,0} tmp_2), dimensions={1}
+  tmp_4 = f32[1536,512]{0,1} bitcast(f32[512,1536]{1,0} tmp_3)
+  tmp_5 = f32[1,512,512]{2,1,0} parameter(3)
+  tmp_6 = f32[512,512]{1,0} bitcast(f32[1,512,512]{2,1,0} tmp_5)
+  ROOT tmp_7 = f32[1536,512]{1,0} dot(f32[1536,512]{0,1} tmp_4, f32[512,512]{1,0} tmp_6), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 02:23:30.891840   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,16,6]{2,1,0} parameter(0)
+  tmp_1 = f32[8192,6]{1,0} bitcast(f32[512,16,6]{2,1,0} tmp_0)
+  tmp_2 = f32[256,6]{1,0} parameter(1)
+  tmp_3 = f32[8192,256]{1,0} dot(f32[8192,6]{1,0} tmp_1, f32[256,6]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+  ROOT tmp_4 = f32[512,16,256]{2,1,0} bitcast(f32[8192,256]{1,0} tmp_3)
+}', version=16>
+W0223 02:23:30.898683   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1,512,273]{2,1,0} parameter(0)
+  tmp_1 = f32[512,273]{1,0} bitcast(f32[1,512,273]{2,1,0} tmp_0)
+  tmp_2 = f32[1536,273]{1,0} parameter(1)
+  ROOT tmp_3 = f32[512,1536]{1,0} dot(f32[512,273]{1,0} tmp_1, f32[1536,273]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 02:23:30.904123   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,256]{1,0} parameter(0)
+  tmp_1 = f32[8192,256]{1,0} tanh(f32[8192,256]{1,0} tmp_0)
+  tmp_2 = f32[256,6]{1,0} parameter(1)
+  ROOT tmp_3 = f32[8192,6]{1,0} dot(f32[8192,256]{1,0} tmp_1, f32[256,6]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 02:23:30.912848   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,1536]{1,0} parameter(0)
+  tmp_1 = f32[1536,512]{0,1} bitcast(f32[512,1536]{1,0} tmp_0)
+  tmp_2 = f32[1536,512]{1,0} parameter(1)
+  ROOT tmp_3 = f32[512,512]{1,0} dot(f32[1536,512]{0,1} tmp_1, f32[1536,512]{1,0} tmp_2), lhs_contracting_dims={0}, rhs_contracting_dims={0}
+}', version=16>
+W0223 02:23:30.916969   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[80,171]{1,0} parameter(0)
+  tmp_1 = f32[171,256]{1,0} parameter(1)
+  ROOT tmp_2 = f32[80,256]{1,0} dot(f32[80,171]{1,0} tmp_0, f32[171,256]{1,0} tmp_1), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 02:23:30.929138   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,256]{1,0} parameter(0)
+  tmp_1 = f32[8192,256]{1,0} tanh(f32[8192,256]{1,0} tmp_0)
+  tmp_2 = f32[512,16,6]{2,1,0} parameter(1)
+  tmp_3 = f32[6,8192]{0,1} bitcast(f32[512,16,6]{2,1,0} tmp_2)
+  ROOT tmp_4 = f32[256,6]{1,0} dot(f32[8192,256]{1,0} tmp_1, f32[6,8192]{0,1} tmp_3), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+}', version=16>
+W0223 02:23:30.939307   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,16,256]{2,1,0} parameter(0)
+  tmp_1 = f32[8192,256]{1,0} bitcast(f32[512,16,256]{2,1,0} tmp_0)
+  tmp_2 = f32[512,256]{1,0} parameter(1)
+  ROOT tmp_3 = f32[8192,512]{1,0} dot(f32[8192,256]{1,0} tmp_1, f32[512,256]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 02:23:30.942171   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,273]{1,0} parameter(0)
+  tmp_1 = f32[1,1,80,273]{3,2,1,0} parameter(1)
+  tmp_2 = f32[273,80]{0,1} bitcast(f32[1,1,80,273]{3,2,1,0} tmp_1)
+  tmp_3 = f32[1536,80]{0,1} dot(f32[1536,273]{1,0} tmp_0, f32[273,80]{0,1} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  ROOT tmp_4 = f32[80,1536]{1,0} bitcast(f32[1536,80]{0,1} tmp_3)
+}', version=16>
+W0223 02:23:30.964030   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,256]{1,0} parameter(1)
+  tmp_1 = f32[8192,256]{1,0} parameter(2)
+  tmp_2 = f32[8192,512]{1,0} concatenate(f32[8192,256]{1,0} tmp_0, f32[8192,256]{1,0} tmp_1), dimensions={1}
+  tmp_3 = f32[512,8192]{0,1} bitcast(f32[8192,512]{1,0} tmp_2)
+  tmp_4 = f32[512,16,512]{2,1,0} parameter(0)
+  tmp_5 = f32[8192,512]{1,0} bitcast(f32[512,16,512]{2,1,0} tmp_4)
+  tmp_6 = f32[512,512]{0,1} dot(f32[512,8192]{0,1} tmp_3, f32[8192,512]{1,0} tmp_5), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  ROOT tmp_7 = f32[512,512]{1,0} bitcast(f32[512,512]{0,1} tmp_6)
+}', version=16>
+W0223 02:23:30.968008   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[80,256]{1,0} parameter(0)
+  tmp_1 = f32[80,256]{1,0} tanh(f32[80,256]{1,0} tmp_0)
+  tmp_2 = f32[256,6]{1,0} parameter(1)
+  ROOT tmp_3 = f32[80,6]{1,0} dot(f32[80,256]{1,0} tmp_1, f32[256,6]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 02:23:30.990385   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,256]{1,0} parameter(1)
+  tmp_1 = f32[512,256]{1,0} parameter(2)
+  tmp_2 = f32[512,512]{1,0} concatenate(f32[512,256]{1,0} tmp_0, f32[512,256]{1,0} tmp_1), dimensions={1}
+  tmp_3 = f32[512,16,512]{2,1,0} parameter(0)
+  tmp_4 = f32[8192,512]{1,0} bitcast(f32[512,16,512]{2,1,0} tmp_3)
+  tmp_5 = f32[512,8192]{0,1} dot(f32[512,512]{1,0} tmp_2, f32[8192,512]{1,0} tmp_4), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+  ROOT tmp_6 = f32[8192,512]{1,0} bitcast(f32[512,8192]{0,1} tmp_5)
+}', version=16>
+W0223 02:23:30.996806   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1,512,16,171]{3,2,1,0} parameter(0)
+  tmp_1 = f32[8192,171]{1,0} bitcast(f32[1,512,16,171]{3,2,1,0} tmp_0)
+  tmp_2 = f32[171,256]{1,0} parameter(1)
+  ROOT tmp_3 = f32[8192,256]{1,0} dot(f32[8192,171]{1,0} tmp_1, f32[171,256]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 02:23:31.005603   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1,512,16,171]{3,2,1,0} parameter(0)
+  tmp_1 = f32[8192,171]{1,0} bitcast(f32[1,512,16,171]{3,2,1,0} tmp_0)
+  tmp_2 = f32[8192,256]{1,0} parameter(1)
+  tmp_3 = f32[256,8192]{0,1} bitcast(f32[8192,256]{1,0} tmp_2)
+  ROOT tmp_4 = f32[171,256]{1,0} dot(f32[8192,171]{1,0} tmp_1, f32[256,8192]{0,1} tmp_3), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+}', version=16>
+W0223 02:23:31.011916   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,171]{1,0} parameter(0)
+  tmp_1 = f32[171,256]{1,0} parameter(1)
+  ROOT tmp_2 = f32[8192,256]{1,0} dot(f32[8192,171]{1,0} tmp_0, f32[171,256]{1,0} tmp_1), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 02:23:31.015771   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,512]{1,0} parameter(0)
+  tmp_1 = f32[80,1,1,512]{3,2,1,0} parameter(1)
+  tmp_2 = f32[512,80]{0,1} bitcast(f32[80,1,1,512]{3,2,1,0} tmp_1)
+  ROOT tmp_3 = f32[1536,80]{0,1} dot(f32[1536,512]{1,0} tmp_0, f32[512,80]{0,1} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 02:23:31.053147   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,512]{1,0} parameter(0)
+  tmp_1 = f32[8192,1,512]{2,0,1} parameter(1)
+  tmp_2 = f32[8192,512]{1,0} bitcast(f32[8192,1,512]{2,0,1} tmp_1)
+  ROOT tmp_3 = f32[1536,8192]{0,1} dot(f32[1536,512]{1,0} tmp_0, f32[8192,512]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 02:23:31.060842   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1536,512]{1,0} parameter(0)
+  tmp_1 = f32[512,512]{1,0} parameter(1)
+  ROOT tmp_2 = f32[1536,512]{0,1} dot(f32[1536,512]{1,0} tmp_0, f32[512,512]{1,0} tmp_1), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 02:23:31.075695   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,512]{1,0} parameter(0)
+  tmp_1 = f32[512,256]{1,0} parameter(1)
+  ROOT tmp_2 = f32[8192,256]{1,0} dot(f32[8192,512]{1,0} tmp_0, f32[512,256]{1,0} tmp_1), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 02:23:31.088136   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,512]{1,0} parameter(0)
+  tmp_1 = f32[512,512]{1,0} parameter(1)
+  tmp_2 = f32[512,512]{1,0} parameter(2)
+  tmp_3 = f32[512,1536]{1,0} concatenate(f32[512,512]{1,0} tmp_0, f32[512,512]{1,0} tmp_1, f32[512,512]{1,0} tmp_2), dimensions={1}
+  tmp_4 = f32[1,512,273]{2,1,0} parameter(3)
+  tmp_5 = f32[512,273]{1,0} bitcast(f32[1,512,273]{2,1,0} tmp_4)
+  ROOT tmp_6 = f32[1536,273]{1,0} dot(f32[512,1536]{1,0} tmp_3, f32[512,273]{1,0} tmp_5), lhs_contracting_dims={0}, rhs_contracting_dims={0}
+}', version=16>
+W0223 02:23:31.099762   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,256]{1,0} parameter(0)
+  tmp_1 = f32[] constant(0)
+  tmp_2 = f32[8192,256]{1,0} broadcast(f32[] tmp_1), dimensions={}
+  tmp_3 = f32[8192,256]{1,0} maximum(f32[8192,256]{1,0} tmp_0, f32[8192,256]{1,0} tmp_2)
+  tmp_4 = f32[256,512,16]{2,1,0} parameter(1)
+  tmp_5 = f32[256,8192]{1,0} bitcast(f32[256,512,16]{2,1,0} tmp_4)
+  ROOT tmp_6 = f32[256,256]{1,0} dot(f32[8192,256]{1,0} tmp_3, f32[256,8192]{1,0} tmp_5), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+}', version=16>
+W0223 02:23:31.123163   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,256]{1,0} parameter(1)
+  tmp_1 = f32[512,256]{1,0} parameter(2)
+  tmp_2 = f32[512,512]{1,0} concatenate(f32[512,256]{1,0} tmp_0, f32[512,256]{1,0} tmp_1), dimensions={1}
+  tmp_3 = f32[8192,512]{1,0} parameter(0)
+  tmp_4 = f32[512,8192]{0,1} dot(f32[512,512]{1,0} tmp_2, f32[8192,512]{1,0} tmp_3), lhs_contracting_dims={0}, rhs_contracting_dims={1}
+  ROOT tmp_5 = f32[8192,512]{1,0} bitcast(f32[512,8192]{0,1} tmp_4)
+}', version=16>
+W0223 02:23:31.130009   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,1536]{1,0} parameter(0)
+  tmp_1 = f32[1536,273]{1,0} parameter(1)
+  tmp_2 = f32[512,273]{1,0} dot(f32[512,1536]{1,0} tmp_0, f32[1536,273]{1,0} tmp_1), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  ROOT tmp_3 = f32[1,512,273]{2,1,0} bitcast(f32[512,273]{1,0} tmp_2)
+}', version=16>
+W0223 02:23:31.137498   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[8192,256]{1,0} parameter(0)
+  tmp_1 = f32[] constant(0)
+  tmp_2 = f32[8192,256]{1,0} broadcast(f32[] tmp_1), dimensions={}
+  tmp_3 = f32[8192,256]{1,0} maximum(f32[8192,256]{1,0} tmp_0, f32[8192,256]{1,0} tmp_2)
+  tmp_4 = f32[256,256]{1,0} parameter(1)
+  ROOT tmp_5 = f32[8192,256]{1,0} dot(f32[8192,256]{1,0} tmp_3, f32[256,256]{1,0} tmp_4), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 02:23:31.145143   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[512,16,256]{2,1,0} parameter(0)
+  tmp_1 = f32[8192,256]{1,0} bitcast(f32[512,16,256]{2,1,0} tmp_0)
+  tmp_2 = f32[256,256]{1,0} parameter(1)
+  ROOT tmp_3 = f32[8192,256]{1,0} dot(f32[8192,256]{1,0} tmp_1, f32[256,256]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={1}
+}', version=16>
+W0223 02:23:31.146350   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[1,80,512]{2,1,0} parameter(0)
+  tmp_1 = f32[80,512]{1,0} bitcast(f32[1,80,512]{2,1,0} tmp_0)
+  tmp_2 = f32[512,256]{1,0} parameter(1)
+  ROOT tmp_3 = f32[80,256]{1,0} dot(f32[80,512]{1,0} tmp_1, f32[512,256]{1,0} tmp_2), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+W0223 02:23:31.147164   35142 gemm_fusion_autotuner.cc:1475] AutotunerUtil::AddResult already existed: <key model='CUDA: 8.9, Cores: 58, GPU clock: 2.04 GHz, Memory bandwidth: 300 GB/s, L2 cache: 48 MB, DNN version: 9.10.2', hlo='{
+  tmp_0 = f32[80,256]{1,0} parameter(0)
+  tmp_1 = f32[] constant(0)
+  tmp_2 = f32[80,256]{1,0} broadcast(f32[] tmp_1), dimensions={}
+  tmp_3 = f32[80,256]{1,0} maximum(f32[80,256]{1,0} tmp_0, f32[80,256]{1,0} tmp_2)
+  tmp_4 = f32[256,256]{1,0} parameter(1)
+  ROOT tmp_5 = f32[80,256]{1,0} dot(f32[80,256]{1,0} tmp_3, f32[256,256]{1,0} tmp_4), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+}', version=16>
+Short training done: success=12%, length=175.0, time=59.3s
+Passed threshold (12% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=12%, length=191.6, time=62.6s
+Passed threshold (12% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=22% length=153.4
+  Seed 1/3: success=18% length=174.8
+  Seed 2/3: success=34% length=180.2
+  Seed 2/3: success=24% length=186.7
+  Seed 3/3: success=20% length=169.0
+  Multi-seed avg (3 seeds): success=25% length=167.5
+Full training done: success=25%, length=167.5, time=78.2s
+[Iter 1] full_train success=25% length=167.5 | best=25% | 195.8s *** NEW BEST ***
+  Seed 3/3: success=18% length=185.8
+  Multi-seed avg (3 seeds): success=20% length=182.4
+Full training done: success=20%, length=182.4, time=78.8s
+[Iter 2] full_train success=20% length=182.4 | best=25% | 200.4s
+[Iter 3] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=20%, length=173.4, time=26.2s
+Passed threshold (20% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=26%, length=165.4, time=26.0s
+Passed threshold (26% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=26% length=162.8
+  Seed 1/3: success=24% length=148.7
+  Seed 2/3: success=26% length=155.9
+  Seed 2/3: success=22% length=158.0
+  Seed 3/3: success=22% length=158.1
+  Multi-seed avg (3 seeds): success=25% length=159.0
+Full training done: success=25%, length=159.0, time=80.1s
+[Iter 3] full_train success=25% length=159.0 | best=25% | 157.5s
+  Seed 3/3: success=26% length=173.9
+  Multi-seed avg (3 seeds): success=24% length=160.2
+Full training done: success=24%, length=160.2, time=80.8s
+[Iter 4] full_train success=24% length=160.2 | best=25% | 162.0s
+[Iter 5] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=24%, length=180.7, time=26.2s
+Passed threshold (24% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=24%, length=167.1, time=26.1s
+Passed threshold (24% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=26% length=166.7
+  Seed 1/3: success=24% length=144.3
+  Seed 2/3: success=28% length=157.6
+  Seed 2/3: success=34% length=165.5
+  Seed 3/3: success=26% length=170.3
+  Multi-seed avg (3 seeds): success=27% length=164.9
+Full training done: success=27%, length=164.9, time=80.6s
+[Iter 5] full_train success=27% length=164.9 | best=27% | 159.3s *** NEW BEST ***
+  Seed 3/3: success=36% length=152.1
+  Multi-seed avg (3 seeds): success=31% length=153.9
+Full training done: success=31%, length=153.9, time=81.0s
+[Iter 6] full_train success=31% length=153.9 | best=31% | 163.3s *** NEW BEST ***
+[Iter 7] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=24%, length=165.4, time=26.1s
+Passed threshold (24% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=18%, length=165.5, time=26.8s
+Passed threshold (18% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=34% length=124.0
+  Seed 1/3: success=44% length=101.9
+  Seed 2/3: success=52% length=135.5
+  Seed 2/3: success=40% length=116.8
+  Seed 3/3: success=40% length=141.6
+  Multi-seed avg (3 seeds): success=42% length=133.7
+Full training done: success=42%, length=133.7, time=81.7s
+[Iter 7] full_train success=42% length=133.7 | best=42% | 157.3s *** NEW BEST ***
+  Seed 3/3: success=30% length=123.3
+  Multi-seed avg (3 seeds): success=38% length=114.0
+Full training done: success=38%, length=114.0, time=82.0s
+[Iter 8] full_train success=38% length=114.0 | best=42% | 161.4s
+[Iter 9] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=28%, length=159.2, time=27.0s
+Passed threshold (28% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=24%, length=166.1, time=26.2s
+Passed threshold (24% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=36% length=137.6
+  Seed 1/3: success=42% length=133.8
+  Seed 2/3: success=36% length=142.0
+  Seed 2/3: success=36% length=137.3
+  Seed 3/3: success=44% length=153.3
+  Multi-seed avg (3 seeds): success=39% length=144.3
+Full training done: success=39%, length=144.3, time=80.0s
+[Iter 9] full_train success=39% length=144.3 | best=42% | 164.5s
+  Seed 3/3: success=38% length=144.0
+  Multi-seed avg (3 seeds): success=39% length=138.3
+Full training done: success=39%, length=138.3, time=81.5s
+[Iter 10] full_train success=39% length=138.3 | best=42% | 169.1s
+[Iter 11] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=26%, length=154.0, time=25.3s
+Passed threshold (26% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=16%, length=165.4, time=27.2s
+Passed threshold (16% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=50% length=99.8
+  Seed 1/3: success=34% length=133.1
+  Seed 2/3: success=44% length=108.0
+  Seed 2/3: success=38% length=140.8
+  Seed 3/3: success=50% length=115.9
+  Multi-seed avg (3 seeds): success=48% length=107.9
+Full training done: success=48%, length=107.9, time=81.9s
+[Iter 11] full_train success=48% length=107.9 | best=48% | 163.6s *** NEW BEST ***
+  Seed 3/3: success=32% length=142.7
+  Multi-seed avg (3 seeds): success=35% length=138.9
+Full training done: success=35%, length=138.9, time=82.6s
+[Iter 12] full_train success=35% length=138.9 | best=48% | 168.2s
+[Iter 13] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running short training (500,000 steps)...
+Short training done: success=36%, length=152.5, time=27.4s
+Passed threshold (36% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=30%, length=154.2, time=25.3s
+Passed threshold (30% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=52% length=113.3
+  Seed 1/3: success=50% length=99.1
+  Seed 2/3: success=40% length=107.9
+  Seed 2/3: success=46% length=112.4
+  Seed 3/3: success=36% length=120.2
+  Multi-seed avg (3 seeds): success=43% length=113.8
+Full training done: success=43%, length=113.8, time=80.3s
+[Iter 13] full_train success=43% length=113.8 | best=48% | 159.6s
+  Seed 3/3: success=58% length=124.0
+  Multi-seed avg (3 seeds): success=51% length=111.8
+Full training done: success=51%, length=111.8, time=82.4s
+[Iter 14] full_train success=51% length=111.8 | best=51% | 163.7s *** NEW BEST ***
+[Iter 15] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=30%, length=154.2, time=24.9s
+Passed threshold (30% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=26%, length=157.9, time=30.2s
+Passed threshold (26% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=52% length=105.3
+  Seed 1/3: success=46% length=112.8
+  Seed 2/3: success=52% length=102.2
+  Seed 2/3: success=48% length=118.2
+  Seed 3/3: success=52% length=116.7
+  Multi-seed avg (3 seeds): success=52% length=108.0
+Full training done: success=52%, length=108.0, time=77.7s
+[Iter 15] full_train success=52% length=108.0 | best=52% | 150.2s *** NEW BEST ***
+  Seed 3/3: success=52% length=109.4
+  Multi-seed avg (3 seeds): success=49% length=113.5
+Full training done: success=49%, length=113.5, time=83.8s
+[Iter 16] full_train success=49% length=113.5 | best=52% | 168.4s
+[Iter 17] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=26%, length=153.9, time=25.4s
+Passed threshold (26% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=18%, length=143.6, time=29.3s
+Passed threshold (18% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=48% length=114.3
+  Seed 1/3: success=64% length=105.2
+  Seed 2/3: success=54% length=103.2
+  Seed 2/3: success=34% length=119.4
+  Seed 3/3: success=56% length=111.4
+  Multi-seed avg (3 seeds): success=53% length=109.6
+Full training done: success=53%, length=109.6, time=77.8s
+[Iter 17] full_train success=53% length=109.6 | best=53% | 155.6s *** NEW BEST ***
+  Seed 3/3: success=46% length=125.7
+  Multi-seed avg (3 seeds): success=48% length=116.8
+Full training done: success=48%, length=116.8, time=79.2s
+[Iter 18] full_train success=48% length=116.8 | best=53% | 165.7s
+[Iter 19] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=24%, length=150.3, time=25.4s
+Passed threshold (24% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=32%, length=153.6, time=29.5s
+Passed threshold (32% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=54% length=98.1
+  Seed 1/3: success=56% length=112.7
+  Seed 2/3: success=60% length=97.5
+  Seed 2/3: success=42% length=105.3
+  Seed 3/3: success=56% length=106.8
+  Multi-seed avg (3 seeds): success=57% length=100.8
+Full training done: success=57%, length=100.8, time=81.3s
+[Iter 19] full_train success=57% length=100.8 | best=57% | 156.1s *** NEW BEST ***
+  Seed 3/3: success=52% length=118.0
+  Multi-seed avg (3 seeds): success=50% length=112.0
+Full training done: success=50%, length=112.0, time=80.9s
+[Iter 20] full_train success=50% length=112.0 | best=57% | 171.5s
+[Iter 21] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=24%, length=163.4, time=24.6s
+Passed threshold (24% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=22%, length=153.9, time=30.0s
+Passed threshold (22% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=54% length=92.7
+  Seed 1/3: success=56% length=96.2
+  Seed 2/3: success=56% length=101.5
+  Seed 2/3: success=40% length=107.7
+  Seed 3/3: success=66% length=119.1
+  Multi-seed avg (3 seeds): success=59% length=104.4
+Full training done: success=59%, length=104.4, time=78.8s
+[Iter 21] full_train success=59% length=104.4 | best=59% | 153.5s *** NEW BEST ***
+  Seed 3/3: success=40% length=135.0
+  Multi-seed avg (3 seeds): success=45% length=113.0
+Full training done: success=45%, length=113.0, time=78.0s
+[Iter 22] full_train success=45% length=113.0 | best=59% | 168.8s
+[Iter 23] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=34%, length=162.9, time=23.5s
+Passed threshold (34% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=22%, length=148.9, time=27.5s
+Passed threshold (22% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=40% length=107.0
+  Seed 1/3: success=56% length=98.1
+  Seed 2/3: success=30% length=114.8
+  Seed 2/3: success=44% length=98.3
+  Seed 3/3: success=36% length=118.7
+  Multi-seed avg (3 seeds): success=35% length=113.5
+Full training done: success=35%, length=113.5, time=78.5s
+[Iter 23] full_train success=35% length=113.5 | best=59% | 147.9s
+  Seed 3/3: success=46% length=131.8
+  Multi-seed avg (3 seeds): success=49% length=109.4
+Full training done: success=49%, length=109.4, time=77.6s
+[Iter 24] full_train success=49% length=109.4 | best=59% | 163.7s
+[Iter 25] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=24%, length=151.8, time=24.4s
+Passed threshold (24% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=32%, length=148.2, time=25.0s
+Passed threshold (32% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=58% length=95.8
+  Seed 1/3: success=62% length=112.3
+  Seed 2/3: success=38% length=100.1
+  Seed 2/3: success=52% length=101.7
+  Seed 3/3: success=50% length=116.8
+  Multi-seed avg (3 seeds): success=49% length=104.2
+Full training done: success=49%, length=104.2, time=79.7s
+[Iter 25] full_train success=49% length=104.2 | best=59% | 167.5s
+  Seed 3/3: success=40% length=111.0
+  Multi-seed avg (3 seeds): success=51% length=108.3
+Full training done: success=51%, length=108.3, time=77.1s
+[Iter 26] full_train success=51% length=108.3 | best=59% | 172.0s
+[Iter 27] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=34%, length=176.0, time=24.6s
+Passed threshold (34% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=20%, length=159.9, time=24.7s
+Passed threshold (20% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=44% length=132.3
+  Seed 1/3: success=60% length=110.7
+  Seed 2/3: success=34% length=117.3
+  Seed 2/3: success=46% length=102.9
+  Seed 3/3: success=42% length=129.5
+  Multi-seed avg (3 seeds): success=40% length=126.4
+Full training done: success=40%, length=126.4, time=80.5s
+[Iter 27] full_train success=40% length=126.4 | best=59% | 158.3s
+  Seed 3/3: success=44% length=132.2
+  Multi-seed avg (3 seeds): success=50% length=115.3
+Full training done: success=50%, length=115.3, time=79.9s
+[Iter 28] full_train success=50% length=115.3 | best=59% | 162.4s
+[Iter 29] Submitting batch of 2 candidate(s)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Running crash filter...
+Crash filter passed (obs_dim=0)
+Running short training (500,000 steps)...
+Short training done: success=26%, length=170.2, time=24.1s
+Passed threshold (26% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+Short training done: success=26%, length=147.2, time=24.3s
+Passed threshold (26% >= 5%). Running full training (1,000,000 steps, 3 seed(s))...
+  Seed 1/3: success=52% length=119.0
+  Seed 1/3: success=54% length=107.0
+  Seed 2/3: success=52% length=108.2
+  Seed 2/3: success=40% length=99.8
+  Seed 3/3: success=34% length=127.8
+  Multi-seed avg (3 seeds): success=46% length=118.4
+Full training done: success=46%, length=118.4, time=78.1s
+[Iter 29] full_train success=46% length=118.4 | best=59% | 154.2s
+  Seed 3/3: success=42% length=129.1
+  Multi-seed avg (3 seeds): success=45% length=112.0
+Full training done: success=45%, length=112.0, time=82.4s
+[Iter 30] full_train success=45% length=112.0 | best=59% | 165.5s
+Database saved to experiments/ablations/easy_reward_only/database (30 programs)
+[Iter 30] Checkpoint saved to experiments/ablations/easy_reward_only
+Evolution trace: 30 events, 19 improvements (63%), best deltas: {'final_return': 39.59169884522756, 'final_length': 13.399998982747391, 'success_rate': 0.3333333333333334, 'training_time': 3.770448923110962}
+============================================================
+Evolution complete
+  Mode: reward_only
+  Iterations: 30
+  Wall time: 2526.4s
+  Total programs: 30
+  Total eval time: 4381.7s
+  Total LLM tokens: 442528
+  Input tokens: 387782
+  Output tokens: 54746
+  Est. LLM cost: $1.98
+  Recent failures: 0
+  Grid cells filled: [3, 0, 0]
+  Island sizes: [20, 0, 0]
+  Best success rate: 59%
+  Best obs_dim: 171
+  Best program:
+import jax
+import jax.numpy as jnp
+
+def compute_reward(state, action, next_state):
+    PYRAMID = 5
+    BLUE = 3
+    PICKUP_ACTION = 3
+
+    H, W = state.grid.shape[:2]
+
+    # Pocket state checks
+    holding_next = (
+        (next_state.agent.pocket[0] == PYRAMID) &
+        (next_state.agent.pocket[1] == BLUE)
+    )
+    holding_curr = (
+        (state.agent.pocket[0] == PYRAMID) &
+        (state.agent.pocket[1] == BLUE)
+    )
+    pocket_empty_curr = (state.agent.pocket[0] == 0)
+
+    just_picked_up = holding_next & (~holding_curr)
+
+    # Find blue pyramid on the grid (current state)
+    ys = jnp.arange(H)
+    xs = jnp.arange(W)
+    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')
+
+    pyramid_mask_curr = (
+        (state.grid[:, :, 0] == PYRAMID) &
+        (state.grid[:, :, 1] == BLUE)
+    )
+
+    count_curr = jnp.sum(pyramid_mask_curr).astype(jnp.float32)
+    pyramid_on_grid = count_curr > 0
+
+    pyr_y = jnp.sum(yy * pyramid_mask_curr).astype(jnp.float32) / jnp.maximum(count_curr, 1.0)
+    pyr_x = jnp.sum(xx * pyramid_mask_curr).astype(jnp.float32) / jnp.maximum(count_curr, 1.0)
+
+    # Agent positions
+    agent_y_curr = state.agent.position[0].astype(jnp.float32)
+    agent_x_curr = state.agent.position[1].astype(jnp.float32)
+    agent_y_next = next_state.agent.position[0].astype(jnp.float32)
+    agent_x_next = next_state.agent.position[1].astype(jnp.float32)
+
+    dist_curr = jnp.abs(agent_y_curr - pyr_y) + jnp.abs(agent_x_curr - pyr_x)
+    dist_next = jnp.abs(agent_y_next - pyr_y) + jnp.abs(agent_x_next - pyr_x)
+
+    max_dist = jnp.float32(H + W - 2)
+
+    # Potential-based distance shaping (only when pyramid is on grid and not holding)
+    dist_shaping = jnp.where(
+        pyramid_on_grid & (~holding_curr),
+        (dist_curr - dist_next) / max_dist * jnp.float32(10.0),
+        jnp.float32(0.0)
+    )
+
+    # Facing direction checks
+    DIRECTIONS = jnp.array([(-1, 0), (0, 1), (1, 0), (0, -1)], dtype=jnp.int32)
+
+    dy_next = DIRECTIONS[next_state.agent.direction, 0]
+    dx_next = DIRECTIONS[next_state.agent.direction, 1]
+    front_y_next = jnp.clip(next_state.agent.position[0].astype(jnp.int32) + dy_next, 0, H - 1)
+    front_x_next = jnp.clip(next_state.agent.position[1].astype(jnp.int32) + dx_next, 0, W - 1)
+
+    front_is_pyramid_next = (
+        (next_state.grid[front_y_next, front_x_next, 0] == PYRAMID) &
+        (next_state.grid[front_y_next, front_x_next, 1] == BLUE)
+    )
+
+    dy_curr = DIRECTIONS[state.agent.direction, 0]
+    dx_curr = DIRECTIONS[state.agent.direction, 1]
+    front_y_curr = jnp.clip(state.agent.position[0].astype(jnp.int32) + dy_curr, 0, H - 1)
+    front_x_curr = jnp.clip(state.agent.position[1].astype(jnp.int32) + dx_curr, 0, W - 1)
+
+    was_facing_pyramid = (
+        (state.grid[front_y_curr, front_x_curr, 0] == PYRAMID) &
+        (state.grid[front_y_curr, front_x_curr, 1] == BLUE)
+    )
+
+    # Milestone: newly facing the pyramid
+    just_facing = front_is_pyramid_next & (~was_facing_pyramid) & (~holding_curr)
+    facing_milestone = jnp.where(just_facing, jnp.float32(3.0), jnp.float32(0.0))
+
+    # Persistent reward for facing pyramid (encourages maintaining alignment for pickup)
+    persistent_facing = jnp.where(
+        front_is_pyramid_next & (~holding_next),
+        jnp.float32(0.5),
+        jnp.float32(0.0)
+    )
+
+    # Strong bonus for attempting pickup while facing pyramid with empty pocket
+    pickup_bonus = jnp.where(
+        (action == PICKUP_ACTION) & was_facing_pyramid & pocket_empty_curr & (~holding_curr),
+        jnp.float32(8.0),
+        jnp.float32(0.0)
+    )
+
+    # Large success reward
+    success_reward = jnp.where(just_picked_up, jnp.float32(30.0), jnp.float32(0.0))
+
+    # Step penalty only while not holding (encourages efficiency)
+    step_penalty = jnp.where(
+        ~holding_next,
+        jnp.float32(-0.05),
+        jnp.float32(0.0)
+    )
+
+    # Additional reward: inverse distance bonus (absolute, not delta) to help with sparse exploration
+    # This gives a continuous signal even when not moving
+    inv_dist_bonus = jnp.where(
+        pyramid_on_grid & (~holding_curr),
+        (max_dist - dist_curr) / max_dist * jnp.float32(0.1),
+        jnp.float32(0.0)
+    )
+
+    total_reward = (
+        success_reward
+        + dist_shaping
+        + facing_milestone
+        + persistent_facing
+        + pickup_bonus
+        + step_penalty
+        + inv_dist_bonus
+    )
+    return total_reward.astype(jnp.float32)
+  Trace events: 30
+  Improvements: 19 (63%)
+============================================================
+============================================================
+MDP Interface Discovery
+============================================================
+  Task:        Pick up the blue pyramid. Grid 9x9, max_steps=80.
+  Environment: XLand-MiniGrid-R1-9x9
+  Mode:        reward_only
+  Model:       claude-sonnet-4-6 (us-east-1)
+  Iterations:  30
+  Candidates:  2 per batch
+  Training:    500,000 short / 1,000,000 full steps
+  Cascade:     ON (thresholds=[0.05])
+  Stochastic:  ON
+  Tracing:     ON
+  Context:     contexts/xminigrid_context.md
+  Run dir:     experiments/ablations/easy_reward_only
+  Log file:    experiments/ablations/easy_reward_only/evolution.log
+============================================================
+
+
+============================================================
+Evolution complete — 30 iterations in 2526s
+============================================================
+  Best success:  59%
+  Best obs_dim:  171
+  Best program:  experiments/ablations/easy_reward_only/best_interface.py
+  Wall time:     2526.4s (42.1m)
+  Eval time:     4381.7s
+  Input tokens:  387,782
+  Output tokens: 54,746
+  Est. LLM cost: $1.98
+  Full logs:     experiments/ablations/easy_reward_only/evolution.log
+  Checkpoint:    experiments/ablations/easy_reward_only
+============================================================

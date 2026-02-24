@@ -1,0 +1,38 @@
+{
+  "id": "3822a0b6-396e-46a7-a885-f630a0388b12",
+  "code": "import jax\nimport jax.numpy as jnp\n\ndef compute_reward(state, action, next_state):\n    PYRAMID = 5\n    SQUARE = 4\n    YELLOW = 5\n    GREEN = 2\n\n    H, W = next_state.grid.shape[:2]\n    ys = jnp.arange(H)\n    xs = jnp.arange(W)\n    yy, xx = jnp.meshgrid(ys, xs, indexing='ij')\n\n    def find_obj(grid, tile_id, color_id):\n        mask = (grid[:, :, 0] == tile_id) & (grid[:, :, 1] == color_id)\n        count = jnp.sum(mask).astype(jnp.float32)\n        y = jnp.sum(yy * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        x = jnp.sum(xx * mask).astype(jnp.float32) / jnp.maximum(count, 1.0)\n        return y, x, count\n\n    # Find objects in both states\n    pyr_y_s, pyr_x_s, pyr_cnt_s = find_obj(state.grid, PYRAMID, YELLOW)\n    sq_y_s, sq_x_s, sq_cnt_s = find_obj(state.grid, SQUARE, GREEN)\n    pyr_y_n, pyr_x_n, pyr_cnt_n = find_obj(next_state.grid, PYRAMID, YELLOW)\n    sq_y_n, sq_x_n, sq_cnt_n = find_obj(next_state.grid, SQUARE, GREEN)\n\n    agent_y_s = state.agent.position[0].astype(jnp.float32)\n    agent_x_s = state.agent.position[1].astype(jnp.float32)\n    agent_y_n = next_state.agent.position[0].astype(jnp.float32)\n    agent_x_n = next_state.agent.position[1].astype(jnp.float32)\n\n    holding_s = (state.agent.pocket[0] == PYRAMID) & (state.agent.pocket[1] == YELLOW)\n    holding_n = (next_state.agent.pocket[0] == PYRAMID) & (next_state.agent.pocket[1] == YELLOW)\n    holding_s_f = holding_s.astype(jnp.float32)\n    holding_n_f = holding_n.astype(jnp.float32)\n\n    pyr_on_grid_n = pyr_cnt_n > 0.5\n    pyr_on_grid_s = pyr_cnt_s > 0.5\n\n    max_dist = jnp.float32(H + W)\n\n    # === SUCCESS ===\n    dist_pyr_sq_n = jnp.abs(pyr_y_n - sq_y_n) + jnp.abs(pyr_x_n - sq_x_n)\n    success = pyr_on_grid_n & (~holding_n) & (dist_pyr_sq_n <= 1.5) & (dist_pyr_sq_n >= 0.5)\n    success_f = success.astype(jnp.float32)\n\n    # === POTENTIAL FUNCTION ===\n    # Define potential for each state based on phase\n    # Phase 1 (not holding): potential = -dist(agent, pyramid)\n    # Phase 2 (holding): potential = -dist(agent, square)  [want to be near square to place]\n    # Phase 3 (placed adjacent): potential = large value\n\n    dist_agent_pyr_s = jnp.abs(agent_y_s - pyr_y_s) + jnp.abs(agent_x_s - pyr_x_s)\n    dist_agent_pyr_n = jnp.abs(agent_y_n - pyr_y_n) + jnp.abs(agent_x_n - pyr_x_n)\n    dist_agent_sq_s = jnp.abs(agent_y_s - sq_y_s) + jnp.abs(agent_x_s - sq_x_s)\n    dist_agent_sq_n = jnp.abs(agent_y_n - sq_y_n) + jnp.abs(agent_x_n - sq_x_n)\n    dist_pyr_sq_s = jnp.abs(pyr_y_s - sq_y_s) + jnp.abs(pyr_x_s - sq_x_s)\n\n    # Potential: higher is better\n    # Not holding: want to be close to pyramid\n    pot_phase1_s = (max_dist - dist_agent_pyr_s) / max_dist\n    pot_phase1_n = (max_dist - dist_agent_pyr_n) / max_dist\n\n    # Holding: want to be close to square\n    pot_phase2_s = (max_dist - dist_agent_sq_s) / max_dist\n    pot_phase2_n = (max_dist - dist_agent_sq_n) / max_dist\n\n    # When pyramid is placed (not held), want it close to square\n    pot_phase3_s = (max_dist - dist_pyr_sq_s) / max_dist\n    pot_phase3_n = (max_dist - dist_pyr_sq_n) / max_dist\n\n    # Select potential based on phase\n    # State s potential\n    pot_s = jax.lax.select(\n        holding_s,\n        pot_phase2_s,\n        jax.lax.select(pyr_on_grid_s, pot_phase1_s, pot_phase3_s)\n    )\n    # State n potential\n    pot_n = jax.lax.select(\n        holding_n,\n        pot_phase2_n,\n        jax.lax.select(pyr_on_grid_n, pot_phase1_n, pot_phase3_n)\n    )\n\n    # Potential-based shaping: F(s,a,s') = gamma * Phi(s') - Phi(s), gamma=1\n    shaping = pot_n - pot_s\n\n    # === MILESTONE BONUSES ===\n    just_picked_up = (~holding_s) & holding_n\n    pickup_bonus = just_picked_up.astype(jnp.float32) * 0.5\n\n    just_put_down = holding_s & (~holding_n)\n    # Reward proportional to how close pyramid landed to square\n    putdown_proximity = just_put_down.astype(jnp.float32) * jax.lax.select(\n        pyr_on_grid_n,\n        (max_dist - dist_pyr_sq_n) / max_dist,\n        jnp.float32(0.0)\n    )\n\n    # === TOTAL REWARD ===\n    total_reward = (\n        shaping * 1.0\n        + pickup_bonus\n        + putdown_proximity * 1.0\n        + success_f * 5.0\n    )\n\n    return total_reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 68.98958587646484,
+    "final_length": 239.71250915527344,
+    "success_rate": 0.0,
+    "learning_curve": [
+      84.56944274902344,
+      53.25972366333008,
+      23.306943893432617,
+      28.779165267944336,
+      58.806941986083984,
+      37.84930419921875,
+      68.98958587646484
+    ],
+    "success_curve": [
+      0.10000000149011612,
+      0.08749999850988388,
+      0.08749999850988388,
+      0.02500000037252903,
+      0.10000000149011612,
+      0.03750000149011612,
+      0.02500000037252903
+    ],
+    "training_time": 25.894307374954224
+  },
+  "obs_dim": 171,
+  "stage": "short_train_rejected",
+  "generation": 1,
+  "parent_id": "cc917526-8218-4dfd-b8ef-88c929276667",
+  "island": 0,
+  "timestamp": 1771819823.2298284,
+  "feature_coords": [
+    3,
+    2
+  ]
+}
