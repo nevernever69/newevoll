@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Benchmark: Best Evolved Interface vs Ablation Spaces vs Sparse Baseline.
 
-Per-task budgets: Easy 2M, Medium 5M, Hard 10M.
+Per-task budgets: Easy 2M, Medium 4M, Hard 6M.
+Runs with 10 seeds per method for reduced variance.
 - evolved: full MDP interface (obs + reward) from main experiments
 - obs_only: ablation observation + env built-in reward
 - reward_only: ablation reward + default observation  
@@ -24,7 +25,8 @@ from mdp_discovery.mdp_interface import MDPInterface
 from mdp_discovery.train import run_training
 from mdp_discovery.adapters.xminigrid_adapter import XMinigridAdapter
 
-SEED = 42
+BASE_SEED = 42
+NUM_SEEDS = 10
 
 TASKS = [
     {
@@ -52,7 +54,7 @@ TASKS = [
         "evolved": "experiments/main/hard/best_interface.py",
         "obs_only": "experiments/ablations/hard_obs_only/best_interface.py",
         "reward_only": "experiments/ablations/hard_reward_only/best_interface.py",
-        "timesteps": 10_000_000,
+        "timesteps": 6_000_000,
     },
 ]
 
@@ -60,8 +62,8 @@ TASKS = [
 def main():
     print("=" * 70)
     print("Best Evolved Interface vs Ablation Spaces vs Sparse Baseline")
-    print(f"  Seed: {SEED} | Devices: {jax.local_device_count()}")
-    print(f"  Budgets: Easy=2M, Medium=5M, Hard=10M")
+    print(f"  Seeds: {NUM_SEEDS} (base={BASE_SEED}) | Devices: {jax.local_device_count()}")
+    print(f"  Budgets: Easy=2M, Medium=4M, Hard=6M")
     print(f"  obs_only = ablation obs + env built-in reward")
     print(f"  reward_only = default obs + ablation reward")
     print(f"  sparse = default obs + env built-in reward")
@@ -72,51 +74,83 @@ def main():
     for task in TASKS:
         ts = task["timesteps"]
         print(f"\n{'─'*70}")
-        print(f"Task: {task['short'].upper()} — {ts/1e6:.0f}M steps")
+        print(f"Task: {task['short'].upper()} — {ts/1e6:.0f}M steps × {NUM_SEEDS} seeds")
         print(f"{'─'*70}")
 
         config = Config.from_yaml(task["config"])
-        config.training.seed = SEED
         config.training.lr_schedule = "cosine"
         adapter = XMinigridAdapter(config)
         dummy_state = adapter.get_dummy_state()
 
-        # Evolved interface (from file)
+        # Load interfaces once per task
         evolved = MDPInterface.from_file(task["evolved"])
         evolved_obs = evolved.validate(dummy_state)
         print(f"  Evolved obs_dim: {evolved_obs}")
 
-        # obs_only: ablation observation + env built-in reward (None)
-        obs_only = MDPInterface.from_file(task["obs_only"])
-        obs_only_obs = obs_only.validate(dummy_state)
+        obs_only_interface = MDPInterface.from_file(task["obs_only"], required_functions=["get_observation"])
+        obs_only_interface.validate(dummy_state)
+        obs_only_obs = obs_only_interface.obs_dim
         print(f"  obs_only obs_dim:  {obs_only_obs}")
 
-        # reward_only: default obs + ablation reward
-        reward_only = MDPInterface.from_file(task["reward_only"])
-        reward_only_obs = reward_only.detect_obs_dim(dummy_state)
+        reward_only_interface = MDPInterface.from_file(task["reward_only"], required_functions=["compute_reward"])
+        reward_only_interface.validate(dummy_state)
+        default_obs_fn = adapter.get_default_obs_fn()
+        test_obs = default_obs_fn(dummy_state)
+        reward_only_obs = int(jnp.asarray(test_obs).shape[0])
         print(f"  reward_only obs_dim: {reward_only_obs}")
 
-        # Sparse interface: default obs + env built-in reward (None)
-        sparse = MDPInterface(
-            get_observation=adapter.get_default_obs_fn(),
-            compute_reward=None,
-        )
-        sparse_obs = sparse.detect_obs_dim(dummy_state)
+        sparse_obs = int(jnp.asarray(adapter.get_default_obs_fn()(dummy_state)).shape[0])
         print(f"  Sparse obs_dim:  {sparse_obs}")
 
+        # Run all seeds for all methods
         task_results = {}
         for label, interface, obs_dim in [
             ("evolved", evolved, evolved_obs),
-            ("obs_only", obs_only, obs_only_obs),
-            ("reward_only", reward_only, reward_only_obs),
-            ("sparse", sparse, sparse_obs),
+            ("obs_only", MDPInterface(get_observation=obs_only_interface.get_observation, compute_reward=adapter.get_default_reward_fn()), obs_only_obs),
+            ("reward_only", MDPInterface(get_observation=default_obs_fn, compute_reward=reward_only_interface.compute_reward), reward_only_obs),
+            ("sparse", MDPInterface(get_observation=adapter.get_default_obs_fn(), compute_reward=None), sparse_obs),
         ]:
-            print(f"\n  Training {label} (obs_dim={obs_dim}) for {ts/1e6:.0f}M ...", flush=True)
-            t0 = time.time()
-            metrics = run_training(config, adapter, interface, obs_dim, total_timesteps=ts)
-            elapsed = time.time() - t0
-            print(f"    {elapsed:.1f}s — success={metrics['success_rate']*100:.1f}%  len={metrics['final_length']:.1f}")
-            task_results[label] = metrics
+            print(f"\n  Training {label} (obs_dim={obs_dim}) for {ts/1e6:.0f}M × {NUM_SEEDS} seeds...", flush=True)
+            
+            all_metrics = []
+            all_curves = []
+            seed_times = []
+            
+            for seed_idx in range(NUM_SEEDS):
+                seed = BASE_SEED + seed_idx
+                config.training.seed = seed
+                print(f"    Seed {seed_idx+1}/{NUM_SEEDS} (seed={seed})...", flush=True)
+                t0 = time.time()
+                metrics = run_training(config, adapter, interface, obs_dim, total_timesteps=ts)
+                elapsed = time.time() - t0
+                seed_times.append(elapsed)
+                all_metrics.append(metrics)
+                all_curves.append(metrics["success_curve"])
+                print(f"      {elapsed:.1f}s — success={metrics['success_rate']*100:.1f}%  len={metrics['final_length']:.1f}")
+            
+            # Average across seeds
+            avg_success = np.mean([m["success_rate"] for m in all_metrics])
+            avg_return = np.mean([m["final_return"] for m in all_metrics])
+            avg_length = np.mean([m["final_length"] for m in all_metrics])
+            avg_time = np.mean(seed_times)
+            std_success = np.std([m["success_rate"] for m in all_metrics])
+            
+            # Average success curve
+            avg_curve = np.mean(all_curves, axis=0).tolist()
+            std_curve = np.std(all_curves, axis=0).tolist()
+            
+            print(f"    AVG: success={avg_success*100:.1f}%±{std_success*100:.1f}%  len={avg_length:.1f}  time={avg_time:.1f}s")
+            
+            task_results[label] = {
+                "success_rate": avg_success,
+                "std_success": std_success,
+                "final_return": avg_return,
+                "final_length": avg_length,
+                "training_time": avg_time,
+                "success_curve": avg_curve,
+                "std_curve": std_curve,
+                "all_curves": all_curves,  # Keep for plotting
+            }
 
         all_results[task["short"]] = {
             "name": task["name"],
@@ -153,7 +187,7 @@ def main():
     # ─── Plot ─────────────────────────────────────────────────────────────
     fig, axes = plt.subplots(1, 3, figsize=(21, 5.5))
     fig.suptitle(
-        "Evolved vs Ablation Spaces vs Sparse Baseline  (1 seed)",
+        f"Evolved vs Ablation Spaces vs Sparse ({NUM_SEEDS} seeds, mean ± std)",
         fontsize=15, fontweight="bold", y=1.02,
     )
 
@@ -177,8 +211,11 @@ def main():
 
         for variant in ["evolved", "obs_only", "reward_only", "sparse"]:
             curve = r["results"][variant]["success_curve"]
+            std_curve = r["results"][variant]["std_curve"]
             xs = [(i + 1) * ts_per_update / 1e6 for i in range(len(curve))]
             ys = [v * 100 for v in curve]
+            std_ys = [s * 100 for s in std_curve]
+            
             ax.plot(
                 xs, ys,
                 color=palette[variant],
@@ -186,9 +223,17 @@ def main():
                 linewidth=2.2,
                 alpha=0.9,
             )
+            ax.fill_between(
+                xs,
+                [max(0, y - s) for y, s in zip(ys, std_ys)],
+                [min(100, y + s) for y, s in zip(ys, std_ys)],
+                color=palette[variant],
+                alpha=0.2,
+            )
 
-            # Annotate final success rate
+            # Annotate final success rate with std
             final_sr = r["results"][variant]["success_rate"] * 100
+            std_sr = r["results"][variant]["std_success"] * 100
             ax.plot(xs[-1], ys[-1], "o", color=palette[variant], markersize=7)
             
             # Adjust annotation offset to avoid overlap
@@ -208,11 +253,11 @@ def main():
             }
             offset_x, offset_y = offsets.get((task_key, variant), (-25, 6))
             ax.annotate(
-                f"{final_sr:.0f}%",
+                f"{final_sr:.0f}%±{std_sr:.0f}%",
                 xy=(xs[-1], ys[-1]),
                 xytext=(offset_x, offset_y),
                 textcoords="offset points",
-                fontsize=10, fontweight="bold",
+                fontsize=9, fontweight="bold",
                 color=palette[variant],
             )
 
@@ -232,15 +277,19 @@ def main():
 
     # ─── Summary ──────────────────────────────────────────────────────────
     print(f"\n{'='*70}")
-    print(f"{'Task':<12} {'Budget':>8} {'Evolved':>10} {'obs_only':>10} {'rew_only':>10} {'Sparse':>10}")
+    print(f"{'Task':<12} {'Budget':>8} {'Evolved':>14} {'obs_only':>14} {'rew_only':>14} {'Sparse':>14}")
     print(f"{'='*70}")
     for k in ["easy", "medium", "hard"]:
         budget = all_results[k]["timesteps"]
         e = all_results[k]["results"]["evolved"]["success_rate"] * 100
+        e_std = all_results[k]["results"]["evolved"]["std_success"] * 100
         o = all_results[k]["results"]["obs_only"]["success_rate"] * 100
+        o_std = all_results[k]["results"]["obs_only"]["std_success"] * 100
         r = all_results[k]["results"]["reward_only"]["success_rate"] * 100
+        r_std = all_results[k]["results"]["reward_only"]["std_success"] * 100
         s = all_results[k]["results"]["sparse"]["success_rate"] * 100
-        print(f"{k:<12} {budget/1e6:>7.0f}M {e:>9.1f}% {o:>9.1f}% {r:>9.1f}% {s:>9.1f}%")
+        s_std = all_results[k]["results"]["sparse"]["std_success"] * 100
+        print(f"{k:<12} {budget/1e6:>7.0f}M {e:>6.1f}%±{e_std:>4.1f} {o:>6.1f}%±{o_std:>4.1f} {r:>6.1f}%±{r_std:>4.1f} {s:>6.1f}%±{s_std:>4.1f}")
     print(f"{'='*70}")
     
     # ─── Delta Analysis ───────────────────────────────────────────────────
