@@ -199,7 +199,7 @@ SECTION_PARENT_CODE = """\
 --- BEGIN CODE ---
 {code}
 --- END CODE ---
-Success rate: {success_rate}  |  Episode length: {episode_length}"""
+Success rate: {success_rate}  |  Reward: {final_return}  |  Obs dim: {obs_dim}"""
 
 SECTION_PARENT_CODE_CRASHED = """\
 --- BEGIN CODE ---
@@ -276,121 +276,104 @@ SECTION_INSPIRATION_PROGRAM_ENTRY = """\
 
 _IMPROVEMENT_VARIANTS = {
     "zero": [
-        # Strategy A: rethink observation — maybe the agent is blind
+        # Lens A: observation
         (
             "Zero success — the interface is not working at all.\n"
-            "Focus on the OBSERVATION: the agent may lack the information "
-            "it needs to learn. Consider what state features are critical "
-            "for the task and whether the agent can perceive them. "
-            "Keep the reward simple and revisit it later."
+            "Focus your changes on the OBSERVATION. The agent may lack "
+            "the information it needs to learn."
         ),
-        # Strategy B: rethink reward — maybe the agent has no learning signal
+        # Lens B: reward
         (
             "Zero success — the interface is not working at all.\n"
-            "Focus on the REWARD: the agent may have no useful learning "
-            "signal. Consider whether the reward is too sparse or always "
-            "near-zero. A denser reward that changes on every step — even "
-            "approximately — may be needed. The observation might be fine."
+            "Focus your changes on the REWARD. The agent may have no "
+            "useful learning signal."
         ),
-        # Strategy C: scrap both, try something structurally opposite
+        # Lens C: structural reset
         (
             "Zero success — the interface is not working at all.\n"
-            "Try the OPPOSITE approach to what the parent did. If the "
-            "observation was complex, try minimal. If the reward was dense, "
-            "try sparse milestones. If both were simple, try richer "
-            "representations. Break out of the current design direction."
+            "Try a STRUCTURALLY DIFFERENT approach to both the observation "
+            "and the reward. Break out of the current design direction."
         ),
     ],
     "low": [
-        # Strategy A: observation is the bottleneck
+        # Lens A: observation
         (
             "Low success rate — the agent struggles to learn.\n"
-            "The observation may be the bottleneck. Is it missing "
-            "information the agent needs? Does it contain redundant or "
-            "misleading features? Try changing what the agent perceives."
+            "Focus your changes on the OBSERVATION. It may be missing "
+            "critical information or containing misleading features."
         ),
-        # Strategy B: reward is the bottleneck
+        # Lens B: reward
         (
             "Low success rate — the agent struggles to learn.\n"
-            "The reward may be the bottleneck. Are reward components "
-            "conflicting with each other? Is the magnitude appropriate? "
-            "Try simplifying the reward to a single clear signal."
+            "Focus your changes on the REWARD. The learning signal "
+            "may be the bottleneck."
         ),
-        # Strategy C: representation mismatch
+        # Lens C: coherence
         (
             "Low success rate — the agent struggles to learn.\n"
-            "The observation and reward may be individually reasonable but "
-            "mismatched. Does the reward incentivize behavior that the "
-            "observation can actually distinguish? Ensure they work together."
+            "Focus on whether the observation and reward work TOGETHER. "
+            "Does the reward incentivize behavior that the observation "
+            "can actually distinguish?"
         ),
     ],
     "medium": [
-        # Strategy A: diagnose the failure mode
+        # Lens A: failure modes
         (
             "Moderate success — partially working.\n"
-            "Identify what causes the remaining failures. Is the agent "
-            "failing in specific states? Add observation features or reward "
-            "signals that address those failure modes specifically."
+            "Focus on what causes the remaining failures. What states "
+            "or scenarios does the agent fail in?"
         ),
-        # Strategy B: simplify
+        # Lens B: simplification
         (
             "Moderate success — partially working.\n"
-            "The design may be overfit to easy cases. Try simplifying — "
-            "remove observation features or reward terms that might be "
-            "adding noise, and see if a cleaner interface generalizes better."
+            "Focus on SIMPLIFYING the interface. The current design may "
+            "have unnecessary complexity that hurts generalization."
         ),
-        # Strategy C: enrich
+        # Lens C: enrichment
         (
             "Moderate success — partially working.\n"
-            "The agent may need more information to handle harder cases. "
-            "Consider adding state features it currently cannot perceive, "
-            "or adding reward terms for sub-goals it currently ignores."
+            "Focus on what INFORMATION the agent might be missing for "
+            "the harder cases."
         ),
     ],
     "good": [
-        # Strategy A: analyze failure margin
+        # Lens A: failure analysis
         (
             "Good performance with room to improve.\n"
-            "Focus on the remaining failure cases. What distinguishes them "
-            "from successes? Target those specific scenarios with observation "
-            "or reward adjustments."
+            "Focus on the remaining failure cases. What distinguishes "
+            "them from successes?"
         ),
-        # Strategy B: reduce and stabilize
+        # Lens B: simplification
         (
             "Good performance with room to improve.\n"
-            "Consider whether the interface can be simplified without "
-            "losing performance. Fewer observation features or simpler "
-            "reward logic may improve learning stability."
+            "Focus on whether the interface can be SIMPLIFIED without "
+            "losing performance."
         ),
-        # Strategy C: push reward refinement
+        # Lens C: reward tuning
         (
             "Good performance with room to improve.\n"
-            "The observation is likely sufficient. Focus on whether the "
-            "reward signal has the right relative magnitudes across its "
-            "components, and whether it properly incentivizes completing "
-            "the task efficiently."
+            "Focus your changes on the REWARD. The observation is likely "
+            "working — the reward signal may need refinement."
         ),
     ],
     "excellent": [
-        # Strategy A: polish edges
+        # Lens A: targeted fixes
         (
             "Excellent performance. Small refinements only.\n"
-            "Analyze the rare failure cases and make targeted changes. "
-            "Avoid large structural changes that might destabilize what works."
+            "Focus on the rare failure cases. Avoid large structural "
+            "changes that might destabilize what works."
         ),
-        # Strategy B: compress
+        # Lens B: compression
         (
-            "Excellent performance. Consider compressing the interface.\n"
-            "Can the observation dimensionality be reduced without losing "
-            "performance? Can the reward be simplified? A simpler interface "
-            "that maintains this success rate is strictly better."
+            "Excellent performance. Small refinements only.\n"
+            "Focus on whether the interface can be made SIMPLER while "
+            "maintaining this success rate."
         ),
-        # Strategy C: robustness
+        # Lens C: robustness
         (
-            "Excellent performance. Focus on robustness.\n"
-            "The remaining failures may be edge cases in the environment. "
-            "Check if the observation handles all possible states correctly "
-            "and if the reward avoids any degenerate values."
+            "Excellent performance. Small refinements only.\n"
+            "Focus on ROBUSTNESS — does the interface handle all "
+            "possible states correctly?"
         ),
     ],
 }
@@ -553,6 +536,7 @@ class PromptBuilder:
         *,
         parent_code: Optional[str] = None,
         parent_metrics: Optional[Dict[str, Any]] = None,
+        parent_obs_dim: Optional[int] = None,
         top_programs: Optional[List[Dict[str, Any]]] = None,
         diverse_programs: Optional[List[Dict[str, Any]]] = None,
         failed_programs: Optional[List[Dict[str, Any]]] = None,
@@ -584,6 +568,7 @@ class PromptBuilder:
             user_msg = self._build_evolutionary(
                 parent_code=parent_code,
                 parent_metrics=parent_metrics,
+                parent_obs_dim=parent_obs_dim,
                 top_programs=top_programs,
                 diverse_programs=diverse_programs,
                 failed_programs=failed_programs,
@@ -622,6 +607,7 @@ class PromptBuilder:
         *,
         parent_code: str,
         parent_metrics: Optional[Dict[str, Any]],
+        parent_obs_dim: Optional[int] = None,
         top_programs: Optional[List[Dict[str, Any]]],
         diverse_programs: Optional[List[Dict[str, Any]]],
         failed_programs: Optional[List[Dict[str, Any]]],
@@ -631,7 +617,7 @@ class PromptBuilder:
         stochastic = self.config.use_stochasticity
 
         # Parent section
-        parent_section = self._format_parent(parent_code, parent_metrics)
+        parent_section = self._format_parent(parent_code, parent_metrics, obs_dim=parent_obs_dim)
 
         # Feedback sections (only non-empty ones)
         sections: List[str] = []
@@ -695,14 +681,18 @@ class PromptBuilder:
     # ------------------------------------------------------------------
 
     def _format_parent(
-        self, code: str, metrics: Optional[Dict[str, Any]]
+        self, code: str, metrics: Optional[Dict[str, Any]],
+        obs_dim: Optional[int] = None,
     ) -> str:
         if metrics:
             sr = metrics.get("success_rate", 0.0)
+            fr = metrics.get("final_return", 0.0)
+            od = obs_dim or metrics.get("obs_dim", "?")
             return SECTION_PARENT_CODE.format(
                 code=code,
                 success_rate=f"{sr:.0%}",
-                episode_length=f"{metrics.get('final_length', 0.0):.1f}",
+                final_return=f"{fr:.1f}",
+                obs_dim=od,
             )
         return SECTION_PARENT_CODE_CRASHED.format(code=code)
 
@@ -802,16 +792,37 @@ class PromptBuilder:
     ) -> str:
         success_rate = metrics.get("success_rate", 0.0)
         best_success = best_metrics.get("success_rate", 0.0)
-        episode_length = metrics.get("final_length", 0.0)
+        final_return = metrics.get("final_return", 0.0)
 
         parts: List[str] = []
 
-        parts.append(
-            f"- Parent success rate: {success_rate:.0%} "
-            f"(mean episode length: {episode_length:.1f})"
-        )
+        # Core metrics
+        parts.append(f"- Parent success rate: {success_rate:.0%}")
+        parts.append(f"- Parent final reward: {final_return:.1f}")
         parts.append(f"- Best known success rate: {best_success:.0%}")
 
+        # Per-seed stability (if available)
+        per_seed = metrics.get("per_seed_success")
+        if per_seed and len(per_seed) > 1:
+            seed_spread = max(per_seed) - min(per_seed)
+            seed_strs = [f"{s:.0%}" for s in per_seed]
+            parts.append(f"- Per-seed success rates: [{', '.join(seed_strs)}] (spread: {seed_spread:.0%})")
+            if seed_spread > 0.2:
+                parts.append(
+                    "- WARNING: High variance across seeds — the interface may be "
+                    "brittle or overly sensitive to initialization."
+                )
+
+        # NaN warning
+        if metrics.get("nan_detected"):
+            parts.append(
+                "- WARNING: NaN values appeared during training. The reward "
+                "function likely produces extreme or undefined values in some "
+                "states. Check for division by zero, log of negative numbers, "
+                "or unbounded reward terms."
+            )
+
+        # Performance bracket feedback
         if success_rate == 0:
             parts.append(
                 "- The agent NEVER succeeded. The current interface is not "
@@ -845,6 +856,24 @@ class PromptBuilder:
                 "trying a structurally different interface design."
             )
 
+        # Reward curve trend
+        reward_curve = metrics.get("learning_curve", [])
+        if len(reward_curve) >= 4:
+            half = len(reward_curve) // 2
+            early_reward = sum(reward_curve[:half]) / half
+            late_reward = sum(reward_curve[half:]) / (len(reward_curve) - half)
+            if late_reward > early_reward * 1.5 and early_reward > 0:
+                parts.append(
+                    f"- Reward is increasing (early avg: {early_reward:.1f}, "
+                    f"late avg: {late_reward:.1f}) — learning is progressing."
+                )
+            elif late_reward < early_reward * 0.5 and early_reward > 0:
+                parts.append(
+                    f"- Reward is DECLINING (early avg: {early_reward:.1f}, "
+                    f"late avg: {late_reward:.1f}) — training may be unstable "
+                    "or the reward has optimization issues."
+                )
+
         # Success curve trend
         curve = metrics.get("success_curve", [])
         if len(curve) >= 3:
@@ -853,29 +882,20 @@ class PromptBuilder:
             late = sum(curve[-third:]) / third
             if late > early + 0.1:
                 parts.append(
-                    "- Learning curve is still improving at the end of "
-                    "training — the interface may benefit from more training "
-                    "time, or could be refined to converge faster."
+                    "- Success rate is still improving at the end of training — "
+                    "the interface shows promise and could benefit from refinement."
                 )
             elif late < early - 0.1:
                 parts.append(
-                    "- Learning curve is DECLINING — training is unstable. "
+                    "- Success rate is DECLINING — training is unstable. "
                     "The reward signal may be causing optimization issues."
                 )
-            elif late < 0.1:
+            elif late < 0.05 and success_rate < 0.05:
                 parts.append(
                     "- Success rate stays near zero throughout training. "
                     "The current interface is not working — try something "
                     "structurally different."
                 )
-
-        # Generalization reminder
-        parts.append(
-            "- IMPORTANT: The environment is randomized across episodes. "
-            "Ensure the interface does not rely on hardcoded constants. "
-            "The reward must reflect real task completion, not a proxy "
-            "that can be maximized without solving the task."
-        )
 
         analysis = "\n".join(parts)
         return SECTION_TRAINING_FEEDBACK.format(analysis=analysis)

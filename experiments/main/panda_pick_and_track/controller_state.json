@@ -1,0 +1,140 @@
+{
+  "iteration": 30,
+  "total_llm_tokens": 751006,
+  "total_input_tokens": 654174,
+  "total_output_tokens": 96832,
+  "est_llm_cost_usd": 3.415,
+  "total_eval_time": 29745.30612397194,
+  "wall_time": 12860.4,
+  "task_description": "Track a moving 3D target (Lissajous trajectory) with the Panda arm's end-effector. Success = mean tracking error < 2cm over the episode.\n",
+  "evolution_mode": "full",
+  "config": {
+    "max_iterations": 30,
+    "candidates_per_iteration": 1,
+    "checkpoint_interval": 5,
+    "log_level": "INFO",
+    "log_dir": null,
+    "random_seed": 42,
+    "evolution_mode": "full",
+    "task_description": "Track a moving 3D target (Lissajous trajectory) with the Panda arm's end-effector. Success = mean tracking error < 2cm over the episode.\n",
+    "environment": {
+      "env_id": "PandaPickAndTrack",
+      "benchmark_id": null,
+      "ruleset_id": null,
+      "ruleset_file": null,
+      "view_size": 7,
+      "max_steps": null,
+      "adapter_type": "mujoco",
+      "context_file": "contexts/panda_pick_and_track_context.md"
+    },
+    "training": {
+      "num_envs": 2048,
+      "num_steps": 16,
+      "update_epochs": 1,
+      "num_minibatches": 32,
+      "total_timesteps": 5000000,
+      "total_timesteps_full": 15000000,
+      "lr": 0.0005,
+      "lr_schedule": "linear",
+      "clip_eps": 0.2,
+      "gamma": 0.97,
+      "gae_lambda": 0.95,
+      "ent_coef": 0.015,
+      "vf_coef": 0.5,
+      "max_grad_norm": 1.0,
+      "eval_episodes": 20,
+      "eval_episodes_for_fitness": 20,
+      "eval_max_steps": 80,
+      "seed": 42,
+      "num_seeds": 3,
+      "enable_bf16": false,
+      "hidden_dim": 256,
+      "rnn_hidden_dim": 512,
+      "rnn_num_layers": 1,
+      "head_hidden_dim": 256,
+      "action_emb_dim": 16,
+      "brax_policy_layers": [
+        32,
+        32,
+        32,
+        32
+      ],
+      "brax_value_layers": [
+        256,
+        256,
+        256,
+        256,
+        256
+      ],
+      "brax_episode_length": 500,
+      "brax_unroll_length": 10,
+      "brax_updates_per_batch": 8,
+      "brax_batch_size": 1024,
+      "brax_num_evals": 20
+    },
+    "mdp_interface": {
+      "max_obs_dim": 512,
+      "include_action_transform": false
+    },
+    "crash_filter": {
+      "stage0_timeout": 5,
+      "stage1_timeout": 10,
+      "stage2_timeout": 60,
+      "retry_on_crash": true,
+      "max_crash_retries": 1
+    },
+    "evaluator": {
+      "timeout": 1800,
+      "max_retries": 2,
+      "cascade_evaluation": false,
+      "cascade_thresholds": [
+        0.05
+      ],
+      "parallel_evaluations": 1,
+      "enable_artifacts": true,
+      "max_artifact_storage": 104857600
+    },
+    "llm": {
+      "region_name": "us-east-1",
+      "model_name": "claude-sonnet-4-6",
+      "temperature": 0.7,
+      "max_tokens": 128000,
+      "retries": 3,
+      "retry_delay": 1.0,
+      "models": []
+    },
+    "database": {
+      "db_path": null,
+      "in_memory": true,
+      "population_size": 40,
+      "archive_size": 20,
+      "num_islands": 2,
+      "elite_selection_ratio": 0.1,
+      "exploration_ratio": 0.15,
+      "exploitation_ratio": 0.75,
+      "feature_dimensions": [
+        "reward_complexity",
+        "obs_dimensionality"
+      ],
+      "feature_bins": 3,
+      "migration_interval": 5,
+      "migration_rate": 0.2,
+      "random_seed": 42
+    },
+    "prompt": {
+      "num_top_programs": 3,
+      "num_diverse_programs": 2,
+      "num_failure_examples": 2,
+      "include_artifacts": true,
+      "max_artifact_bytes": 20480,
+      "use_stochasticity": true,
+      "num_inspiration_programs": 2
+    },
+    "evolution_trace": {
+      "enabled": true,
+      "include_code": true,
+      "include_prompts": true,
+      "buffer_size": 1
+    }
+  }
+}

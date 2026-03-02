@@ -97,6 +97,15 @@ class TrainingConfig:
     head_hidden_dim: int = 256
     action_emb_dim: int = 16
 
+    # Brax PPO-specific (optional, used for MuJoCo tasks)
+    brax_policy_layers: Optional[List[int]] = None
+    brax_value_layers: Optional[List[int]] = None
+    brax_episode_length: int = 500
+    brax_unroll_length: int = 10
+    brax_updates_per_batch: int = 8
+    brax_batch_size: int = 1024
+    brax_num_evals: int = 20
+
 
 @dataclass
 class MDPInterfaceConfig:

@@ -107,12 +107,21 @@ class MDPInterface:
         self.obs_dim = int(obs.shape[0])
         return self.obs_dim
 
-    def validate(self, dummy_state, max_obs_dim: int = 512) -> int:
+    def validate(self, dummy_state, max_obs_dim: int = 512, dummy_action=None) -> int:
         """Full validation: check shapes, types, and constraints.
 
         Only validates functions that are not None.
         Returns the detected obs_dim (0 if get_observation is None).
+
+        Args:
+            dummy_state: A real environment state for dry-run validation.
+            max_obs_dim: Maximum allowed observation dimension.
+            dummy_action: Action to use for compute_reward validation.
+                Defaults to jnp.int32(0) for discrete envs.
         """
+        if dummy_action is None:
+            dummy_action = jnp.int32(0)
+
         obs_dim = 0
 
         # -- get_observation --
@@ -133,7 +142,7 @@ class MDPInterface:
 
         # -- compute_reward --
         if self.compute_reward is not None:
-            reward = self.compute_reward(dummy_state, jnp.int32(0), dummy_state)
+            reward = self.compute_reward(dummy_state, dummy_action, dummy_state)
             reward = jnp.asarray(reward)
             if reward.ndim > 1:
                 raise ValueError(

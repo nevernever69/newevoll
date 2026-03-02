@@ -1,0 +1,43 @@
+{
+  "id": "bcc01f2a-d4db-4a08-9e03-e19ad01ce141",
+  "code": "import jax\nimport jax.numpy as jnp\n\n\ndef get_observation(state) -> jnp.ndarray:\n    \"\"\"\n    Return a 1D float32 observation vector for the Go1 push recovery task.\n    \n    The agent needs to know:\n    - Its orientation (to stay upright)\n    - Its position relative to origin (to return there)\n    - Its velocities (to control motion)\n    - Joint states (to control legs)\n    - External force info (to anticipate/react to pushes)\n    - Previous action (for smooth control)\n    \"\"\"\n    # --- Orientation / IMU ---\n    gyro = state.info[\"gyro\"]                    # (3,) angular velocity\n    gravity = state.info[\"gravity\"]              # (3,) gravity in body frame\n    upvector = state.info[\"upvector\"]            # (3,) body up direction\n\n    # --- Position and velocity ---\n    pos_xy = state.info[\"pos_xy\"]                # (2,) XY offset from origin\n    height = state.info[\"height\"]                # () COM height\n    local_linvel = state.info[\"local_linvel\"]    # (3,) linear velocity in body frame\n\n    # --- Heading ---\n    heading = state.info[\"heading\"]              # () yaw angle\n    heading_sin = jnp.sin(heading)\n    heading_cos = jnp.cos(heading)\n\n    # --- Distance from origin (normalized) ---\n    pos_dist = jnp.linalg.norm(pos_xy)           # scalar\n\n    # --- Joint positions and velocities ---\n    joint_pos = state.data.qpos[7:]              # (12,) joint angles\n    joint_vel = state.data.qvel[6:]              # (12,) joint velocities\n\n    # Normalize joint velocities to reasonable range\n    joint_vel_norm = joint_vel / 10.0\n\n    # --- Push force (normalized) ---\n    push_force = state.info[\"push_force\"]        # (3,)\n    push_magnitude = jnp.linalg.norm(push_force)\n    # Normalize push force direction (safe division)\n    push_force_norm = push_force / (push_magnitude + 1e-6)\n    push_magnitude_norm = push_magnitude / 400.0  # max force ~400N\n\n    # --- Previous action ---\n    last_act = state.info[\"last_act\"]            # (12,)\n\n    # --- Normalize position features ---\n    pos_xy_norm = pos_xy / 1.0                   # scale: ~1m range\n    height_norm = height - 0.3                   # typical standing height ~0.3m\n    pos_dist_norm = pos_dist / 1.0               # normalized distance\n\n    # --- Normalize velocities ---\n    linvel_norm = local_linvel / 3.0             # typical max ~3 m/s\n    gyro_norm = gyro / 5.0                       # typical max ~5 rad/s\n\n    # --- Concatenate all features ---\n    obs = jnp.concatenate([\n        gyro_norm,                               # 3\n        gravity,                                 # 3  (already unit-ish)\n        upvector,                                # 3\n        pos_xy_norm,                             # 2\n        jnp.array([height_norm]),                # 1\n        linvel_norm,                             # 3\n        jnp.array([heading_sin, heading_cos]),   # 2\n        jnp.array([pos_dist_norm]),              # 1\n        joint_pos,                               # 12\n        joint_vel_norm,                          # 12\n        push_force_norm,                         # 3\n        jnp.array([push_magnitude_norm]),        # 1\n        last_act,                                # 12\n    ])\n\n    return obs.astype(jnp.float32)\n\n\ndef compute_reward(state, action, next_state) -> jnp.ndarray:\n    \"\"\"\n    Compute reward for the Go1 push recovery task.\n    \n    Objectives:\n    1. Stay upright (primary survival objective)\n    2. Return to origin (primary task objective)\n    3. Maintain correct heading\n    4. Be stable (low velocity when near origin)\n    5. Smooth actions (avoid jerky movements)\n    6. Penalize falling\n    \"\"\"\n    # --- Extract relevant state info from next_state ---\n    upvector = next_state.info[\"upvector\"]\n    pos_xy = next_state.info[\"pos_xy\"]\n    heading = next_state.info[\"heading\"]\n    local_linvel = next_state.info[\"local_linvel\"]\n    gyro = next_state.info[\"gyro\"]\n    last_act = state.info[\"last_act\"]\n\n    # --- Upright reward (most important) ---\n    upright = jnp.clip(upvector[-1], 0.0, 1.0)\n    upright_reward = upright  # 1.0 when perfectly upright, 0 when fallen\n\n    # --- Position error (distance from origin) ---\n    pos_dist = jnp.linalg.norm(pos_xy)\n    # Dense reward: exponential decay with distance\n    # At 0m: ~1.0, at 0.1m: ~0.61, at 0.5m: ~0.08\n    position_reward = jnp.exp(-5.0 * pos_dist)\n\n    # --- Heading error ---\n    # Wrap heading to [-pi, pi]\n    heading_error = jnp.abs(heading)\n    heading_error = jnp.minimum(heading_error, 2.0 * jnp.pi - heading_error)\n    heading_reward = jnp.exp(-2.0 * heading_error)\n\n    # --- Velocity penalty (want low velocity when near origin) ---\n    linvel_magnitude = jnp.linalg.norm(local_linvel)\n    vel_penalty = -0.1 * linvel_magnitude\n\n    # --- Angular velocity penalty (want stability) ---\n    angvel_magnitude = jnp.linalg.norm(gyro)\n    angvel_penalty = -0.05 * angvel_magnitude\n\n    # --- Action smoothness penalty ---\n    action_rate = jnp.sum(jnp.square(action - last_act))\n    action_penalty = -0.01 * action_rate\n\n    # --- Action magnitude penalty (discourage large joint deviations) ---\n    action_magnitude = jnp.sum(jnp.square(action))\n    action_mag_penalty = -0.005 * action_magnitude\n\n    # --- Fall penalty (large negative when fallen) ---\n    fallen = upvector[-1] < 0.3\n    fall_penalty = jnp.where(fallen, -5.0, 0.0)\n\n    # --- Milestone: near origin bonus ---\n    near_origin = jnp.where(pos_dist < 0.1, 0.5, 0.0)\n\n    # --- Combine rewards ---\n    # Weight upright heavily (survival), position return, heading\n    reward = (\n        2.0 * upright_reward          # Stay upright\n        + 2.0 * position_reward       # Return to origin\n        + 0.5 * heading_reward        # Maintain heading\n        + vel_penalty                 # Be stable\n        + angvel_penalty              # Reduce spinning\n        + action_penalty              # Smooth actions\n        + action_mag_penalty          # Small actions\n        + fall_penalty                # Penalize falling\n        + near_origin                 # Bonus for being close to origin\n    )\n\n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 1213.8989156087239,
+    "final_length": 0.0,
+    "success_rate": 0.18717708333333336,
+    "success_curve": [
+      0.06884895833333333,
+      0.14458333333333334,
+      0.16879687499999999,
+      0.167171875,
+      0.1807291666666667,
+      0.16466666666666666,
+      0.14066145833333335,
+      0.12233854166666668,
+      0.106015625,
+      0.10641145833333333,
+      0.11025520833333334,
+      0.111375,
+      0.13330208333333335,
+      0.13598437500000002,
+      0.15998437499999998,
+      0.18801041666666665,
+      0.210046875,
+      0.18886458333333334,
+      0.17827604166666666,
+      0.18717708333333336
+    ],
+    "learning_curve": [],
+    "training_time": 998.2979326248169
+  },
+  "obs_dim": 58,
+  "stage": "full_train",
+  "generation": 0,
+  "parent_id": null,
+  "island": 0,
+  "timestamp": 1772308399.6874523,
+  "feature_coords": [
+    1,
+    1
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "id": "43b8df96-e859-479a-8a15-25ed95022825",
+  "code": "import jax\nimport jax.numpy as jnp\n\n\ndef get_observation(state) -> jnp.ndarray:\n    \"\"\"\n    Structurally different observation design:\n    - Added end-effector velocity (missing from all previous designs!)\n    - Removed redundant multi-scale distance features (keep only error vectors)\n    - Focus on the most informative features for tracking\n    - Added relative velocity (gripper_vel - target_vel) for velocity error\n    \"\"\"\n    qpos = state.data.qpos\n    qvel = state.data.qvel\n\n    # === Robot State ===\n    arm_qpos = qpos[0:7]\n    arm_qpos_norm = arm_qpos / jnp.pi  # ~[-1, 1]\n\n    arm_qvel = qvel[0:7]\n    arm_qvel_norm = arm_qvel / 2.0\n\n    # === Task State ===\n    gripper_pos = state.info[\"gripper_pos\"]\n    target_pos = state.info[\"target_pos\"]\n    target_vel = state.info[\"target_vel\"]\n    dist = state.info[\"gripper_target_dist\"]\n\n    # Error vector - the most critical signal\n    error_vec = target_pos - gripper_pos\n\n    # Multi-scale error normalization (keep 3 scales)\n    error_fine = error_vec / 0.02\n    error_med = error_vec / 0.05\n    error_coarse = error_vec / 0.15\n\n    # Scalar distance features\n    dist_features = jnp.array([\n        dist / 0.02,\n        dist / 0.05,\n        dist / 0.15,\n    ])\n\n    # Absolute positions (normalized)\n    gripper_pos_norm = gripper_pos / 0.5\n    target_pos_norm = target_pos / 0.5\n\n    # === Trajectory Parameters ===\n    traj_params = state.info[\"traj_params\"]\n    step_count = state.info[\"step_count\"].astype(jnp.float32)\n    t = step_count * 0.02\n\n    omega_x = 0.35 * traj_params[\"freq_x\"]\n    omega_y = 0.35 * traj_params[\"freq_y\"]\n    omega_z = 0.35 * traj_params[\"freq_z\"]\n\n    # Target velocity (normalized)\n    target_vel_norm = target_vel / 0.15\n\n    # Target acceleration (analytical second derivative)\n    target_acc_x = -0.10 * omega_x * omega_x * jnp.sin(omega_x * t + traj_params[\"phase_x\"])\n    target_acc_y = -0.10 * omega_y * omega_y * jnp.sin(omega_y * t + traj_params[\"phase_y\"])\n    target_acc_z = -0.07 * omega_z * omega_z * jnp.sin(omega_z * t)\n    target_acc = jnp.array([target_acc_x, target_acc_y, target_acc_z]) / 0.03\n\n    # Target jerk (third derivative)\n    target_jerk_x = -0.10 * omega_x ** 3 * jnp.cos(omega_x * t + traj_params[\"phase_x\"])\n    target_jerk_y = -0.10 * omega_y ** 3 * jnp.cos(omega_y * t + traj_params[\"phase_y\"])\n    target_jerk_z = -0.07 * omega_z ** 3 * jnp.cos(omega_z * t)\n    target_jerk = jnp.array([target_jerk_x, target_jerk_y, target_jerk_z]) / 0.05\n\n    # === Control State ===\n    prev_ctrl = state.info[\"prev_ctrl\"][:7]\n    prev_ctrl_norm = prev_ctrl / jnp.pi\n\n    # Control-to-joint error\n    ctrl_joint_error = (prev_ctrl - arm_qpos) / 0.3\n\n    # === Trajectory Phase Encoding ===\n    phase_arg_x = omega_x * t + traj_params[\"phase_x\"]\n    phase_arg_y = omega_y * t + traj_params[\"phase_y\"]\n    phase_arg_z = omega_z * t\n\n    traj_phase_x = jnp.array([jnp.sin(phase_arg_x), jnp.cos(phase_arg_x)])\n    traj_phase_y = jnp.array([jnp.sin(phase_arg_y), jnp.cos(phase_arg_y)])\n    traj_phase_z = jnp.array([jnp.sin(phase_arg_z), jnp.cos(phase_arg_z)])\n\n    # Initial phase (constant per episode)\n    init_phase_x = jnp.array([jnp.sin(traj_params[\"phase_x\"]), jnp.cos(traj_params[\"phase_x\"])])\n    init_phase_y = jnp.array([jnp.sin(traj_params[\"phase_y\"]), jnp.cos(traj_params[\"phase_y\"])])\n\n    # Normalized frequencies\n    freq_features = jnp.array([\n        traj_params[\"freq_x\"] / 3.0,\n        traj_params[\"freq_y\"] / 3.0,\n        traj_params[\"freq_z\"] / 2.0,\n    ])\n\n    # === Predictive Features ===\n    def future_target_pos(dt):\n        tf = t + dt\n        fx = 0.45 + 0.10 * jnp.sin(omega_x * tf + traj_params[\"phase_x\"])\n        fy = 0.00 + 0.10 * jnp.sin(omega_y * tf + traj_params[\"phase_y\"])\n        fz = 0.18 + 0.07 * jnp.sin(omega_z * tf)\n        return jnp.array([fx, fy, fz])\n\n    f1 = future_target_pos(0.04)\n    f2 = future_target_pos(0.10)\n    f3 = future_target_pos(0.20)\n    f4 = future_target_pos(0.40)\n    f5 = future_target_pos(0.80)\n    f6 = future_target_pos(1.60)\n\n    # Future errors (relative to gripper, clipped)\n    future_err_1 = jnp.clip((f1 - gripper_pos) / 0.02, -5.0, 5.0)\n    future_err_2 = jnp.clip((f2 - gripper_pos) / 0.03, -5.0, 5.0)\n    future_err_3 = jnp.clip((f3 - gripper_pos) / 0.05, -5.0, 5.0)\n    future_err_4 = jnp.clip((f4 - gripper_pos) / 0.08, -5.0, 5.0)\n    future_err_5 = jnp.clip((f5 - gripper_pos) / 0.12, -5.0, 5.0)\n    future_err_6 = jnp.clip((f6 - gripper_pos) / 0.18, -5.0, 5.0)\n\n    # Future absolute positions (normalized)\n    future_pos_1 = f2 / 0.5\n    future_pos_2 = f4 / 0.5\n\n    # === NEW: Velocity error (relative velocity between gripper and target) ===\n    # Approximate gripper velocity from joint velocities via finite difference proxy\n    # We use ctrl_joint_error rate as proxy, but better: use qvel directly\n    # The joint velocities qvel[0:7] tell us how fast joints are moving\n    # We need end-effector velocity - approximate using arm_qvel magnitude\n    # Key insight: target_vel tells us how fast target moves\n    # We want gripper to match this velocity when close\n    # Use target_vel directly as the velocity to match\n    \n    # Velocity error: how much the gripper needs to accelerate to match target\n    # This is approximated by target_vel (since we want gripper_vel = target_vel)\n    # The actual gripper velocity isn't directly available, but we can compute\n    # relative velocity signal from control changes\n    ctrl_vel = (prev_ctrl - arm_qpos) / 0.02  # approximate velocity error in joint space\n    ctrl_vel_norm = ctrl_vel / 5.0\n\n    # === Time Features ===\n    t_norm = jnp.array([step_count / 500.0])\n\n    # === Velocity-error alignment ===\n    error_dir = error_vec / (jnp.linalg.norm(error_vec) + 1e-6)\n    vel_error_alignment = jnp.dot(target_vel, error_dir)\n    vel_error_alignment_arr = jnp.array([vel_error_alignment / 0.15])\n\n    # === Error rate of change (target velocity as proxy) ===\n    error_rate_norm = target_vel / 0.10\n\n    obs = jnp.concatenate([\n        arm_qpos_norm,           # 7: joint positions\n        arm_qvel_norm,           # 7: joint velocities\n        gripper_pos_norm,        # 3: gripper position\n        target_pos_norm,         # 3: target position\n        error_fine,              # 3: error / 2cm\n        error_med,               # 3: error / 5cm\n        error_coarse,            # 3: error / 15cm\n        dist_features,           # 3: distance at 3 scales\n        target_vel_norm,         # 3: target velocity\n        target_acc,              # 3: target acceleration\n        target_jerk,             # 3: target jerk\n        prev_ctrl_norm,          # 7: previous control\n        ctrl_joint_error,        # 7: ctrl-joint error\n        ctrl_vel_norm,           # 7: approximate joint velocity error\n        freq_features,           # 3: trajectory frequencies\n        init_phase_x,            # 2: initial phase x\n        init_phase_y,            # 2: initial phase y\n        traj_phase_x,            # 2: current phase x\n        traj_phase_y,            # 2: current phase y\n        traj_phase_z,            # 2: current phase z\n        future_err_1,            # 3: future error 0.04s\n        future_err_2,            # 3: future error 0.10s\n        future_err_3,            # 3: future error 0.20s\n        future_err_4,            # 3: future error 0.40s\n        future_err_5,            # 3: future error 0.80s\n        future_err_6,            # 3: future error 1.60s\n        future_pos_1,            # 3: future target 0.1s\n        future_pos_2,            # 3: future target 0.4s\n        error_rate_norm,         # 3: error rate of change\n        vel_error_alignment_arr, # 1: velocity-error alignment\n        t_norm,                  # 1: normalized time\n    ]).astype(jnp.float32)\n\n    return obs\n\n\ndef compute_reward(state, action, next_state) -> jnp.ndarray:\n    \"\"\"\n    Structurally different reward design:\n    \n    Key change: Instead of multi-scale Gaussian, use a reward that more directly\n    optimizes the mean tracking error criterion.\n    \n    New design:\n    1. Primary: 1 - tanh(k*dist) - smoother gradient at all distances\n    2. Precision bonus: extra reward when under threshold (direct success signal)\n    3. Velocity matching reward: reward when gripper velocity matches target velocity\n    4. Progress reward: reward for reducing distance (dense shaping)\n    5. Minimal smoothness penalty\n    \n    The key insight: the success criterion is MEAN error < 2cm, so we need\n    to reward EVERY step where error < 2cm, not just proximity.\n    \"\"\"\n    dist_next = next_state.info[\"gripper_target_dist\"]\n    dist_curr = state.info[\"gripper_target_dist\"]\n\n    # === Primary Tracking Reward ===\n    # Use 1-tanh for smoother gradients across all distances\n    # At dist=0: 1.0, at dist=0.02: ~0.76, at dist=0.05: ~0.46\n    primary_reward = 1.0 - jnp.tanh(15.0 * dist_next)\n\n    # === Precision Bonus ===\n    # Direct signal for the success criterion: being under 2cm threshold\n    # Use soft threshold via Gaussian to keep differentiability\n    precision_bonus = 0.3 * jnp.exp(-0.5 * (dist_next / 0.015) ** 2)\n\n    # === Velocity Matching Reward ===\n    # Critical for tracking: when close to target, gripper must move WITH target\n    # Reward when the gripper velocity (approximated via ctrl changes) aligns with target vel\n    target_vel = next_state.info[\"target_vel\"]\n    error_vec = next_state.info[\"target_pos\"] - next_state.info[\"gripper_pos\"]\n    \n    # Target velocity magnitude\n    target_vel_mag = jnp.linalg.norm(target_vel)\n    \n    # When close to target, the main challenge is velocity matching\n    # Reward the component of target velocity that moves toward zero error\n    error_dir = error_vec / (jnp.linalg.norm(error_vec) + 1e-6)\n    \n    # Velocity alignment with error direction\n    vel_toward_target = jnp.dot(target_vel, error_dir)\n    \n    # Weight by proximity: velocity matching most important when close\n    proximity_weight = jnp.exp(-0.5 * (dist_next / 0.04) ** 2)\n    vel_match_reward = 0.08 * proximity_weight * (vel_toward_target / (target_vel_mag + 1e-6))\n\n    # === Progress Reward ===\n    # Reward for reducing distance (helps with initial learning)\n    progress = dist_curr - dist_next\n    # Use tanh to bound the progress reward\n    progress_reward = 0.1 * jnp.tanh(50.0 * progress)\n\n    # === Smoothness Penalties ===\n    ctrl_change = next_state.data.ctrl[:7] - state.info[\"prev_ctrl\"][:7]\n    ctrl_change_penalty = -0.002 * jnp.linalg.norm(ctrl_change)\n\n    action_penalty = -0.001 * jnp.linalg.norm(action[:7])\n\n    # === Total Reward ===\n    reward = (\n        primary_reward\n        + precision_bonus\n        + vel_match_reward\n        + progress_reward\n        + ctrl_change_penalty\n        + action_penalty\n    )\n\n    return reward.astype(jnp.float32)",
+  "metrics": {
+    "final_return": 583.7791951497396,
+    "final_length": 500.0,
+    "success_rate": 0.6126822916666667,
+    "success_curve": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.08657291666666667,
+      0.23228645833333336,
+      0.263125,
+      0.34317187499999996,
+      0.38843229166666665,
+      0.4609270833333334,
+      0.5097708333333333,
+      0.5113854166666667,
+      0.5536822916666667,
+      0.5308489583333333,
+      0.5604270833333334,
+      0.5724479166666666,
+      0.6018385416666666,
+      0.5932031249999999,
+      0.6081614583333333,
+      0.6126822916666667
+    ],
+    "learning_curve": [
+      -2.340196748574575,
+      13.503488461176554,
+      213.86854553222656,
+      364.9595540364583,
+      440.2569580078125,
+      480.29693603515625,
+      499.59633382161456,
+      520.8388671875,
+      532.5435689290365,
+      545.4031372070312,
+      555.1920776367188,
+      561.5946248372396,
+      565.4866739908854,
+      567.5863240559896,
+      571.7782185872396,
+      573.6296183268229,
+      577.1196695963541,
+      578.7165730794271,
+      581.6738688151041,
+      583.7791951497396
+    ],
+    "training_time": 372.38770659764606,
+    "nan_detected": false,
+    "per_seed_success": [
+      0.771640625,
+      0.434359375,
+      0.632046875
+    ],
+    "seed_spread": 0.33728125
+  },
+  "obs_dim": 104,
+  "stage": "full_train",
+  "generation": 2,
+  "parent_id": "5d0646c7-7231-42ca-bb58-3f157658982b",
+  "island": 1,
+  "timestamp": 1772434396.9551964,
+  "feature_coords": [
+    1,
+    2
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "iteration": 30,
+  "total_llm_tokens": 650774,
+  "total_input_tokens": 559251,
+  "total_output_tokens": 91523,
+  "est_llm_cost_usd": 3.0506,
+  "total_eval_time": 38716.17997503281,
+  "wall_time": 19391.7,
+  "task_description": "Stand at the origin and recover from random force impulses applied to the torso. Success = survived full episode AND average position error < 10cm from origin.\n",
+  "evolution_mode": "full",
+  "config": {
+    "max_iterations": 30,
+    "candidates_per_iteration": 1,
+    "checkpoint_interval": 5,
+    "log_level": "INFO",
+    "log_dir": null,
+    "random_seed": 42,
+    "evolution_mode": "full",
+    "task_description": "Stand at the origin and recover from random force impulses applied to the torso. Success = survived full episode AND average position error < 10cm from origin.\n",
+    "environment": {
+      "env_id": "Go1PushRecovery",
+      "benchmark_id": null,
+      "ruleset_id": null,
+      "ruleset_file": null,
+      "view_size": 7,
+      "max_steps": null,
+      "adapter_type": "mujoco",
+      "context_file": "contexts/go1_push_recovery_context.md"
+    },
+    "training": {
+      "num_envs": 4096,
+      "num_steps": 16,
+      "update_epochs": 1,
+      "num_minibatches": 32,
+      "total_timesteps": 6000000,
+      "total_timesteps_full": 30000000,
+      "lr": 0.0003,
+      "lr_schedule": "linear",
+      "clip_eps": 0.2,
+      "gamma": 0.97,
+      "gae_lambda": 0.95,
+      "ent_coef": 0.01,
+      "vf_coef": 0.5,
+      "max_grad_norm": 1.0,
+      "eval_episodes": 20,
+      "eval_episodes_for_fitness": 20,
+      "eval_max_steps": 80,
+      "seed": 42,
+      "num_seeds": 3,
+      "enable_bf16": false,
+      "hidden_dim": 256,
+      "rnn_hidden_dim": 512,
+      "rnn_num_layers": 1,
+      "head_hidden_dim": 256,
+      "action_emb_dim": 16,
+      "brax_policy_layers": [
+        512,
+        256,
+        128
+      ],
+      "brax_value_layers": [
+        512,
+        256,
+        128
+      ],
+      "brax_episode_length": 500,
+      "brax_unroll_length": 20,
+      "brax_updates_per_batch": 4,
+      "brax_batch_size": 256,
+      "brax_num_evals": 20
+    },
+    "mdp_interface": {
+      "max_obs_dim": 512,
+      "include_action_transform": false
+    },
+    "crash_filter": {
+      "stage0_timeout": 5,
+      "stage1_timeout": 10,
+      "stage2_timeout": 60,
+      "retry_on_crash": true,
+      "max_crash_retries": 1
+    },
+    "evaluator": {
+      "timeout": 1800,
+      "max_retries": 2,
+      "cascade_evaluation": true,
+      "cascade_thresholds": [
+        0.01
+      ],
+      "parallel_evaluations": 1,
+      "enable_artifacts": true,
+      "max_artifact_storage": 104857600
+    },
+    "llm": {
+      "region_name": "us-east-1",
+      "model_name": "claude-sonnet-4-6",
+      "temperature": 0.7,
+      "max_tokens": 128000,
+      "retries": 3,
+      "retry_delay": 1.0,
+      "models": []
+    },
+    "database": {
+      "db_path": null,
+      "in_memory": true,
+      "population_size": 40,
+      "archive_size": 20,
+      "num_islands": 2,
+      "elite_selection_ratio": 0.1,
+      "exploration_ratio": 0.3,
+      "exploitation_ratio": 0.6,
+      "feature_dimensions": [
+        "reward_complexity",
+        "obs_dimensionality"
+      ],
+      "feature_bins": 3,
+      "migration_interval": 5,
+      "migration_rate": 0.2,
+      "random_seed": 42
+    },
+    "prompt": {
+      "num_top_programs": 3,
+      "num_diverse_programs": 2,
+      "num_failure_examples": 2,
+      "include_artifacts": true,
+      "max_artifact_bytes": 20480,
+      "use_stochasticity": true,
+      "num_inspiration_programs": 2
+    },
+    "evolution_trace": {
+      "enabled": true,
+      "include_code": true,
+      "include_prompts": true,
+      "buffer_size": 1
+    }
+  }
+}

@@ -28,7 +28,6 @@ from mdp_discovery.evolution_trace import EvolutionTracer
 from mdp_discovery.llm_client import LLMEnsemble, LLMResponse
 from mdp_discovery.mdp_interface import MDPInterface
 from mdp_discovery.prompts import PromptBuilder
-from mdp_discovery.train import run_training
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +129,8 @@ class EvolutionController:
         max_iter = max_iterations or self.config.max_iterations
         n = self.config.candidates_per_iteration
         self.start_time = time.time()
-        self.iteration = 0
+        # Don't reset iteration if resuming from checkpoint
+        # self.iteration is set by load_checkpoint() or defaults to 0 in __init__
 
         logger.info(
             "Starting evolution: %d iterations, %d candidates/batch, env=%s, model=%s, mode=%s",
@@ -196,9 +196,8 @@ class EvolutionController:
         interface.obs_dim = obs_dim
 
         # Run full training
-        metrics = run_training(
+        metrics = self.adapter.run_training(
             self.config,
-            self.adapter,
             interface,
             obs_dim,
             total_timesteps=self.config.training.total_timesteps_full,
@@ -340,6 +339,7 @@ class EvolutionController:
             prompt = self.prompt_builder.build_prompt(
                 parent_code=parent.code,
                 parent_metrics=parent.metrics,
+                parent_obs_dim=parent.obs_dim,
                 top_programs=self.db.get_top_programs(
                     n=self.config.prompt.num_top_programs
                 ),
