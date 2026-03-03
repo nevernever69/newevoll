@@ -78,3 +78,9 @@ prompt:
   num_inspiration_programs: 5
   include_artifacts: true
   max_artifact_bytes: 20480
+
+evolution_trace:
+  enabled: true
+  include_code: true      # Save full source code for every candidate
+  include_prompts: true   # Save full prompts sent to LLM
+  buffer_size: 10
