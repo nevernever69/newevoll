@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "mdp-discovery"
@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "MDP Interface Discovery via LLM-Guided Evolutionary Search"
 requires-python = ">=3.10"
 dependencies = [
+    "boto3>=1.28.0",
     "jax>=0.4.20",
     "jaxlib>=0.4.20",
     "flax>=0.8.0",

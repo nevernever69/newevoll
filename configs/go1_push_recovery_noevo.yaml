@@ -1,0 +1,96 @@
+max_iterations: 1
+candidates_per_iteration: 30
+checkpoint_interval: 5
+log_level: "INFO"
+random_seed: 42
+
+environment:
+  env_id: "Go1PushRecovery"
+  adapter_type: "mujoco"
+  context_file: "contexts/go1_push_recovery_context.md"
+
+training:
+  # Brax PPO parallelism (increased for 2xlarge)
+  num_envs: 6144  # Increased from 4096 for 8 vCPUs
+  num_minibatches: 32
+
+  # Cascade timesteps
+  total_timesteps: 6000000        # 6M for short training (~2.5min)
+  total_timesteps_full: 30000000  # 30M for full training (~5.5min)
+  num_seeds: 3
+
+  # PPO hyperparams
+  lr: 0.0003
+  gamma: 0.97
+  gae_lambda: 0.95
+  clip_eps: 0.2
+  ent_coef: 0.01
+  vf_coef: 0.5
+  max_grad_norm: 1.0
+
+  # Evaluation
+  eval_episodes: 20
+  eval_episodes_for_fitness: 20
+  seed: 42
+
+  # Brax-specific
+  brax_policy_layers: [512, 256, 128]
+  brax_value_layers: [512, 256, 128]
+  brax_episode_length: 500
+  brax_unroll_length: 20
+  brax_updates_per_batch: 4
+  brax_batch_size: 256
+  brax_num_evals: 20
+
+mdp_interface:
+  max_obs_dim: 512
+
+crash_filter:
+  stage0_timeout: 5
+  stage1_timeout: 10
+  stage2_timeout: 60
+  retry_on_crash: true
+  max_crash_retries: 1
+
+evaluator:
+  timeout: 1800
+  max_retries: 2
+  cascade_evaluation: true
+  cascade_thresholds: [0.01]
+  parallel_evaluations: 2  # Evaluate 2 candidates in parallel on 2xlarge
+
+llm:
+  region_name: "us-east-1"
+  model_name: "claude-sonnet-4-6"
+  temperature: 0.7
+  max_tokens: 128000
+  retries: 3
+  retry_delay: 1.0
+
+database:
+  population_size: 40
+  archive_size: 20
+  num_islands: 2
+  feature_dimensions: ["reward_complexity", "obs_dimensionality"]
+  feature_bins: 3
+  migration_interval: 5
+  migration_rate: 0.2
+  exploitation_ratio: 0.6
+  exploration_ratio: 0.3
+
+prompt:
+  num_top_programs: 3
+  num_diverse_programs: 2
+  num_failure_examples: 2
+  include_artifacts: true
+  max_artifact_bytes: 20480
+
+evolution_trace:
+  enabled: true
+  include_code: true
+  include_prompts: true
+  buffer_size: 1
+
+task_description: >
+  Stand at the origin and recover from random force impulses applied to the torso.
+  Success = survived full episode AND average position error < 10cm from origin.
