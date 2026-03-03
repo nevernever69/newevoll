@@ -730,6 +730,17 @@ class EvolutionController:
                 best_fitness,
                 iter_time,
             )
+            # Log crashed candidates to W&B too
+            if program:
+                self.wandb.log_candidate(
+                    iteration=self.iteration + 1,
+                    candidate_num=candidate_num,
+                    total_candidates=total_candidates,
+                    metrics=result.metrics or {},
+                    obs_dim=program.obs_dim if program.obs_dim else 0,
+                    stage="crashed",
+                    is_best=False,
+                )
         elif result.stage == EvalStage.SHORT_TRAIN_REJECTED:
             logger.info(
                 "[Iter %d, Candidate %d/%d] REJECTED (success=%.0f%%) | best=%.0f%% | %.1fs",

@@ -1,0 +1,12 @@
+jax>=0.4.20
+jaxlib>=0.4.20
+flax>=0.8.0
+optax>=0.1.7
+distrax>=0.1.5
+xminigrid>=0.9.0
+pyyaml>=6.0
+dacite>=1.8.0
+openai>=1.0.0
+
+[dev]
+pytest>=7.0

@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: mdp-discovery
+Version: 0.1.0
+Summary: MDP Interface Discovery via LLM-Guided Evolutionary Search
+Requires-Python: >=3.10
+Requires-Dist: jax>=0.4.20
+Requires-Dist: jaxlib>=0.4.20
+Requires-Dist: flax>=0.8.0
+Requires-Dist: optax>=0.1.7
+Requires-Dist: distrax>=0.1.5
+Requires-Dist: xminigrid>=0.9.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: dacite>=1.8.0
+Requires-Dist: openai>=1.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
