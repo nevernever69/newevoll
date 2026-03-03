@@ -3,6 +3,7 @@ candidates_per_iteration: 30
 checkpoint_interval: 50
 log_level: "INFO"
 random_seed: 42
+task_description: "Pick up the blue pyramid (which transforms to a green ball) and place it near the yellow hex."
 
 environment:
   env_id: "XLand-MiniGrid-R4-13x13"

@@ -3,6 +3,7 @@ candidates_per_iteration: 30
 checkpoint_interval: 50
 log_level: "INFO"
 random_seed: 42
+task_description: "Pick up the blue pyramid."
 
 environment:
   env_id: "XLand-MiniGrid-R1-9x9"

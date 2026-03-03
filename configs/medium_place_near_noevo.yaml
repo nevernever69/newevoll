@@ -3,6 +3,7 @@ candidates_per_iteration: 30
 checkpoint_interval: 50
 log_level: "INFO"
 random_seed: 42
+task_description: "Place the yellow pyramid adjacent to the green square."
 
 environment:
   env_id: "XLand-MiniGrid-R1-9x9"
