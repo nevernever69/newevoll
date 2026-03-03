@@ -391,10 +391,97 @@ class EvolutionController:
             )
             return prompt, None, None, 0
 
+    def _generate_candidate_code(self, prompt, parent_code: Optional[str]) -> LLMResponse:
+        """Generate candidate code using LLM (Phase 1: parallel).
+
+        Returns:
+            LLMResponse with generated code (or None if failed)
+        """
+        response = self.llm.generate(prompt)
+
+        if response.code is None:
+            # Retry once: ask the model to wrap its answer in a code fence
+            logger.debug(
+                "No code fence in response (first 200 chars): %s",
+                response.text[:200],
+            )
+            retry_prompt = {
+                "system": prompt["system"],
+                "user": (
+                    prompt["user"]
+                    + "\n\nIMPORTANT: Your previous response did not contain a "
+                    "```python code fence. You MUST return your complete code "
+                    "inside a single ```python ... ``` fence."
+                ),
+            }
+            retry_resp = self.llm.generate(retry_prompt)
+            response = LLMResponse(
+                text=retry_resp.text,
+                code=retry_resp.code,
+                input_tokens=response.input_tokens + retry_resp.input_tokens,
+                output_tokens=response.output_tokens + retry_resp.output_tokens,
+                model=response.model,
+            )
+            if response.code is None:
+                logger.debug(
+                    "Retry also failed (first 200 chars): %s",
+                    response.text[:200],
+                )
+
+        return response
+
+    def _evaluate_candidate(self, response: LLMResponse) -> Optional[CandidateResult]:
+        """Evaluate candidate by running crash filter + training (Phase 2: sequential).
+
+        Args:
+            response: LLM response with generated code
+
+        Returns:
+            CandidateResult or None if evaluation failed
+        """
+        if response.code is None:
+            return None
+
+        result = self.evaluator.evaluate(response.code)
+
+        # Crash retry — give the LLM one chance to fix it
+        if (
+            result.stage == EvalStage.CRASHED
+            and self.config.crash_filter.retry_on_crash
+        ):
+            retry_prompt = self.prompt_builder.build_prompt(
+                parent_code=result.code,
+                parent_metrics=None,
+                failed_programs=[
+                    {"code": result.code, "crash_result": result.crash_result}
+                ],
+            )
+            retry_response = self.llm.generate(retry_prompt)
+
+            # Track retry tokens
+            self.total_llm_tokens += retry_response.input_tokens + retry_response.output_tokens
+            self.total_input_tokens += retry_response.input_tokens
+            self.total_output_tokens += retry_response.output_tokens
+
+            if retry_response.code is not None:
+                retry_result = self.evaluator.evaluate(retry_response.code)
+                if retry_result.stage != EvalStage.CRASHED:
+                    logger.info(
+                        "Retry succeeded (fitness %.0f%%)",
+                        retry_result.fitness * 100,
+                    )
+                    return retry_result
+
+        return result
+
     def _run_single_candidate(
         self, prompt, parent_code: Optional[str]
     ) -> Tuple[LLMResponse, Optional[CandidateResult]]:
-        """Worker: LLM call + evaluate. Runs in thread pool."""
+        """Worker: LLM call + evaluate. Runs in thread pool.
+
+        NOTE: This is the old combined version used by non-ablation modes.
+        For ablation with many candidates, use the split version above.
+        """
         response = self.llm.generate(prompt)
 
         if response.code is None:
@@ -464,7 +551,11 @@ class EvolutionController:
         return response, result
 
     def _run_batch(self, executor: ThreadPoolExecutor, batch_size: int) -> None:
-        """Prepare, submit, and collect one batch of candidates."""
+        """Prepare, submit, and collect one batch of candidates.
+
+        Phase 1: Generate all candidates in parallel (LLM calls - fast)
+        Phase 2: Evaluate candidates sequentially (training - slow, full GPU access)
+        """
         batch_start = time.time()
 
         # 1. Prepare batch on main thread (reads DB)
@@ -479,39 +570,77 @@ class EvolutionController:
             batch_size,
         )
 
-        # 2. Submit all workers
+        # === PHASE 1: Generate all candidates in parallel (LLM only) ===
+        logger.info("[Iter %d] Phase 1: Generating %d candidates in parallel...", self.iteration + 1, batch_size)
+        gen_start = time.time()
+
         futures = {}
         for prompt, parent_code, parent_id, generation in batch:
-            f = executor.submit(self._run_single_candidate, prompt, parent_code)
+            f = executor.submit(self._generate_candidate_code, prompt, parent_code)
             futures[f] = (parent_id, generation)
 
-        # 3. Collect results, store in DB (main thread, sequential)
-        candidate_num = 0
+        # Collect generated candidates
+        generated_candidates = []
         for f in as_completed(futures):
             parent_id, generation = futures[f]
-            candidate_num += 1
-            iter_time = time.time() - batch_start
-
             try:
-                response, result = f.result()
+                response = f.result()
+                generated_candidates.append((response, parent_id, generation))
+
+                # Track LLM tokens
+                self.total_llm_tokens += response.input_tokens + response.output_tokens
+                self.total_input_tokens += response.input_tokens
+                self.total_output_tokens += response.output_tokens
             except Exception:
-                logger.exception("[Iter %d, Candidate %d/%d] Worker failed", self.iteration + 1, candidate_num, batch_size)
+                logger.exception("[Iter %d] LLM generation failed", self.iteration + 1)
                 continue
 
-            self.total_llm_tokens += response.input_tokens + response.output_tokens
-            self.total_input_tokens += response.input_tokens
-            self.total_output_tokens += response.output_tokens
+        gen_time = time.time() - gen_start
+        logger.info(
+            "[Iter %d] Phase 1 complete: Generated %d/%d candidates in %.1fs",
+            self.iteration + 1,
+            len(generated_candidates),
+            batch_size,
+            gen_time,
+        )
 
-            if result is None:
+        # === PHASE 2: Evaluate candidates sequentially (full GPU access) ===
+        logger.info("[Iter %d] Phase 2: Evaluating %d candidates sequentially...", self.iteration + 1, len(generated_candidates))
+
+        candidate_num = 0
+        for response, parent_id, generation in generated_candidates:
+            candidate_num += 1
+            eval_start = time.time()
+
+            # Check if LLM returned code
+            if response.code is None:
                 logger.warning(
                     "[Iter %d, Candidate %d/%d] LLM returned no code fence, skipping",
                     self.iteration + 1,
                     candidate_num,
-                    batch_size,
+                    len(generated_candidates),
                 )
                 continue
 
+            # Evaluate candidate (crash filter + training)
+            logger.info(
+                "[Iter %d, Candidate %d/%d] Evaluating (sequential for full GPU)...",
+                self.iteration + 1,
+                candidate_num,
+                len(generated_candidates),
+            )
+
+            try:
+                result = self._evaluate_candidate(response)
+            except Exception:
+                logger.exception("[Iter %d, Candidate %d/%d] Evaluation failed", self.iteration + 1, candidate_num, len(generated_candidates))
+                continue
+
+            if result is None:
+                continue
+
             self.total_eval_time += result.eval_time
+            iter_time = time.time() - batch_start
 
             # Store in database
             program = self.db.add(
@@ -541,7 +670,7 @@ class EvolutionController:
                 )
 
             # Log result
-            self._log_iteration(result, program, response, iter_time, candidate_num, batch_size)
+            self._log_iteration(result, program, response, iter_time, candidate_num, len(generated_candidates))
 
             # Island management
             self.db.increment_generation()
