@@ -77,15 +77,15 @@ def _check_stage1(
 
 
 def _check_stage2(
-    interface: MDPInterface, config: Config, dummy_state
+    interface: MDPInterface, config: Config, dummy_state, dummy_action=None
 ) -> Optional[CrashFilterResult]:
-    """Stage 2: Dry-run with a real environment State."""
+    """Stage 2: Dry-run with a real environment State + JIT compilation check."""
     try:
         obs_dim = interface.validate(
             dummy_state,
             max_obs_dim=config.mdp_interface.max_obs_dim,
+            dummy_action=dummy_action,
         )
-        return None  # passed
     except Exception as e:
         return CrashFilterResult(
             passed=False,
@@ -94,12 +94,32 @@ def _check_stage2(
             error_traceback=traceback.format_exc(),
         )
 
+    # JIT compilation check — catches Python control flow on traced values
+    try:
+        if interface.get_observation is not None:
+            jitted_obs = jax.jit(interface.get_observation)
+            jitted_obs(dummy_state)
+
+        if interface.compute_reward is not None:
+            jitted_reward = jax.jit(interface.compute_reward)
+            jitted_reward(dummy_state, dummy_action, dummy_state)
+    except Exception as e:
+        return CrashFilterResult(
+            passed=False,
+            stage_failed=2,
+            error_message=f"JIT compilation failed — {type(e).__name__}: {e}",
+            error_traceback=traceback.format_exc(),
+        )
+
+    return None  # passed
+
 
 def run_crash_filter(
     code: str,
     config: Config,
     dummy_state,
     required_functions: Optional[List[str]] = None,
+    dummy_action=None,
 ) -> CrashFilterResult:
     """Run the full 3-stage crash filter on candidate MDP interface code.
 
@@ -109,6 +129,8 @@ def run_crash_filter(
         dummy_state: A real environment state for dry-run validation.
         required_functions: List of function names to check for.
             Defaults to ["get_observation", "compute_reward"].
+        dummy_action: Action to use for compute_reward validation.
+            Defaults to jnp.int32(0) for discrete envs.
 
     Returns:
         A CrashFilterResult. If passed is True, obs_dim contains
@@ -128,7 +150,7 @@ def run_crash_filter(
         return result
 
     # Stage 2
-    result = _check_stage2(interface, config, dummy_state)
+    result = _check_stage2(interface, config, dummy_state, dummy_action=dummy_action)
     if result is not None:
         return result
 

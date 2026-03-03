@@ -1,0 +1,1190 @@
+Reinforcement Learning Journal 2025 Cover Page
+Towards Improving Reward Design in RL:
+A Reward Alignment Metric for RL Practitioners
+Calarina Muslimani, Kerrick Johnstonbaugh, Suyog Chandramouli,
+Serena Booth, W. Bradley Knox, Matthew E. Taylor
+Keywords: Reinforcement Learning, Reward Design, Alignment, Human-AI Interaction,
+Human-in-the-loop
+Summary
+Reinforcement learning (RL) agents are fundamentally limited by the quality of the reward
+functions they learn from, yet reward design is often overlooked under the assumption that
+a well-defined reward is readily available. However, this is rarely the case in real-world ap-
+plications, and reward design is a challenging endeavor: sparse rewards can hinder learning,
+while dense rewards may increase the risk of misspecification. Reward evaluation is equally
+problematic: how do we know if a reward function is correctly specified? In our work, we ad-
+dress this challenge by focusing on reward alignment — assessing whether a reward function
+accurately encodes the preferences of a human stakeholder. As a concrete measure of reward
+alignment, we introduce the Trajectory Alignment Coefficient. This metric quantifies the sim-
+ilarity between a human stakeholder’s ranking of trajectory distributions and those induced by
+a given reward function. We validate the usefulness of this metric theoretically and through a
+user study.
+Contribution(s)
+1. This paper introduces the Trajectory Alignment Coefficient, a metric to evaluate reward
+alignment—the extent to which a reward function encodes the preferences of a human stake-
+holder. This metric only requires access to human preferences over trajectory distributions.
+Context: Prior work (Gleave et al., 2021; Wulfe et al., 2022) has proposed reward distance
+metrics, which can be treated as reward alignment metrics if one of the reward functions
+accurately reflects the preferences of a human stakeholder. Other work (Brown et al., 2021)
+has proposed alignment verification of reward functions. However, these metrics assume
+access to ground-truth reward or value functions which our metric does not require.
+2. Through an 11–person user study, we demonstrate that the Trajectory Alignment Coeffi-
+cient can assist RL practitioners (self-identified) with reward selection, compared to relying
+solely on inspection of the reward function definition. Specifically, we found the following
+statistically significant results: (1) access to the Trajectory Alignment Coefficient during
+reward selection reduced perceived cognitive workload by 1.5x, (2) was preferred by 82%
+of participants over the Reward Only condition, and (3) increased the success rate of select-
+ing reward functions that produced performant policies by 41% (compared to unselected
+alternative rewards).
+Context: The user study results presented in this work are in the context of the Hungry-
+Thirsty domain (Singh et al., 2009). This test-bed has been shown to be particularly chal-
+lenging for reward design (Booth et al., 2023). Further, we specifically do not include
+Gleave et al. (2021); Wulfe et al. (2022); Brown et al. (2021) as conditions in the user study
+because they are not directly comparable due to the difference in necessary assumptions.
+3. We prove that the Trajectory Alignment Coefficient is invariant to potential-based reward
+shaping and positive linear transformations of the reward function if and only if the metric
+considers trajectory distributions that share the same start state distribution.
+Context: Invariance to these reward transformations is a common property of reward
+evaluation metrics proposed in previous works (Gleave et al., 2021; Wulfe et al., 2022).
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL Practitioners
+Towards Improving Reward Design in RL:
+A Reward Alignment Metric for RL Practitioners
+Calarina Muslimani1, †, Kerrick Johnstonbaugh2, Suyog Chandramouli3,
+Serena Booth4, 5, W. Bradley Knox6, Matthew E. Taylor1,7
+†musliman@ualberta.ca
+1University of Alberta
+2RL Core Technologies
+3Princeton University
+4Brown University
+5Simons Institute for the Theory of Computing
+6University of Texas at Austin
+7Alberta Machine Intelligence Institute (Amii)
+Abstract
+Reinforcement learning agents are fundamentally limited by the quality of the reward
+functions they learn from, yet reward design is often overlooked under the assumption
+that a well-defined reward is readily available. However, in practice, designing rewards
+is difficult, and even when specified, evaluating their correctness is equally problematic:
+how do we know if a reward function is correctly specified? In our work, we address
+these challenges by focusing on reward alignment — assessing whether a reward func-
+tion accurately encodes the preferences of a human stakeholder. As a concrete measure
+of reward alignment, we introduce the Trajectory Alignment Coefficient to quantify
+the similarity between a human stakeholder’s ranking of trajectory distributions and
+those induced by a given reward function. We show that the Trajectory Alignment Co-
+efficient exhibits desirable properties, such as not requiring access to a ground truth
+reward, invariance to potential-based reward shaping, and applicability to online RL.
+Additionally, in an 11–person user study of RL practitioners, we found that access to
+the Trajectory Alignment Coefficient during reward selection led to statistically signifi-
+cant improvements. Compared to relying only on reward functions, our metric reduced
+cognitive workload by 1.5x, was preferred by 82% of users and increased the success
+rate of selecting reward functions that produced performant policies by 41%.
+1 Introduction
+In reinforcement learning (RL), the reward hypothesis states that “all of what we mean by goals
+and purposes can be well thought of as maximization of the expected value of the cumulative sum
+of a received scalar signal (reward)” (Sutton & Barto, 2018). More generally, this means that RL
+agents can solve a task provided the reward function properly defines the task’s objective. However,
+the reward hypothesis does not address the practical challenges of designing reward functions. In
+practice, reward design is often a difficult and error-prone process carried out by human engineers
+(Skalse et al., 2022; Booth et al., 2023; Knox & MacGlashan, 2024).
+These challenges can become more pronounced in real-world RL applications, where reward design
+is typically a collaborative process between RL practitioner(s) and domain expert(s). While the
+domain expert has specialized knowledge of the task, they typically lack RL expertise, making it
+Reinforcement Learning Journal 2025
+difficult for them to define a reward function explicitly. Instead, the domain expert might express
+preferences, constraints, or desired outcomes, leaving the RL practitioner responsible for designing
+(or selecting) a reward function that satisfies these preferences. This collaboration can increase the
+complexity of crafting reward functions that correctly specify objectives.
+Sparse reward functions are conceptually simple to understand and implement but are less com-
+monly used in practice since current RL algorithms struggle to learn from infrequent signals (Pig-
+natelli et al., 2024). To overcome this, dense reward functions are employed, which provide more
+frequent feedback to help mitigate the credit assignment problem. However, reward misspecification
+remains a challenge (Amodei et al., 2016; Skalse et al., 2022). For example, a recent survey found
+that reward shaping, a method intended to facilitate learning, is commonly used in RL applications
+for autonomous driving (Knox et al., 2023); without careful design, reward shaping can introduce
+unintended biases. This can result in RL agents exploiting shortcuts in the reward function or failing
+to achieve the “true” task objective (Pan et al., 2022). Such issues can pose serious safety risks in
+real-world applications like autonomous driving and industrial process control.
+Reward evaluation is also challenging. This is the process of assessing whether a reward function
+accurately captures the intended task. A common approach is the “rollout” method, where a policy
+is trained to optimize the reward function, and then its rollouts are examined to assess the learned
+behavior (Booth et al., 2023; Gleave et al., 2021). However, this approach has several limitations:
+(1) it is computationally expensive, (2) can result in reward overfitting—where reward functions be-
+come unintentionally over-engineered for a specific algorithm or environment configuration—and
+(3) assumes that policies are evaluated outside of training, making it less applicable to the online RL
+setting. Alternatively, prior works (Gleave et al., 2021; Wulfe et al., 2022) have proposed distance
+metrics for reward evaluation but these require a ground-truth reward for baseline comparison, lim-
+iting their integration into the reward design pipeline (unless shaping a reward based on an existing
+function). Moreover, other metrics (Knox & MacGlashan, 2024; Brown et al., 2021) focus solely on
+alignment verification and do not measure partial alignment.
+In this work, we focus on reward alignment as a means of reward evaluation, which we define as the
+extent to which a reward function preserves human preferences. To operationalize this concept, we
+introduce the Trajectory Alignment Coefficient (σTAC). This metric evaluates the similarity between
+a human stakeholder’s preferences over trajectory distributions (of which trajectories are a special
+case) and those induced by a given reward, discount factor pair. It overcomes key limitations of
+previous work by eliminating the need for a ground-truth reward, instead relying on human prefer-
+ences. Unlike alignment verification, the Trajectory Alignment Coefficient measures the degree of
+reward alignment, allowing it to distinguish between reward functions that yield the same optimal
+policy but rank intermediate trajectory distributions differently—making it suitable for online RL.
+Additionally, we prove the necessary and sufficient conditions for the Trajectory Alignment Coeffi-
+cient to be invariant to common transformations, in particular potential-based shaping and positive
+linear rescaling. This invariance is important because sensitivity to these transformations can cause
+functionally equivalent rewards to receive different scores, leading to unreliable assessments. Be-
+yond reward alignment, the Trajectory Alignment Coefficient can serve as a distance metric for
+comparing reward functions (and their associated discounting). While our primary focus is on re-
+ward design with human preferences as the reference, this perspective highlights its potential as a
+tool for comparing reward functions more broadly.
+Lastly, we assess whether the Trajectory Alignment Coefficient can aid RL practitioners in the re-
+ward design process (see Figure 1). Specifically, we investigate its benefit in reward selection—i.e.,
+choosing performant reward functions that capture a domain expert’s preferences. To evaluate this,
+we conducted an 11–person user study in the Hungry-Thirsty domain (Singh et al., 2009), a test-bed
+where RL practitioners have struggled to design well-specified rewards (Booth et al., 2023). Our
+statistically significant findings show that access to the Trajectory Alignment Coefficient during re-
+ward selection (1) reduced perceived cognitive workload by 1.5x, (2) was preferred by 82% of users
+over the Reward Only condition, and (3) increased the success rate of selecting reward functions that
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL Practitioners
+produced performant policies by 41%. Ultimately, our work takes a step toward improving reward
+design and selection in RL by introducing a metric that measures the alignment between a proposed
+reward function and a set of human preferences over sampled trajectory distributions.Trajectory
+Alignment
+Coefficient
+( )
+Reward
+Function B
+= 0.7
+Reward
+Function A
+= 0.3
+Domain Expert RL Practitioner Designs Reward Functions
+Domain Knowledge
+(Preferences)
+Figure 1: This illustrates the interaction between a domain expert and an RL practitioner in real-
+world applications (black arrow) and how our metric, σTAC, integrates into this process (blue arrow).
+2 Related Work
+Early alignment research focused on directly training agents to align with human preferences
+(Hadfield-Menell et al., 2016). However, these approaches did not include an assessment of the
+agent’s alignment. Recent efforts have shifted to evaluating the quality of engineered and learned
+reward functions. For example, Booth et al. (2023); Knox et al. (2023) have conducted empirical
+investigations to identify shortcomings in current reward design practices and evaluation schemes.
+Furthermore, metrics have been proposed to compare reward functions without requiring policy
+evaluations (see Table 1). While some methods are invariant to potential-based shaping, they can
+rely on access to a ground-truth reward function (Wulfe et al., 2022; Gleave et al., 2021), which
+is often impractical. Likewise, Brown et al. (2021) proposed verification methods to assess the
+alignment of an RL agent’s behavior but define alignment in terms of optimal policies. We argue,
+however, that defining alignment in this manner can be limiting, particularly in online RL where
+one cares about the agent’s lifetime performance. Our work builds on Knox & MacGlashan (2024),
+which described methods to identify misalignment and outlined its common causes. However, this
+prior work focused on detecting whether misalignment exists, offering only a binary assessment. We
+extend this framework by introducing a real-valued metric that quantifies the degree of alignment,
+enabling a more nuanced evaluation of reward function quality. Lastly, while LLM alignment is also
+a prominent topic (Shen et al., 2023), it is beyond the scope of this work due to its broad focus,
+which can include mitigating adversarial attacks and detecting bias.
+METRIC Invariant No GT r Not No Human Suitable for
+Required Binary Preferences Online RL
+GLEAVE ET AL. (2021) ✓ × ✓ (✓) ✓
+WULFE ET AL. (2022) ✓ × ✓ (✓) ✓
+BROWN ET AL. (2021) – × × (✓) ×
+KNOX & MACGLASHAN (2024) ✓ ✓ × × ×
+TRAJECTORY ALIGNMENT COEFFICIENT ✓ ✓ ✓ × ✓
+Table 1: Comparison of reward evaluation measures. ✓ indicates the metric satisfies the property, ×
+indicates it does not, (✓) indicates partial satisfaction, and – indicates the property was not evaluated.
+Reinforcement Learning Journal 2025
+3 Background
+This section first provides background on RL, then discusses how a reward function and discount
+factor pair, (r, γ), induce preference orderings over trajectories (and trajectory distributions), a con-
+cept rooted in prior work on policy preferences (Bowling et al., 2023).
+Definition 1. A Markov decision process (MDP) is defined by the tuple (S, A, r, p, μ, γ), where
+S is the state space, A is the action space, r : S × A × S → R is the reward function and
+p : S × A × S → [0, 1] is the state transition function. The initial state distribution is given by μ,
+and γ ∈ [0, 1) is the discount factor that controls the weighting of future rewards.
+In RL, at every time-step t, the agent takes an action at in state st, transitions to state st+1, and
+then receives reward rt+1. A trajectory τ is a sequence of (st, at, st+1) tuples that either reaches a
+terminal state after a finite number of steps or continues indefinitely. The return of a trajectory is
+defined as the sum of discounted future rewards, Gr (τ ) = PT
+t=0 γtrt+1, where T = |τ | − 1 for
+episodic tasks or T → ∞ for continuing tasks. The agent attempts to learn a policy, π : S × A →
+[0, 1] to maximize the expected return.
+Reward Functions Induce Preference Orderings Consider the deterministic case where we de-
+fine preferences over a set of trajectories that share the same start state. In this case, given (r, γ) a
+preferred trajectory is one that yields a greater return:
+τA ≿
+(r,γ)
+τB ⇐⇒ Gr (τA) ≥ Gr (τB) (3.1)
+where τA ≻
+(r,γ)
+τB indicates that trajectory τA is preferred over τB with respect to (r, γ).
+We now shift to the stochastic setting, which arises when the environment or the agent’s behavior
+is stochastic. In this case, we consider probability distributions over trajectories. Note, we specifi-
+cally focus on trajectory distributions rather than policies, as some distributions (e.g., those that are
+generated from non-Markovian policies) cannot correspond to any Markov policy.
+Definition 2. Let H(μ) be the set of all probability distributions over trajectories that share the
+same initial state distribution μ. That is,
+H(μ) = {η(τ ) | η(τ ) = μ(s0)P (a0, s1, a1, . . . | s0)} ,
+where P (a0, s1, a1, . . . | s0) is an arbitrary conditional distribution over trajectories given the ini-
+tial state s0. We refer to η(τ ) ∈ H(μ) as a trajectory distribution and omit the explicit dependence
+on τ for brevity.
+Definition 3. Given (r, γ), we define a preference ordering over trajectory distributions as follows:
+ηA ≿
+(r,γ)
+ηB ⇐⇒ EτA∼ηA [Gr (τA)] ≥ EτB ∼ηB [Gr (τB )] (3.2)
+Equations (3.1) and (3.2) imply that the (r, γ) pair naturally induce a preference ordering over trajec-
+tories (or trajectory distributions) via the expected return. To illustrate these concepts, consider the
+simple autonomous driving task (Knox & MacGlashan, 2024) in Figure 2. Suppose there exists only
+three trajectories {τsuccess, τidle, τcrash}, and a trajectory distribution ηsuccess-crash. τsuccess consists of
+safe driving. τcrash consists of a car crashing and τidle consists of a car remaining parked. ηsuccess-crash
+is a trajectory distribution that places 90% of its probability mass on τsuccess and 10% on τcrash. Next,
+consider the pair (r, γ) with return values: Gr (τsuccess) = 10, G(τidle) = 0, Gr (τcrash) = −50. By
+the probabilities of ηsuccess-crash, Eτ ∼ηsuccess-crash [Gr (τ )] = 4. Based on equations (3.1) and (3.2), the
+resulting preference ordering is τsuccess ≻ ηsuccess-crash ≻ τidle ≻ τcrash.
+4 An Alignment Metric for Reward Function Evaluation
+This section introduces the Trajectory Alignment Coefficient as a reward alignment metric and es-
+tablishes its key theoretical properties.
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL PractitionersReturn
+Human
+stakeholder
+Mismatch in
+preferences
+Best
+Worst
+10
+4
+-50
+90%
+10%
+Trajectory
+Alignment
+Coefficient:
+Less than 1
+0
+Figure 2: This provides an example of the Trajectory Alignment Coefficient in the case of a simple
+autonomous driving scenario.
+4.1 Trajectory Alignment Coefficient
+To establish a reward alignment metric, we need to quantify how well a reward function reflects the
+preferences of a human stakeholder. To achieve this, we propose the Trajectory Alignment Coeffi-
+cient, a measure based on Kendall’s Tau–b correlation. Kendall’s Tau–b is a non-parametric measure
+that quantifies the level of agreement between two sets of ranked data, adjusting for ties (Kendall,
+1945). It outputs a scalar value ∈ [−1, 1], indicating levels of agreement: 1 for perfect agreement
+(e.g., identical preference orderings) and −1 for complete disagreement (e.g., reverse preference
+orderings). The Trajectory Alignment Coefficient measures the similarity among preference order-
+ings over trajectory distributions in H(μ). However, H(μ) can theoretically contain an intractably
+large number of trajectory distributions. To apply the Trajectory Alignment Coefficient as a practical
+reward alignment measure, we must consider finite subsets of trajectory distributions from H(μ).
+To compute σTAC, we first construct two preference data sets, one from a human (Dh), assumed to
+be transitive, and one induced by a given (r, γ) pair. Specifically, we define:
+υh(Dh) =
+n
+{ηi, ηj } | (ηi ⋄
+(h) ηj ) ∈ Dh
+o
+where ⋄ ∈ {≻, ≺, ∼} denotes a preference relation and the subscript indicates whether the pref-
+erence originates from the human or (r, γ). υ extracts unordered pairs of trajectory distributions
+that were ranked by the human. Then given these pairs, we construct the corresponding preference
+dataset under (r, γ) via Definition (3), which ranks trajectory distributions with respect to (r, γ):
+Dr,γ (υh, r, γ) =
+n
+(ηi ⋄
+(r,γ) ηj ) | {ηi, ηj } ∈ υh(Dh)
+o
+.
+Once we have both Dh and Dr,γ , σTAC measures their agreement using Kendall’s Tau-b:
+σTAC(Dh, Dr,γ ) .
+= P − Q
+p(P + Q + X0)(P + Q + Y0) (4.1)
+where
+P : Number of concordant pairs between Dr,γ and Dh,
+Q : Number of discordant pairs between Dr,γ and Dh,
+X0 : Number of pairs tied only in Dr,γ ,
+Y0 : Number of pairs tied only in Dh.
+This formulation ensures that σTAC quantifies the alignment between human and reward-induced
+preferences over the same set of trajectory distribution pairs. To illustrate, consider the trajectory
+Reinforcement Learning Journal 2025
+distributions, η1, η2, η3, where Dh, Dr,γ are as follows,
+Dh =
+n
+(η2 ≻
+(h)
+η3), (η1 ≻
+(h)
+η3)
+o
+=⇒ υh(Dh) =
+n
+{η2, η3}, {η1, η3}
+o
+Dr,γ (υh, r, γ) =
+n
+(η2 ≺
+(r,γ)
+η3), (η1 ≻
+(r,γ)
+η3)
+o
+.
+Note that given a subset of trajectory distributions, the Trajectory Alignment Coefficient can be ap-
+plied in cases with either a full or partial ranking. A full ranking establishes a complete order over
+the elements in a subset, where all necessary pairwise comparisons are available. In contrast, a par-
+tial ranking occurs when some pairwise comparisons are missing (e.g., Dr,γ , Dh, as the comparison
+between η1 and η2 is missing). This flexibility allows the Trajectory Alignment Coefficient to be
+used in settings where ranking information is limited or incomplete.
+Moreover, the definition for σTAC in Equation (4.1) can also be used to evaluate the differences
+between any two reward, discount factor pairs: (r, γ), (r′, γ). For example, given data sets Dr,γ and
+Dr′,γ representing preferences over trajectory distributions, we can use Equation (4.1) to determine
+how similar the preferences induced by (r, γ) are to those induced by (r′, γ).
+4.2 Invariance to Common Reward Transformations
+Reward shaping is commonly used to accelerate RL training by modifying the reward function to im-
+prove learning efficiency (Ng et al., 1999). Common reward transformations include potential-based
+reward shaping and positive linear rescaling. A well-designed reward evaluation metric should be in-
+variant to these transformations; otherwise, it may assign different scores to functionally equivalent
+rewards, leading to inconsistent assessments. We show that the Trajectory Alignment Coefficient
+maintains this invariance, ensuring stable evaluations of reward alignment.
+Definition 4. A potential-based reward function is defined as r′(s, a, s′) .
+= r(s, a, s′) + γΦ(s′) −
+Φ(s), given a potential function Φ : S → R, and γ as the MDP discount factor.
+To determine whether the Trajectory Alignment Coefficient is invariant to potential-based reward
+shaping, we first examine the conditions for which preference orderings remain unchanged. While
+potential-based reward shaping is known to preserve the optimal policy (Ng et al., 1999), we further
+prove in Theorem 4.4 that, in the infinite-horizon setting, it preserves preference orderings over
+all trajectory distributions η ∈ H(μ) if and only if they share the same start-state distribution, μ.
+This establishes a fundamental condition for ensuring that any reward alignment metric based on
+preference orderings remains unaffected by potential-based reward shaping.
+Lemma 4.1. Given the infinite-horizon setting, if the expected returns under reward function r′ are
+a positive linear transformation of the expected returns under reward function r, with respect to all
+trajectory distributions, then the preference ordering over any two trajectory distributions ηi and ηj
+remains unchanged. Formally:
+Eτ ∼η [Gr′ (τ )] = αEτ ∼η [Gr (τ )] + β =⇒
+
+ηi ≿
+(r,γ)
+ηj ⇐⇒ ηi ≿
+(r′,γ)
+ηj
+
+∀ηi, ηj ,
+where α > 0 and β are constants and the expectations Eτ ∼η [Gr (τ )] and Eτ ∼η [Gr′ (τ )] are taken
+over the same trajectory distributions.
+Lemma 4.2. [Sufficiency] In the infinite horizon setting, if two trajectory distributions ηi, ηj ∈
+H(μ), then potential-based reward shaping preserves their preference ordering with respect to the
+reward function, r, and the potential-based function, r′:
+ηi ≿
+(r,γ)
+ηj ⇐⇒ ηi ≿
+(r′,γ)
+ηj .
+Proof. Let ηi, ηj ∈ H(μ) be arbitrary trajectory distributions, and without loss of generality assume
+that ηi ≿
+(r,γ)
+ηj . From Definition (3), this implies that Eτ ∼ηi [Gr (τ )] ≥ Eτ ∼ηj [Gr (τ )]. We now
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL Practitioners
+analyze how the expected return changes under the potential-based reward function r′. The expected
+return under the reward function r and the shaped reward function r′ is:
+Eτ ∼η [Gr (τ )] = Eτ ∼η
+" ∞X
+t=0
+γtr(st, at, st+1)
+#
+, (4.2)
+Eτ ∼η [Gr′ (τ )] = Eτ ∼η
+" ∞X
+t=0
+γtr′(st, at, st+1)
+#
+(4.3)
+Substitute the definition of the potential-based reward function, Definition (4), into Equation (4.3):
+Eτ ∼η [Gr′ (τ )] = Eτ ∼η
+" ∞X
+t=0
+γt
+r(st, at, st+1) + γΦ(st+1) − Φ(st)
+#
+Distribute γt and rearrange terms:
+Eτ ∼η [Gr′ (τ )] = Eτ ∼η
+" ∞X
+t=0
+γtr(st, at, st+1) + γtγΦ(st+1) − γtΦ(st)
+#
+= Eτ ∼η
+" ∞X
+t=0
+γtr(st, at, st+1)
+#
++ Eτ ∼η
+" ∞X
+t=0
+γt+1Φ(st+1) − γtΦ(st)
+#
+= Eτ ∼η [Gr (τ )] + Eτ ∼η
+" ∞X
+t=1
+γtΦ(st) −
+∞X
+t=0
+γtΦ(st)
+#
+Split P∞
+t=0 γtΦ(st) into two parts, one from t = 1 to ∞ and the other isolating t = 0:
+Eτ ∼η [Gr′ (τ )] = Eτ ∼η [Gr (τ )] + Eτ ∼η
+" ∞X
+t=1
+γtΦ(st) −
+∞X
+t=1
+γtΦ(st) − γ0Φ(s0)
+#
+Now, combine like-terms and P∞
+t=1 γtΦ(st) gets canceled out:
+Eτ ∼η [Gr′ (τ )] = Eτ ∼η [Gr (τ )] − Eτ ∼η [Φ(s0)]
+As Φ(s0) depends only on the start-state distribution μ, and μ is the same for all η ∈ H(μ), we
+conclude that the expected returns under r and r′ differ by a constant, Es0∼μ [Φ(s0)]:
+Eτ ∼η [Gr′ (τ )] = Eτ ∼η [Gr (τ )] − Es0∼μ [Φ(s0)] (4.4)
+As Eτ ∼η [Gr′ (τ )] is a positive linear transformation of Eτ ∼η [Gr (τ )], we apply Lemma 4.1 and
+conclude that the preference remains unchanged under reward shaping:
+ηi ≿
+(r,γ)
+ηj ⇐⇒ ηi ≿
+(r′,γ)
+ηj ∀ηi, ηj ∈ H(μ)
+Lemma 4.3. [Necessity] In the infinite horizon setting, if two trajectory distributions ηi ∈ H(μi)
+and ηj ∈ H(μj ) have different start-state distributions (μi̸ = μj ), then there exists a potential
+function Φ such that:
+ηi ≿
+(r,γ)
+ηj and ηi ≺
+(r′,γ)
+ηj .
+We leave the proof for the necessity condition (Lemma (4.3) to Supplementary Material C.
+Reinforcement Learning Journal 2025
+Theorem 4.4. In the infinite-horizon setting, let (r, γ) and two trajectory distributions ηi ∈ H(μi)
+and ηj ∈ H(μj ) be given. Potential-based reward shaping is guaranteed to maintain the preference
+ordering over all trajectory distributions if and only if μi = μj . Formally,
+ηi ≿
+(r,γ)
+ηj ⇐⇒ ηi ≿
+(r′,γ)
+ηj
+ ∀Φ ∈ F ⇐⇒ μi = μj
+where F is the space of all potential-based shaping functions and Φ : S 7 → R is an arbitrary function
+in this space. The proof of Theorem (4.4) follows directly from Lemmas (4.2) and (4.3).
+Definition 5. Let Dr,γ , Dr′,γ , and Dh be preference data sets over trajectory distributions induced
+by (r, γ), (r′, γ), and a human, respectively, where r′ .
+= f (r) for some transformation f . The Trajec-
+tory Alignment Coefficient σTAC is invariant to f if and only if σTAC(Dh, Dr,γ ) = σTAC(Dh, Dr′,γ ).
+Theorem 4.5. Consider the infinite-horizon setting. Let r and r′ be reward functions where r′ is a
+shaped version of r using potential-based reward shaping. Let Dh be a data set of human prefer-
+ences over trajectory distributions, and define Dr,γ = Dr,γ (υh, r, γ) and Dr′,γ = Dr′,γ (υh, r′, γ)
+as the preference data sets induced by (r, γ) and (r′, γ), respectively. The Trajectory Alignment Co-
+efficient is invariant to any potential-based reward shaping if and only if within each set of trajectory
+distributions {ηi, ηj } ∈ υh(Dh), ηi, ηj share the same initial state distribution (i.e., ηi, ηj ∈ H(μ)).
+Proof. Let {ηi, ηj } ∈ υh(Dh) be an arbitrary pair of trajectory distributions compared in the human
+preference data set. By Definition (4.1) of σTAC, the following biconditional holds:
+σTAC(Dh, Dr,γ ) = σTAC(Dh, Dr′,γ ) ⇐⇒ ∀{ηi, ηj } ∈ υh(Dh) : ηi ⋄
+(r,γ) ηj ⇐⇒ ηi ⋄
+(r′,γ) ηj
+
+where ⋄ ∈ {≻, ≺, ∼} denotes the preference relation. By Theorem (4.4), we have:
+ηi ⋄
+(r,γ) ηj ⇐⇒ ηi ⋄
+(r′,γ) ηj
+ ∀Φ ∈ F, ηi ∈ H(μi), ηj ∈ H(μj ) ⇐⇒ μi = μj
+Therefore, we conclude that σTAC is invariant to potential-based reward shaping if and only if all sets
+of trajectory distributions being compared share the same initial state distribution, μ:
+σTAC(Dh, r, γ) = σTAC(Dh, r′, γ) ∀Φ ∈ F ⇐⇒ ηi, ηj ∈ H(μ), ∀{ηi, ηj } ∈ υh(Dh)
+Theorem 4.6. Given the infinite-horizon setting, the Trajectory Alignment Coefficient is invariant
+to positive linear transformations.
+To prove Theorem (4.6), we show that a positive linear transformation linearly transforms the ex-
+pected return. We can then apply Lemma (4.1) and the Trajectory Alignment Coefficient’s invariance
+definition (5) to complete the proof. The full derivation is provided in Supplementary Material C.
+4.3 Trajectory Alignment Coefficient in Practice
+To use the Trajectory Alignment Coefficient in practice, two parameters must be specified: the
+number of trajectories (or trajectory distributions) to rank and the trajectory sampling method. To
+obtain a meaningful evaluation, it is important to include a diverse set of trajectories. If trajectories
+are limited to a specific region of the state and action space, the evaluation may fail to reveal reward
+misalignment in other regions. To mitigate this, one heuristic we propose is to sample trajectories
+that exhibit qualitatively different behaviors. In our experiments, we generate these trajectories via
+RL agents partially trained with different reward functions. However, other sources, such as human
+demonstrations or trajectories generated through behavioral cloning, could also be used. Beyond
+diversity, the number of ranked trajectories plays a critical role. While more trajectories provide a
+clearer picture of reward alignment, ranking too many is impractical for humans. We found that in
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL Practitioners
+our tested domain (Hungry-Thirsty, described in Section 5), the Trajectory Alignment Coefficients
+from a subset of 12 trajectories were highly correlated with those from a set of 1200, suggesting that
+a smaller, well-chosen set can still provide reliable estimates. See Supplementary Material A.2 for
+further details.
+To illustrate the Trajectory Alignment Coefficient in practice, we revisit the toy example in Figure
+2, demonstrating how reward-based rankings can diverge from human preferences Specifically, the
+toy (r, γ) pair produced a preference ordering of τsuccess ≻ ηsuccess-crash ≻ τidle ≻ τcrash. However, a
+human stakeholder would likely prefer remaining parked over possibly crashing: τsuccess ≻ τidle ≻
+ηsuccess-crash ≻ τcrash. To compute σTAC from Equation (4.1), we count the number of concordant
+and discordant pairs. In our four-element example, six pairwise comparisons are possible, with all
+but one being concordant. The only discordant pair is (ηsuccess-crash, τidle), where the preference is re-
+versed. Since there are no ties, X0 and Y0 are zero. Substituting these values into the equation yields
+σTAC ≈ 0.67, indicating misalignment between (r, γ) and the human stakeholder’s preferences.
+5 Experimental Design
+This study examines the reward design setting where RL practitioners have to choose between re-
+ward functions in order to satisfy the preferences of another stakeholder (e.g., a domain expert).
+In particular, our goal is to investigate whether the Trajectory Alignment Coefficient can assist RL
+practitioners in reward selection. We assess this by comparing RL practitioners with and without
+access to our metric, focusing on two key dimensions:
+1. Perceived Benefit — Does it reduce perceived cognitive workload, increase ease of use, and
+improve understanding of reward functions?
+2. Practical Impact — Does access to the metric help RL practitioners choose reward functions that
+improve performance of learned policies while also reducing the time spent on reward selection?
+We conducted an ethics-approved human subject study with 11 self-identified RL practitioners. This
+included individuals who had completed graduate courses in RL (81%), conducted RL research
+(100%), or applied RL in their professional work (27%). Note these categories were not mutually
+exclusive. In this within-subjects study, participants selected reward functions under three experi-
+mental conditions with different types of assistance. The study was primarily in-person and each
+session lasted approximately 90 minutes.
+Testbed: Hungry-Thirsty Our study is conducted in a modified Hungry-Thirsty domain (Singh
+et al., 2009), an environment where others have shown (Booth et al., 2023) that RL practitioners
+struggle with reward design. It is a 4 × 4 grid-world where food and water are randomly placed at
+the grid corners (see Figure 12 in Supplementary Material D). The agent can move in one of the
+four cardinal directions or execute eat or drink actions. The agent’s goal is to maximize time spent
+without hunger. Hunger occurs if the agent has not eaten in the previous timestep, but eating is only
+possible at a food source when the agent is not thirsty. If the agent is thirsty, the eat action fails.
+The agent becomes thirsty with 0.10 probability per step. This is an infinite-horizon MDP, although
+each episode is truncated after 200 timesteps. The state space consists of the agent’s position and
+two Boolean variables for hunger and thirst. The reward function is a linear combination of these
+variables. The evaluation metric is the number of timesteps the agent is not hungry.
+Study Protocol The study consisted of two primary components, Preference Review and Re-
+ward Selection. In the Preference Review component, participants first read a description of the
+Hungry-Thirsty domain and then completed a short quiz and an interactive game-play session
+to confirm their understanding of its rules. They were informed that they would be collabo-
+rating with a domain expert to select a reward function for training an RL agent, with the ex-
+pert providing a ranking of 12 trajectories (generated using the task evaluation metric as a proxy
+for expert preferences). Participants then reviewed this ranking alongside corresponding video
+clips. To obtain these trajectories, we use the mixture sampling method described in Section 4.3.
+Reinforcement Learning Journal 2025Domain Expert’s
+Rankings
+Reward Function
+Rankings
+Traj. A
+Traj. B
+Traj. C
+Traj. B
+Traj. A
+Traj. C
+Figure 3: Visualization comparing rank-
+ings of 3 trajectories, used in the Reward
++ Alignment + Visualization condition.
+In the Reward Selection phase, participants completed
+four rounds of reward selection, with the goal of choos-
+ing the reward function that best reflects the domain ex-
+pert’s preferences. To select reward functions for this
+component, we considered those from the open-sourced
+human reward data set in Booth et al. (2023) and their
+affine transformations. See Table 4 in Supplementary
+Material B for the complete set of reward function com-
+parisons. When selecting reward functions for com-
+parisons, we focused on reward functions that: (1) dif-
+fered in magnitude, scale, or range, and (2) myopically
+ranked states based on immediate reward. Across all conditions, participants had access to two re-
+ward functions at a time and could revisit the trajectory rankings along with their respective video
+clips. Moreover, reward function pairs were randomized and were not repeated across the study.
+See Figures 6–9 in Supplementary Material B for the user interface. The study contained three
+conditions, whose order was randomized for each participant:
+• Reward Only (Control): The reward functions were shown but no further information was given.
+• Reward + Alignment: Participants also received the Trajectory Alignment Coefficient, computed
+from the domain expert’s preferences and those induced by each reward function.
+• Reward + Alignment + Visual: Participants were also provided the Trajectory Alignment Co-
+efficient and a parallel coordinate plot illustrating differences in the domain expert’s and reward
+functions’ rankings over trajectories (see example in Figure 3).
+Evaluation To assess differences in perceived benefit across conditions, participants completed a
+modified NASA Task Load Index (NASA-TLX) (Hart & Staveland, 1988), which measured cog-
+nitive work load (scale from 1–7). The survey included all six NASA-TLX questions, along with
+three additional questions on confidence in reward selection, helpfulness of feedback (e.g., align-
+ment, visual, and/or reward function), and ease of integrating feedback into decisions (see Figure
+10 in Supplementary Material B). Participants completed this survey after each condition. We then
+compute the overall workload based on the survey responses. After completing all reward selection
+conditions, participants voted on which condition best improved their understanding of the reward
+function, provided the most useful feedback, was least mentally demanding, and made reward selec-
+tion the easiest (see Figure 11 in Supplementary Material B). We also included open-ended questions
+for participants to describe their experiences during the reward selection process.
+To assess the practical impact of the conditions, we first examined how often users selected re-
+ward functions that improved policy performance compared to the unselected alternative rewards.
+For shorthand, we refer to these reward functions as performant or policy-improving. Specifically,
+we calculated the proportion of times users chose the reward function that resulted in a higher fi-
+nal return and a greater area under the learning curve (AUC), with respect to the evaluation met-
+ric. To evaluate the policy performance of the reward functions, we trained Q–Learning, SARSA,
+and Expected SARSA agents on each reward function, performing a grid search over learning rate
+∈ {10−k, 5 × 10−k | k ∈ {2, 3, 4}}, and epsilon ∈ {0.01, 0.05, 0.15}. Each agent was trained
+across 10 environment seeds. We then averaged final returns and AUC, separately, across all trained
+agents to assess performance. By using multiple RL algorithms and varying hyperparameters, we
+aimed to reduce the likelihood that a reward function’s performance was due to random chance or a
+particularly favorable choice of hyperparameters. Second, we measured the time taken to complete
+the reward selection process.
+For all analyses, we used paired t–tests for continuous data when normality assumptions held and
+Wilcoxon Signed-Rank tests otherwise. For categorical voting data, Fisher’s Exact Test was applied.
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL Practitioners
+The corresponding p–values and test statistics are reported: t (paired t–test) and W (Wilcoxon
+Signed-Rank test). We performed the Bonferroni correction (α = 0.05) to control for Type I errors.
+6 Results
+This section presents the results from the user study, structured around our two research components,
+perceived benefit and practical impact, as well as a qualitative analysis of participants’ experiences.
+Perceived Benefit Figure 4(a) presents the results of the NASA-TLX survey: the average ratings
+(± standard error) for five selected questions and the overall workload score. We chose a subset of
+questions for this plot to avoid redundancy. We found that the overall workload score was signifi-
+cantly lower for the Reward + Alignment (μ = 1.97, p = 0.003, t = −3.46) and Reward + Align-
+ment + Visual (μ = 1.83, p = 0.02, W = 10.0) conditions compared to the Reward Only condition
+(μ = 3.19), representing a 1.5x reduction in workload. Similarly, 4(b) shows the total number of
+participant votes for each condition, reflecting preferences across different criteria. Notably, 100%
+of participants reported that either alignment conditions led to easier decision-making. Additionally,
+91% indicated that either alignment conditions improved their understanding of the reward functions
+and reduced mental demand, while 82% found the provided information most useful—all of which
+are significantly greater than the number of votes for the Reward Only condition (p ≤ 0.009).
+Practical Impact In Figure 5(b), we found that participants achieved significantly greater success
+in selecting the policy-improving reward functions in both the Reward + Alignment (μ = 0.93,
+p = 0.01, W = 41.0) and Reward + Alignment + Visual (μ = 0.96, p = 0.008, W = 28.0)
+conditions compared to the Reward Only condition (μ = 0.66). Specifically, we found that in the
+Reward Only condition, 55% of participants selected policy-improving reward functions no better
+than random (or worse). However, the time-to-completion data, shown in Figure 5(a), provide a
+more complete picture. While participants on average took longer in the Reward Only condition
+(μ = 660.89) compared to both the Reward + Alignment (μ = 334.09, p = 0.04, W = 13.0) and
+Reward + Alignment + Visual conditions (μ = 393.44, p = 0.07, W = 16.0), these differences
+were not statistical significant. It is important to acknowledge that deriving the preference ordering
+used in the alignment conditions itself requires time, which is not accounted for in this comparison.
+Beyond aggregate trends, individual differences in time use revealed interesting patterns. Notably,
+six participants (P6–P11) spent more time in the Reward Only condition but still performed worse
+in reward selection, highlighting that more time without alignment support did not lead to better
+outcomes. Moreover, three participants (P1–P3) achieved perfect success rates in the Reward Only
+condition while spending less time than in the Reward + Alignment + Visual condition. This sug-
+gests that they may have required less assistance during reward selection, and the additional visual
+feedback in the Reward + Alignment + Visual condition likely introduced more information for them
+to process, increasing deliberation time. These results suggest that while alignment-based feedback
+improved reward selection success for most participants, some succeeded without it.
+Qualitative Analysis In the open-ended questions, we asked participants to explain which condi-
+tion they liked and disliked. Most participants favored the Reward + Alignment + Visual condition
+(73%). A common theme among these participants was the emphasis on how the combination of the
+visualization and alignment score provided both intuitive insights into the reward function’s behavior
+and a scalar metric that simplified decision-making. For example, P5 stated “It also let me see ex-
+actly which trajectories were aligned vs not, giving me better insights into what behavior the reward
+function was favoring.” Furthermore, the Reward Only condition was least favored by 64% of par-
+ticipants. Two main complaints emerged: (1) difficulty interpreting the reward functions, requiring
+intuition or domain expertise, and (2) the process being slow and tedious, making reward compar-
+isons time-consuming. Specifically, P2 wrote “it is very hard to just look at the reward function and
+guess what will happen,” while P8 mentioned “Even though all the information needed to make a
+decision could be deducted from the trajectories, going through all of them on a piece of paper could
+Reinforcement Learning Journal 2025Lower is better Higher is better
+(a) (b)
+Figure 4: Results from participants’ experience during reward selection are shown from (a) partici-
+pants given the NASA-TLX survey and (b) a survey assessing different aspects of favorability.Higher is better
+(a) (b)
+Lower is better
+Figure 5: Results showing (a) the mean completion time (± standard error) for reward selection and
+(b) the proportion of policy-improving reward functions selected per user and condition.
+be very hard and time-consuming.” Lastly, two participants least preferred the Alignment + Reward
+condition. The common theme was that the alignment score alone was insufficient. Unsurprisingly,
+participants felt that, compared to the Reward + Alignment + Visual condition, it lacked detailed
+feedback and appeared too aggregated without supporting visuals, making decision-making more
+difficult. Overall, the open-ended responses further supported the quantitative evidence, indicating
+that the Trajectory Alignment Coefficient improved the user experience during reward selection.
+7 Conclusion
+The success of RL agents is inherently dependent on the quality of the MDP’s reward function, yet
+reward design is often treated as a secondary concern. In practice, however, it is a complex and
+error-prone process. These challenges are further amplified in real-world RL applications, where
+reward design is typically a collaborative effort between RL practitioners and domain experts. In
+such settings, the RL practitioner must design a reward function that accurately reflects the domain
+expert’s preferences and constraints. In this work, we address this challenge by introducing the
+Trajectory Alignment Coefficient, a reward alignment metric that quantifies the similarity between
+a human stakeholder’s preference orderings over trajectory distributions and those induced by a
+reward function. Through an 11–person user study, we demonstrate its effectiveness in supporting
+RL practitioners during reward selection. Specifically, participants in Trajectory Alignment-based
+conditions reported significantly lower cognitive workload and were more likely to select policy-
+improving reward functions. In future work, we plan to extend our metric to full reward design,
+where participants construct reward functions from scratch.
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL Practitioners
+Broader Impact Statement
+In this work, we introduce a reward evaluation metric that measures the alignment between a hu-
+man stakeholder’s preferences over trajectory distributions and those induced by a reward function.
+However, if the preferences provided by the human stakeholder do not accurately reflect their true
+beliefs, the output of the metric may be unreliable and could mislead the reward design process.
+Acknowledgments
+This work has taken place in part in the Intelligent Robot Learning Lab at the University of Al-
+berta and the Rewarding Lab at the University of Texas at Austin. The Intelligent Robot Learning
+Lab is supported by research grants from Alberta Innovates; the Alberta Machine Intelligence In-
+stitute (Amii); a Canada CIFAR AI Chair, Amii; the Digital Research Alliance of Canada; Mitacs;
+and the Natural Sciences and Engineering Research Council (NSERC). The Rewarding Lab is sup-
+ported by the National Science Foundation (NSF IIS-2402650), the Office of Naval Research (ONR
+N00014-22-1-2204), EA Ventures, Bosch, UT Austin’s Good Systems grand challenge, and Open
+Philanthropy.
+References
+Dario Amodei, Chris Olah, Jacob Steinhardt, Paul Christiano, John Schulman, and Dan Mané. Con-
+crete Problems in AI Safety. CoRR, abs/1606.06565, 2016.
+Serena Booth, W. Bradley Knox, Julie Shah, Scott Niekum, Peter Stone, and Alessandro Allievi.
+The Perils of Trial-and-Error Reward Design: Misdesign through Overfitting and Invalid Task
+Specifications. In AAAI Conference on Artificial Intelligence, 2023.
+Michael Bowling, John D. Martin, David Abel, and Will Dabney. Settling the Reward Hypothesis.
+In International Conference on Machine Learning, 2023.
+Daniel S. Brown, Jordan Schneider, and Scott Niekum. Value Alignment Verification. In Interna-
+tional Conference on Machine Learning, 2021.
+Adam Gleave, Michael Dennis, Shane Legg, Stuart Russell, and Jan Leike. Quantifying Differences
+in Reward Functions. In International Conference on Learning Representations, 2021.
+Dylan Hadfield-Menell, Stuart J Russell, Pieter Abbeel, and Anca Dragan. Cooperative Inverse
+Reinforcement Learning. In Neural Information Processing Systems, 2016.
+Sandra G. Hart and Lowell E. Staveland. Development of NASA-TLX (Task Load Index): Results
+of Empirical and Theoretical Research. Advances in Psychology, 52:139–183, 1988.
+Maurice George Kendall. The Treatment of Ties in Ranking Problems. Biometrika, 33:239–251,
+1945.
+W. Bradley Knox and James MacGlashan. How to Specify Reinforcement Learning Objectives. In
+Finding the Frame: An RLC Workshop for Examining Conceptual Frameworks at the Reinforce-
+ment Learning Conference, 2024.
+W. Bradley Knox, Alessandro Allievi, Holger Banzhaf, Felix Schmitt, and Peter Stone. Reward
+(Mis)design for Autonomous Driving. Artificial Intelligence, 316(103829), 2023.
+Andrew Y. Ng, Daishi Harada, and Stuart J. Russell. Policy Invariance Under Reward Transfor-
+mations: Theory and Application to Reward Shaping. In International Conference on Machine
+Learning, 1999.
+Alexander Pan, Kush Bhatia, and Jacob Steinhardt. The Effects of Reward Misspecification: Map-
+ping and Mitigating Misaligned Models. In International Conference on Learning Representa-
+tions, 2022.
+Reinforcement Learning Journal 2025
+Eduardo Pignatelli, Johan Ferret, Matthieu Geist, Thomas Mesnard, Hado van Hasselt, Olivier
+Pietquin, and Laura Toni. A Survey of Temporal Credit Assignment in Deep Reinforcement
+Learning. Transactions on Machine Learning Research, 2024.
+Tianhao Shen, Renren Jin, Yufei Huang, Chuang Liu, Weilong Dong, Zishan Guo, Xinwei Wu, Yan
+Liu, and Deyi Xiong. Large Language Model Alignment: A Survey. CoRR, abs/2309.15025,
+2023.
+Satinder Singh, Richard L Lewis, and Andrew G Barto. Where Do Rewards Come From? In
+Conference of the Cognitive Science Society, 2009.
+Joar Skalse, Nikolaus Howe, Dmitrii Krasheninnikov, and David Krueger. Defining and Character-
+izing Reward Gaming. In Neural Information Processing Systems, 2022.
+Richard S Sutton and Andrew G Barto. Reinforcement learning: An Introduction. MIT press, 2018.
+Blake Wulfe, Ashwin Balakrishna, Logan Ellis, Jean Mercat, Rowan McAllister, and Adrien
+Gaidon. Dynamics-Aware Comparison of Learned Reward Functions. In International Con-
+ference on Learning Representations, 2022.
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL Practitioners
+Supplementary Materials
+The following content was not necessarily subject to peer review.
+A Trajectory Alignment Coefficient in Practice
+A.1 How to sample trajectories?
+To sample the trajectories used for the trajectory alignment coefficient, we propose that practitioners
+select qualitatively different trajectories. We now outline the methodology used to obtain these
+trajectories.
+To ensure qualitative diversity, we sampled trajectories from Q–learning agents that were only par-
+tially trained. Note that for this component, we only considered the environment configuration with
+a fixed start state of (0, 0) and where the food and water locations are (3, 0) and (0, 0), respec-
+tively. We did this intentionally, as the trajectory alignment coefficient only remains invariant to
+potential-based reward shaping if the start state is fixed.
+We used the default hyperparameters from Table 3 and the evaluation metric as the reward function
+for this training. We categorized partial training into three groups: low-return, medium-return,
+and high-return. After partial training, we performed offline evaluation (i.e., policy rollouts with
+no exploration). The low-return group contained trajectories with returns in [1, 30), the medium-
+return group had returns in [30, 60), and the high-return group had returns ≥ 60. We then randomly
+sampled four trajectories per group, resulting in a total of 12 trajectories used in the user study
+outlined in Section 5.
+The specific returns (per the evaluation metric) of the 12 trajectories are as follows:
+[1.0, 6.0, 9.0, 29.0, 43.0, 56.0, 56.0, 66.0, 68.0, 74.0, 90.0]
+Note that the optimal policy achieves an average return of ≈ 96.31. We computed the optimal policy
+by performing value iteration over 13 seeds.
+A.2 How many trajectories to samples?
+In Section 4.3, we noted that in Hungry Thirsty, the Trajectory Alignment Coefficients computed
+from a small subset of 12 trajectories were highly correlated with those computed from a larger set
+of 1200 trajectories. To better understand this relationship, we now outline the methodology used to
+obtain this result.
+More specifically, we used all 31 reward functions from the open-sourced human reward data set
+from Booth et al. (2023), along with their variants (e.g., 23 added reward functions, linear transfor-
+mations), resulting in a total of 54 reward functions. We then sampled trajectory subsets of varying
+sizes (N ∈ {10, 12, 25, 100, 500}) using the sampling strategy described earlier. Using the task
+evaluation metric as a proxy for the domain expert preferences, we calculated the Trajectory Align-
+ment Coefficients (σT AC ) between the domain expert’s preferences and those induced by the reward
+functions. To assess whether smaller trajectory subsets provide reliable σT AC estimates, we com-
+puted the correlation between the σT AC scores from each subset to those obtained using a larger
+trajectory set of 1200. We repeated this process 50 times per trajectory subset size to account for
+variability and then averaged the resulting correlations. This is depicted in Table 2.
+A high correlation between the Trajectory Alignment Coefficients from smaller subsets and the
+1200–trajectory set would indicate that even with a limited number of trajectories, we can obtain
+σT AC estimates that are consistent with those derived from a significantly larger sample. This
+finding suggests that in Hungry-Thirsty, a relatively small number of trajectories may be sufficient
+for accurately assessing σT AC , reducing the need for extensive trajectory ranking.
+Reinforcement Learning Journal 2025
+We used Kendall’s Tau to measure correlation because (1) the normality assumption was violated,
+making Pearson’s r unsuitable, and (2) there were ties in the dataset, which makes Kendall’s Tau a
+better choice than Spearman’s Rho, as it handles tied ranks more effectively.
+SUBSET SIZE AVERAGE CORRELATION STANDARD DEVIATION
+500 0.992 0.005
+100 0.979 0.009
+25 0.930 0.036
+12 0.828 0.105
+10 0.795 0.131
+Table 2: Average correlation (across 50 samples) between the σT AC scores computed from each
+subset size and those obtained using a larger trajectory set of 1200 (denoted in bold). The standard
+deviation across samples is reported in the third column.
+A.3 Q-Learning Hyperparameters
+An overview of the hyperparameters used for training the Q–Learning, SARSA, and Expected
+SARSA algorithms are provided in Table 3. To evaluate the performance of the reward functions
+used in the reward selection aspect of the user study, we trained 18 Q–Learning, SARSA and Ex-
+pected SARSA agents by performing a full grid search over two hyperparameters: learning rate
+and epsilon. We systematically varied both across all combinations while keeping the remaining
+hyperparameters fixed.
+HYPERPARAMETER VALUE
+NUMBER OF TRAINING EPISODES 10000
+NUMBER OF SEEDS 10
+LEARNING RATE [0.0001, 0.001, 0.01, 0.0005, 0.005, 0.05]
+EXPLORATION STRATEGY EPSILON-GREEDY
+EPSILON [0.05, 0.10,0.15]
+DISCOUNT 0.99
+Table 3: Hyperparameters for all RL Algorithms. For hyperparameters with multiple options, the
+list represents possible values that were searched over. Bolded values indicate default settings.
+B User Study and Reproducibility
+B.1 Code
+We open-source our code and the corresponding data from the human subject study at the following
+link: https://github.com/cmuslima/TAC_RewardAlignment_RLC2025.
+B.2 User Study Figures
+We first show figures that correspond to the interface used in the human-subject study.
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL Practitioners# import notebooks; do not edit
+import user_study_interface_backend_domain_expert
+#researcher change the seed
+interface = user_study_interface_backend_domain_expert.interface_backend(ran
+# run this cell and enter your name.
+interface.set_study_id()In [ ]:In [ ]:
+2/12/25, 3:17 PM user_study_notebook_version2
+file:///Users/cmuslimani/Projects/RewardDesign/Reward_Alignment/Experiments/user_study_notebook_version2.html 1/5
+(a) First page.# This cell shows the agent acting in a sped up version of the domain
+from IPython.display import Image
+Image("User_Study_Data/TrajsGifs/same_start_state/demo_gif.gif", width=450)
+# run this cell
+interface.allow_user_control()
+#run this cell
+interface.env_understanding_checkin()In [ ]:In [ ]:In [ ]:
+2/12/25, 3:17 PM user_study_notebook_version2
+file:///Users/cmuslimani/Projects/RewardDesign/Reward_Alignment/Experiments/user_study_notebook_version2.html 2/5 (b) Second page.
+Figure 6: First and second pages of the UI in the human-subject study.2/12/25, 3:17 PM user_study_notebook_version2
+file:///Users/cmuslimani/Projects/RewardDesign/Reward_Alignment/Experiments/user_study_notebook_version2.html 3/5
+(a) Third page.## run this cell to begin task 1
+interface.studypart1()
+hungry and thirsty
+hungry and not thirsty
+not hungry and thirsty
+not hungry and not thirsty
+hungry and thirsty
+hungry and not thirsty
+not hungry and thirsty
+not hungry and not thirstyIn [ ]:
+2/12/25, 3:17 PM user_study_notebook_version2
+file:///Users/cmuslimani/Projects/RewardDesign/Reward_Alignment/Experiments/user_study_notebook_version2.html 4/5 (b) Fourth page.
+Figure 7: Third and fourth pages of the UI in the human-subject study.
+Reinforcement Learning Journal 2025# run this cell
+interface.function_loop()
+# run this cell
+interface.condition_survey()
+### # run this cell
+interface.function_loop()
+# run this cell
+interface.condition_survey()
+# run this cell
+interface.function_loop()
+# run this cell
+interface.condition_survey()
+# run this cell
+interface.print_condition_summary()
+# run this cell
+interface.final_survey()
+interface.data_to_saveIn [ ]:In [ ]:In [ ]:In [ ]:In [ ]:In [ ]:In [ ]:In [ ]:In [ ]:In [ ]:
+2/12/25, 3:17 PM user_study_notebook_version2
+file:///Users/cmuslimani/Projects/RewardDesign/Reward_Alignment/Experiments/user_study_notebook_version2.html 5/5
+Figure 8: Fifth page of the UI in the human-subject study.
+Figure 9: The visualization used in the Reward + Alignment + Visualization feedback condition.
+This shows how the preferences over trajectories differ between the domain expert and the reward
+function.
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL Practitioners
+(a) Modified NASA TLX survey given to participants
+after each condition.
+(b) Short answer survey given to participants after
+each condition.
+Figure 10: Condition Experience Surveys.
+(a) Final multiple choice survey given to participants
+to compare their experiences across the conditions.
+(b) Final short answer survey given to participants to
+compare their experiences across the conditions.
+Figure 11: Condition Comparison Surveys.
+Reinforcement Learning Journal 2025
+Next, in Tables 4 and 5, we present the reward functions used in the human-subject study. In the
+study, the reward functions in the REWARD FUNCTION 1 column were compared with the corre-
+sponding reward functions in the REWARD FUNCTION 2 column. We report the mean final return
+and the area under the curve (AUC) (both calculated from the evaluation metric), along with the stan-
+dard deviation (STD). Note that the reward functions in both tables are identical; the only distinction
+is the metric being displayed (e.g., return or AUC).
+REWARD FUNCTION 1 FINAL RETURN REWARD FUNCTION 2 FINAL RETURN
+(-0.9, -0.7, -0.4, 1.1) 39.138 ± 38.619 (-1, 0, 0.5, 1) 30.832 ± 43.009
+(-3.7, 0.0, -3.1, 5.1) 33.495 ± 43.280 (-3.0, 1.5, 3, 5.0) 1.079 ± 0.319
+(-0.9, -0.7, -0.4, 1.1) 39.138 ± 38.619 (-0.05, 0.2, 1.0, 1.0) 1.608 ± 7.617
+(-3.6, 0.0, -3.1, 5.4) 35.485 ± 43.423 (-5.8, 1.2, 3.6, 5.8) 1.555 ± 4.537
+(0, 0, 10, 10) 49.709 ± 34.312 (-0.05, 0.2, 1.0, 1.0) 1.608 ± 7.617
+(-5.0, 0, 3.25, 5.0) 31.582 ± 43.205 (-5.0, 1.5, 3.25, 5.0) 1.225 ± 0.560
+(-0.5, -0.5, 10.0, 10.0) 51.755 ± 36.960 (-0.05, 0.2, 1.0, 1.0) 1.608 ± 7.617
+(-0.4, -0.5, 0.0, 1.0) 44.338 ± 41.750 (-0.2, 0.2, 0.5, 1.0) 1.217 ± 4.485
+(-5.0, 0.0, -2.5, 5.0) 29.738 ± 42.468 (-5.0, 1.5, 3.25, 5.0) 1.225 ± 0.560
+(-1.0, -0.05, -0.25, 1.0) 37.488 ± 44.081 (-5.0, 1.5, 3.25, 5.0) 1.225 ± 0.560
+(-3.75, 0.0, -3.0, 5.0) 33.127 ± 43.348 (-5.0, 1.5, 3.25, 5.0) 1.225 ± 0.560
+(-1.0, -0.7, -0.5, 1.0) 35.772 ± 36.955 (-0.05, 0.2, 1.0, 1.0) 1.608 ± 7.617
+Table 4: This table shows the reward functions being compared in the reward selection aspect of the
+user study. We also report the mean final return ± STD.
+REWARD FUNCTION 1 AUC REWARD FUNCTION 2 AUC
+(-0.9, -0.7, -0.4, 1.1) 240041.894 ± 278901.770 (-1, 0, 0.5, 1) 203405.861 ± 293167.199
+(-3.7, 0.0, -3.1, 5.1) 219656.426 ± 296860.095 (-3.0, 1.5, 3, 5.0) 10619.689 ± 1872.266
+(-0.9, -0.7, -0.4, 1.1) 240041.894 ± 278901.770 (-0.05, 0.2, 1.0, 1.0) 11390.661 ± 17391.171
+(-3.6, 0.0, -3.1, 5.4) 227802.180 ± 296571.891 (-5.8, 1.2, 3.6, 5.8) 13451.407 ± 15346.038
+(0, 0, 10, 10) 320899.367 ± 251997.175 (-0.05, 0.2, 1.0, 1.0) 11390.661 ± 17391.171
+(-5.0, 0, 3.25, 5.0) 206036.191 ± 295113.945 (-5.0, 1.5, 3.25, 5.0) 11585.087 ± 3764.687
+(-0.5, -0.5, 10.0, 10.0) 349167.541 ± 281517.767 (-0.05, 0.2, 1.0, 1.0) 11390.661 ± 17391.171
+(-0.4, -0.5, 0.0, 1.0) 284235.135 ± 304976.538 (-0.2, 0.2, 0.5, 1.0) 10914.361 ± 15017.765
+(-5.0, 0.0, -2.5, 5.0) 192430.552 ± 284398.848 (-5.0, 1.5, 3.25, 5.0) 11585.087 ± 3764.687
+(-1.0, -0.05, -0.25, 1.0) 254052.926 ± 304591.173 (-5.0, 1.5, 3.25, 5.0) 11585.087 ± 3764.687
+(-3.75, 0.0, -3.0, 5.0) 216262.144 ± 295986.126 (-5.0, 1.5, 3.25, 5.0) 11585.087 ± 3764.687
+(-1.0, -0.7, -0.5, 1.0) 217347.509 ± 256831.683 (-0.05, 0.2, 1.0, 1.0) 11390.661 ± 17391.171
+Table 5: This table shows the reward functions being compared in the reward selection aspect of the
+user study. We also report the mean AUC ± STD.
+In an earlier version of the user study, two participants had a slightly different UI design. The
+differences included some variations in the wording of the instructions. We also did not include a
+game-play session that allowed user control in the domain. Additionally, we did not ask participants
+whether they trusted the domain expert or the information being provided to them. There were also
+minor changes in the reward functions considered. Initially, we had a set of 13 pairs of reward
+functions, from which we sampled 12 per participant. However, for simplicity in data analysis, we
+decided to remove one pair. We also replaced one reward function pair with another, to make the
+reward functions being compared more distinct.
+C Proofs
+Lemma C.1. Given the infinite-horizon setting, if the expected returns under reward function r′ are
+a positive linear transformation of the expected returns under reward function r, with respect to all
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL Practitioners
+trajectory distributions, then the preference ordering over any two trajectory distributions ηi and ηj
+remains unchanged. Formally:
+Eτ ∼η [Gr′ (τ )] = αEτ ∼η [Gr (τ )] + β =⇒
+
+ηi ≿
+(r,γ)
+ηj ⇐⇒ ηi ≿
+(r′,γ)
+ηj
+
+∀ηi, ηj ,
+where α > 0 and β are constants and the expectations Eτ ∼η [Gr (τ )] and Eτ ∼η [Gr′ (τ )] are taken
+over the same trajectory distributions.
+Proof. Let ηi, ηj be arbitrary trajectory distributions. Without loss of generality, assume that
+ηi ≿
+(r,γ)
+ηj From Definition 3, this implies:
+ηi ≿
+(r,γ)
+ηj ⇐⇒ Eτ ∼ηi [Gr (τ )] ≥ Eτ ∼ηj [Gr (τ )]
+Define the difference in expected returns under r as:
+∆i,j G(r) .
+= Eτ ∼ηi [Gr (τ )] − Eτ ∼ηj [Gr (τ )] (C.1)
+Now, consider the transformation of the expected return under r′:
+Eτ ∼η [Gr′ (τ )] = αEτ ∼η [Gr (τ )] + β,
+where α > 0 and β are constants. Define the corresponding difference under r′:
+∆i,j G(r′) = Eτ ∼ηi [Gr′ (τ )] − Eτ ∼ηj [Gr′ (τ )] (C.2)
+Substitute the expressions for Eτ ∼η [Gr′ (τ )], we get:
+∆i,j G(r′) =
+
+αEτ ∼ηi [Gr (τ )] + β
+
+−
+
+αEτ ∼ηj [Gr (τ )] + β
+
+Simplify the terms and notice that β cancels out. We obtain:
+∆i,j G(r′) = α∆i,j G(r)
+Now, consider the two cases:
+Case 1: ηi ≻
+(r,γ)
+ηj
+This means ∆i,j G(r) > 0. Since α > 0, we have:
+∆i,j G(r′) = α∆i,j G(r) > 0
+As α is a positive constant, we conclude: ηi ≻
+(r′,γ)
+ηj .
+Case 2: ηi ∼
+(r,γ) ηj
+This means ∆i,j G(r) = 0. Apply the transformation to obtain:
+∆i,j G(r′) = α · 0 = 0
+Thus, ηi ∼
+(r′,γ) ηj
+Since both cases preserve the preference ordering, we conclude:
+ηi ≿
+(r,γ)
+ηj ⇐⇒ ηi ≿
+(r′,γ)
+ηj
+Reinforcement Learning Journal 2025
+Lemma C.2. [Necessity] In the infinite horizon setting, if two trajectory distributions ηi ∈ H(μi)
+and ηj ∈ H(μj ) have different start-state distributions (μi̸ = μj ), then there exists a potential
+function Φ such that:
+ηi ≿
+(r,γ)
+ηj and ηi ≺
+(r′,γ)
+ηj .
+Proof. Let ηi ∈ H(μi) and ηj ∈ H(μj ) be arbitrary trajectory distributions that have different start-
+state distributions (μi̸ = μj ). Without loss of generality assume that ηi ≿
+(r,γ)
+ηj . From Definition
+(3), this implies that:
+Eτ ∼ηi [Gr (τ )] ≥ Eτ ∼ηj [Gr (τ )]
+We now analyze how the expected return changes under the potential-shaped reward function r′.
+From Equation (4.4) we have
+Eτ ∼ηi(τ )[Gr′ ] = Eτ ∼ηi(τ )[Gr (τ )] − Es0∼μi [Φ(s0)] , (C.3)
+Eτ ∼ηj (τ )[Gr′ ] = Eτ ∼ηj (τ )[Gr (τ )] − Es0∼μj [Φ(s0)] . (C.4)
+Next, we define ∆i,j G(r), ∆i,j G(r′):
+∆i,j G(r) .
+= Eτ ∼ηi [Gr (τ )] − Eτ ∼ηj [Gr (τ )] (C.5)
+∆i,j G(r) .
+= Eτ ∼ηi [Gr′ (τ )] − Eτ ∼ηj [Gr′ (τ )] (C.6)
+Substitute Equations (C.3) and (C.4) into Equation (C.6) to obtain ∆i,j G(r′):
+∆i,j G(r′) =
+
+Eτ ∼ηi(τ )[Gr (τ )] − Es0∼μi [Φ(s0)]
+
+−
+
+Eτ ∼ηj (τ )[Gr (τ )] − Es0∼μj [Φ(s0)]
+
+Rearrange terms and substitute in the equation for ∆i,j G(r), Equation (C.5):
+∆i,j G(r′) =
+
+Eτ ∼ηi(τ )[Gr (τ )] − Eτ ∼ηj (τ )[Gr (τ )]
+
+−
+
+Es0∼μi [Φ(s0)] − Es0∼μj [Φ(s0)]
+
+= ∆i,j G(r) −
+
+Es0∼μi [Φ(s0)] − Es0∼μj [Φ(s0)]
+
+(C.7)
+Now we show that there exists a potential-based shaping function that will invert the preference
+ordering over trajectory distributions ηi, ηj , that is ∃Φ : S → R such that ηi ≺
+(r′,γ)
+ηj .
+From Definition 3, it follows that:
+ηi ≺
+(r′,γ)
+ηj ⇐⇒ ∆i,j G(r′) < 0
+This provides the necessary condition for the existence of such a shaping function. Now let ∆i,j Φ
+be defined as:
+∆i,j Φ .
+= Es0∼μi [Φ(s0)] − Es0∼μj [Φ(s0)] (C.8)
+Combine Equations (C.7) and (C.8) to get:
+∆i,j G(r′) = ∆i,j G(r) − ∆i,j Φ
+where ∆i,j G(r) > 0, since ηi ≿
+(r,γ)
+ηj . Now it is clear that:
+∆i,j G(r′) < 0 ⇐⇒ ∆i,j Φ > ∆i,j G(r)
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL Practitioners
+We now provide an example of a potential-based shaping function for which ∆i,j Φ > ∆i,j G(r). To
+begin, let us partition the state space S into two subsets: (1) the set of states that are more probable
+under μi and (2) those that are more probable under μj , denoted as Sμi>μj and Sμi≤μj , respectively:
+Sμi>μj = {s|s ∈ S, μi(s) > μj (s)} (C.9)
+Sμi≤μj = {s|s ∈ S, μi(s) ≤ μj (s)} (C.10)
+Next, we define the potential-based shaping function Φ : S → R as a piecewise function, which
+takes the following form:
+Φ(s) =
+
+
+
+∆i,j G(r)+ϵR
+s∈Sμi>μj
+μi(s)−μj (s) , if s ∈ Sμi>μj
+0 if s ∈ Sμi≤μj
+(C.11)
+where ϵ ∈ R, ϵ > 0. For this shaping function, we define the difference in expected values as:
+∆i,j Φ .
+= Es0∼μi [Φ(s0)] − Es0∼μj [Φ(s0)]
+We can express the expectation in integral form and rearrange the terms:
+=
+Z
+s∈S
+μi(s)Φ(s) −
+Z
+s∈S
+μj (s)Φ(s)
+=
+Z
+s∈S
+μi(s) − μj (s)Φ(s)
+Decompose the integral over the two partitions defined in Equations (C.9) and (C.10). Notice thatR
+s∈Sμi≤μj
+μi(s) − μj (s)Φ(s) goes to 0 by Equation (C.11):
+=
+Z
+s∈Sμi>μj
+μi(s) − μj (s)Φ(s) +
+Z
+s∈Sμi≤μj
+μi(s) − μj (s)Φ(s)
+=
+Z
+s∈Sμi>μj
+μi(s) − μj (s)Φ(s)
+Move Φ(s) outside of the integral as it is a constant by Equation (C.11) and simplify:
+= ∆i,j G(r) + ϵ
+R
+s∈Sμi>μj
+μi(s) − μj (s)
+Z
+s∈Sμi>μj
+μi(s) − μj (s)
+= ∆i,j G(r) + ϵ
+Hence ∆i,j Φ = ∆i,j G(r) + ϵ > ∆i,j G(r).
+Theorem C.3. Given the infinite-horizon setting, the Trajectory Alignment Coefficient is invariant
+to positive linear transformations.
+Proof. Let {ηi, ηj } ∈ υh(Dh) be an arbitrary pair of trajectory distributions compared in the human
+preference dataset. Without loss of generality assume that ηr
+i ≿ ηr
+j . From Defintion (3), this implies
+that
+Eτ ∼ηi [Gr (τ )] ≥ Eτ ∼ηj [Gr (τ )].
+We now analyze how the expected return changes under the reward function r′. The expected return
+under the reward function r is:
+Eτ ∼η [Gr (τ )] = Eτ ∼η
+" ∞X
+t=0
+γtr(st, at, st+1)
+#
+(C.12)
+Reinforcement Learning Journal 2025
+and the expected return under the shaped reward function r′ is:
+Eτ ∼η [Gr′ (τ )] = Eτ ∼η
+" ∞X
+t=0
+γtr′(st, at, st+1)
+#
+(C.13)
+Substitute r′(s, a, s′) = α · r(s, a, s′) + β into Equation (C.13), we obtain:
+Eτ ∼η [Gr′ (τ )] = Eτ ∼η
+" ∞X
+t=0
+γt(α · r(st, at, st+1) + β)
+#
+= α · Eτ ∼η
+" ∞X
+t=0
+γtr(st, at, st+1)
+#
++ Eτ ∼η
+" ∞X
+t=0
+γtβ
+#
+Since β is a constant, the expectation simplifies as follows:
+Eτ ∼η [Gr′ (τ )] = α · Eτ ∼η [Gr (τ )] + β
+∞X
+t=0
+γt
+= α · Eτ ∼η [Gr (τ )] + β
+1 − γ
+As Eτ ∼η [Gr′ (τ )] is positive linear transformation of Eτ ∼η [Gr (τ )], we apply Lemma (C.1) to get:
+ηi ≿
+(r,γ)
+ηj ⇐⇒ ηi ≿
+(r′,γ)
+ηj
+
+Thus, from Equation (4.1) and Definition (5), we conclude that:
+σTAC(Dh, Dr,γ ) = σTAC(Dh, Dr′,γ )
+D Environment Details
+We use a modified Hungry-Thirsty domain (Singh et al., 2009), see Figure 12. The agent’s start
+state is randomly placed at the beginning of each episode, while the food and water locations are
+randomly assigned per environment configuration (e.g., per run/seed). Lastly, reward functions take
+the form:
+r(hungry, thirsty) = a
+r(hungry, not thirsty) = b
+r(not hungry, thirsty) = c
+r(not hungry, not thirsty) = d
+Towards Improving Reward Design in RL: A Reward Alignment Metric for RL Practitioners
+Figure 12: Hungry-Thirsty Environment

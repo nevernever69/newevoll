@@ -124,9 +124,22 @@ def setup_logging(log_level: str, log_dir: str):
     ch.setFormatter(logging.Formatter("%(message)s"))
     root.addHandler(ch)
 
-    # Suppress noisy libraries on console
-    for name in ("botocore", "boto3", "urllib3", "jax", "flax"):
+    # Suppress noisy libraries (both console and file)
+    for name in (
+        "botocore", "boto3", "urllib3", "jax", "flax",
+        "absl", "trimesh", "orbax", "tensorstore",
+        "mujoco", "etils", "grain",
+    ):
         logging.getLogger(name).setLevel(logging.WARNING)
+
+    # Filter out spammy root-level DEBUG messages (e.g. "Picking default device")
+    class RootDebugFilter(logging.Filter):
+        def filter(self, record):
+            if record.name == "root" and record.levelno <= logging.DEBUG:
+                return False
+            return True
+
+    fh.addFilter(RootDebugFilter())
 
     return str(log_file)
 

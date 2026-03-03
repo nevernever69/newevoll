@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import dataclasses
 import logging
+import math
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -17,9 +18,17 @@ from mdp_discovery.adapters.base import EnvAdapter
 from mdp_discovery.config import Config
 from mdp_discovery.crash_filter import CrashFilterResult, run_crash_filter
 from mdp_discovery.mdp_interface import MDPInterface
-from mdp_discovery.train import run_training
 
 logger = logging.getLogger(__name__)
+
+
+def _has_nan_metrics(metrics: Dict[str, Any]) -> bool:
+    """Check if any key metric is NaN or Inf."""
+    for key in ("final_return", "success_rate", "final_length"):
+        val = metrics.get(key)
+        if val is not None and (math.isnan(val) or math.isinf(val)):
+            return True
+    return False
 
 
 class EvalStage(Enum):
@@ -82,6 +91,7 @@ class CascadeEvaluator:
         self.config = config
         self.adapter = adapter
         self.dummy_state = adapter.get_dummy_state()
+        self.dummy_action = adapter.get_dummy_action()
 
     def _get_required_functions(self) -> List[str]:
         """Return required function names based on evolution mode."""
@@ -114,6 +124,7 @@ class CascadeEvaluator:
         crash_result = run_crash_filter(
             code, self.config, self.dummy_state,
             required_functions=required_functions,
+            dummy_action=self.dummy_action,
         )
 
         if not crash_result.passed:
@@ -181,9 +192,8 @@ class CascadeEvaluator:
             "Running short training (%s steps)...", f"{tc.total_timesteps:,}"
         )
         try:
-            short_metrics = run_training(
+            short_metrics = self.adapter.run_training(
                 self.config,
-                self.adapter,
                 interface,
                 obs_dim,
                 total_timesteps=tc.total_timesteps,
@@ -195,7 +205,19 @@ class CascadeEvaluator:
                 stage=EvalStage.SHORT_TRAIN,
                 crash_result=crash_result,
                 obs_dim=obs_dim,
-                metrics={"final_return": 0.0, "final_length": 0.0, "success_rate": 0.0, "error": str(e)},
+                metrics=None,  # Training failed — don't store as valid program
+                eval_time=time.time() - t_start,
+            )
+
+        # Check for NaN in short training metrics
+        if _has_nan_metrics(short_metrics):
+            logger.warning("Short training produced NaN metrics — treating as failed")
+            return CandidateResult(
+                code=code,
+                stage=EvalStage.SHORT_TRAIN,
+                crash_result=crash_result,
+                obs_dim=obs_dim,
+                metrics=None,
                 eval_time=time.time() - t_start,
             )
 
@@ -248,6 +270,18 @@ class CascadeEvaluator:
                 eval_time=time.time() - t_start,
             )
 
+        # Check for NaN in full training metrics
+        if _has_nan_metrics(full_metrics):
+            logger.warning("Full training produced NaN metrics — falling back to short metrics")
+            return CandidateResult(
+                code=code,
+                stage=EvalStage.SHORT_TRAIN,
+                crash_result=crash_result,
+                obs_dim=obs_dim,
+                metrics=short_metrics,
+                eval_time=time.time() - t_start,
+            )
+
         logger.info(
             "Full training done: success=%.0f%%, length=%.1f, time=%.1fs",
             full_metrics.get("success_rate", 0.0) * 100,
@@ -270,60 +304,16 @@ class CascadeEvaluator:
         obs_dim: int,
         total_timesteps: int,
     ) -> Dict[str, Any]:
-        """Run training with num_seeds different seeds and return averaged metrics."""
+        """Run training with num_seeds different seeds and return averaged metrics.
+
+        Delegates to adapter.run_training_multi_seed() which, for MuJoCo,
+        compiles the train_fn once and reuses it across seeds.
+        """
         tc = self.config.training
         n = tc.num_seeds if tc.num_seeds > 1 else 1
-
-        if n == 1:
-            return run_training(
-                self.config, self.adapter, interface, obs_dim, total_timesteps
-            )
-
-        all_success: List[float] = []
-        all_length: List[float] = []
-        all_return: List[float] = []
-        all_curves: List[List[float]] = []
-        total_time = 0.0
-
-        for i in range(n):
-            seed = tc.seed + i
-            mod_config = dataclasses.replace(
-                self.config,
-                training=dataclasses.replace(tc, seed=seed),
-            )
-            m = run_training(mod_config, self.adapter, interface, obs_dim, total_timesteps)
-            all_success.append(m["success_rate"])
-            all_length.append(m["final_length"])
-            all_return.append(m["final_return"])
-            total_time += m.get("training_time", 0.0)
-            if m.get("success_curve"):
-                all_curves.append(m["success_curve"])
-            logger.info(
-                "  Seed %d/%d: success=%.0f%% length=%.1f",
-                i + 1, n, m["success_rate"] * 100, m["final_length"],
-            )
-
-        avg_success = sum(all_success) / n
-        avg_length = sum(all_length) / n
-        avg_return = sum(all_return) / n
-
-        avg_curve: List[float] = []
-        if all_curves:
-            min_len = min(len(c) for c in all_curves)
-            avg_curve = [sum(c[j] for c in all_curves) / n for j in range(min_len)]
-
-        logger.info(
-            "  Multi-seed avg (%d seeds): success=%.0f%% length=%.1f",
-            n, avg_success * 100, avg_length,
+        return self.adapter.run_training_multi_seed(
+            self.config, interface, obs_dim, total_timesteps, num_seeds=n,
         )
-
-        return {
-            "final_return": avg_return,
-            "final_length": avg_length,
-            "success_rate": avg_success,
-            "success_curve": avg_curve,
-            "training_time": total_time,
-        }
 
     def _full_evaluate(
         self,
@@ -353,7 +343,19 @@ class CascadeEvaluator:
                 stage=EvalStage.FULL_TRAIN,
                 crash_result=crash_result,
                 obs_dim=obs_dim,
-                metrics={"final_return": 0.0, "final_length": 0.0, "success_rate": 0.0, "error": str(e)},
+                metrics=None,  # Training failed — don't store as valid program
+                eval_time=time.time() - t_start,
+            )
+
+        # Check for NaN in metrics (training ran but produced garbage)
+        if _has_nan_metrics(metrics):
+            logger.warning("Full training produced NaN metrics — treating as failed")
+            return CandidateResult(
+                code=code,
+                stage=EvalStage.FULL_TRAIN,
+                crash_result=crash_result,
+                obs_dim=obs_dim,
+                metrics=None,
                 eval_time=time.time() - t_start,
             )
 
