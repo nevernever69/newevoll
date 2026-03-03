@@ -28,6 +28,7 @@ from mdp_discovery.evolution_trace import EvolutionTracer
 from mdp_discovery.llm_client import LLMEnsemble, LLMResponse
 from mdp_discovery.mdp_interface import MDPInterface
 from mdp_discovery.prompts import PromptBuilder
+from mdp_discovery.wandb_logger import WandBLogger
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +100,24 @@ class EvolutionController:
             enabled=trace_cfg.enabled,
         )
 
+        # W&B logger (optional)
+        run_name = None
+        if checkpoint_dir:
+            run_name = Path(checkpoint_dir).name
+        tags = []
+        if "noevo" in str(checkpoint_dir or ""):
+            tags.append("ablation-no-evolution")
+        if config.evolution_mode != "full":
+            tags.append(f"mode-{config.evolution_mode}")
+
+        self.wandb = WandBLogger(
+            project="mdp-discovery",
+            name=run_name,
+            config=config.to_dict(),
+            tags=tags,
+            enabled=True,  # Controlled by WANDB_ENABLED env var
+        )
+
         # Tracking
         self.iteration = 0
         self.total_llm_tokens = 0
@@ -106,6 +125,8 @@ class EvolutionController:
         self.total_output_tokens = 0
         self.total_eval_time = 0.0
         self.start_time = 0.0
+        self.batch_candidates_passed = 0
+        self.batch_candidates_crashed = 0
 
     # ------------------------------------------------------------------
     # Main loop
@@ -172,6 +193,9 @@ class EvolutionController:
         self.tracer.close()
         self._log_summary()
 
+        # Finish W&B run
+        self.wandb.finish()
+
     # ------------------------------------------------------------------
     # Baseline modes
     # ------------------------------------------------------------------
@@ -229,6 +253,7 @@ class EvolutionController:
             self._checkpoint()
 
         self._log_summary()
+        self.wandb.finish()
 
     def _run_random_baseline(self, max_iterations: Optional[int] = None) -> None:
         """Random baseline: each iteration generates from scratch (no parent, no feedback)."""
@@ -269,6 +294,7 @@ class EvolutionController:
             self._checkpoint()
 
         self._log_summary()
+        self.wandb.finish()
 
     def _run_random_batch(self, executor: ThreadPoolExecutor, batch_size: int) -> None:
         """Each candidate in random mode is generated from scratch — no parent, no top programs."""
@@ -515,7 +541,7 @@ class EvolutionController:
                 )
 
             # Log result
-            self._log_iteration(result, program, response, iter_time)
+            self._log_iteration(result, program, response, iter_time, candidate_num, batch_size)
 
             # Island management
             self.db.increment_generation()
@@ -527,6 +553,25 @@ class EvolutionController:
                 n_migrated = self.db.migrate()
                 logger.info("[Iter %d] Migrated %d programs", self.iteration, n_migrated)
 
+        # Log batch summary to W&B
+        best = self.db.get_best_program()
+        batch_time = time.time() - batch_start
+        avg_eval_time = batch_time / batch_size if batch_size > 0 else 0.0
+
+        self.wandb.log_iteration_summary(
+            iteration=self.iteration + 1,
+            candidates_generated=batch_size,
+            candidates_passed=self.batch_candidates_passed,
+            candidates_crashed=self.batch_candidates_crashed,
+            best_success_rate=best.fitness if best else 0.0,
+            avg_eval_time=avg_eval_time,
+            total_llm_tokens=self.total_llm_tokens,
+        )
+
+        # Reset batch counters
+        self.batch_candidates_passed = 0
+        self.batch_candidates_crashed = 0
+
     # ------------------------------------------------------------------
     # Logging
     # ------------------------------------------------------------------
@@ -537,15 +582,20 @@ class EvolutionController:
         program,
         response,
         iter_time: float,
+        candidate_num: int = 0,
+        total_candidates: int = 1,
     ) -> None:
         """Log the outcome of a single iteration."""
         best = self.db.get_best_program()
         best_fitness = best.fitness if best else 0.0
 
         if result.stage == EvalStage.CRASHED:
+            self.batch_candidates_crashed += 1
             logger.info(
-                "[Iter %d] CRASHED (stage %s): %s | best=%.4f | %.1fs",
-                self.iteration,
+                "[Iter %d, Candidate %d/%d] CRASHED (stage %s): %s | best=%.4f | %.1fs",
+                self.iteration + 1,
+                candidate_num,
+                total_candidates,
                 result.crash_result.stage_failed,
                 result.crash_result.error_message[:80],
                 best_fitness,
@@ -553,18 +603,34 @@ class EvolutionController:
             )
         elif result.stage == EvalStage.SHORT_TRAIN_REJECTED:
             logger.info(
-                "[Iter %d] REJECTED (success=%.0f%%) | best=%.0f%% | %.1fs",
-                self.iteration,
+                "[Iter %d, Candidate %d/%d] REJECTED (success=%.0f%%) | best=%.0f%% | %.1fs",
+                self.iteration + 1,
+                candidate_num,
+                total_candidates,
                 result.fitness * 100,
                 best_fitness * 100,
                 iter_time,
             )
+            # Log to W&B
+            if program:
+                self.wandb.log_candidate(
+                    iteration=self.iteration + 1,
+                    candidate_num=candidate_num,
+                    total_candidates=total_candidates,
+                    metrics=result.metrics or {},
+                    obs_dim=program.obs_dim,
+                    stage="rejected",
+                    is_best=False,
+                )
         else:
+            self.batch_candidates_passed += 1
             is_new_best = program and best and program.id == best.id
             marker = " *** NEW BEST ***" if is_new_best else ""
             logger.info(
-                "[Iter %d] %s success=%.0f%% length=%.1f | best=%.0f%% | %.1fs%s",
-                self.iteration,
+                "[Iter %d, Candidate %d/%d] %s success=%.0f%% length=%.1f | best=%.0f%% | %.1fs%s",
+                self.iteration + 1,
+                candidate_num,
+                total_candidates,
                 result.stage.value,
                 result.fitness * 100,
                 result.metrics.get("final_length", 0) if result.metrics else 0,
@@ -572,6 +638,27 @@ class EvolutionController:
                 iter_time,
                 marker,
             )
+
+            # Log to W&B
+            if program:
+                self.wandb.log_candidate(
+                    iteration=self.iteration + 1,
+                    candidate_num=candidate_num,
+                    total_candidates=total_candidates,
+                    metrics=result.metrics or {},
+                    obs_dim=program.obs_dim,
+                    stage=result.stage.value,
+                    is_best=is_new_best,
+                )
+
+                # Log new best
+                if is_new_best:
+                    self.wandb.log_best(
+                        iteration=self.iteration + 1,
+                        success_rate=result.fitness,
+                        obs_dim=program.obs_dim,
+                        episode_length=result.metrics.get("final_length", 0.0),
+                    )
 
     def _log_summary(self) -> None:
         """Log a final summary of the evolution run."""
@@ -604,6 +691,31 @@ class EvolutionController:
             logger.info("  Trace events: %d", trace_summary["total_events"])
             logger.info("  Improvements: %d (%.0f%%)", trace_summary["improvement_count"], trace_summary["improvement_rate"] * 100)
         logger.info("=" * 60)
+
+        # Log final summary to W&B
+        final_summary = {
+            "final/wall_time": elapsed,
+            "final/total_programs": stats["total_programs"],
+            "final/total_eval_time": self.total_eval_time,
+            "final/total_llm_tokens": self.total_llm_tokens,
+            "final/input_tokens": self.total_input_tokens,
+            "final/output_tokens": self.total_output_tokens,
+            "final/est_llm_cost_usd": est_cost,
+            "final/iterations": self.iteration,
+        }
+        if best:
+            final_summary["final/best_success_rate"] = best.fitness
+            final_summary["final/best_obs_dim"] = best.obs_dim
+
+        self.wandb.log_final_summary(final_summary)
+
+        # Log best program as artifact
+        if self.checkpoint_dir and best:
+            best_file = Path(self.checkpoint_dir) / "best_interface.py"
+            if best_file.exists():
+                self.wandb.log_artifact(
+                    str(best_file), "code", f"best_interface_iter{self.iteration}"
+                )
 
     # ------------------------------------------------------------------
     # Checkpointing
