@@ -24,15 +24,43 @@ sudo apt-get upgrade -y -qq
 
 # 2. Install Python and essential tools
 echo -e "\n[2/8] Installing Python 3.10+ and development tools..."
+
+# Detect available Python version
+if command -v python3.11 &> /dev/null; then
+    PYTHON_VERSION="3.11"
+    PYTHON_CMD="python3.11"
+elif command -v python3.10 &> /dev/null; then
+    PYTHON_VERSION="3.10"
+    PYTHON_CMD="python3.10"
+else
+    # Try to install python3.11 or python3.10
+    if sudo apt-cache show python3.11 &> /dev/null; then
+        PYTHON_VERSION="3.11"
+        PYTHON_CMD="python3.11"
+    else
+        PYTHON_VERSION="3.10"
+        PYTHON_CMD="python3.10"
+    fi
+fi
+
+echo "Using Python ${PYTHON_VERSION}"
+
+# Install Python and tools
 sudo apt-get install -y \
-    python3.10 \
-    python3.10-venv \
+    ${PYTHON_CMD} \
+    python3-venv \
     python3-pip \
     git \
     htop \
     screen \
     build-essential \
     curl
+
+# Verify Python installation
+if ! command -v ${PYTHON_CMD} &> /dev/null; then
+    echo "ERROR: Failed to install ${PYTHON_CMD}"
+    exit 1
+fi
 
 # 3. Verify GPU availability
 echo -e "\n[3/8] Verifying GPU availability..."
@@ -69,7 +97,7 @@ else
     exit 1
 fi
 
-python3.10 -m venv .venv
+${PYTHON_CMD} -m venv .venv
 source .venv/bin/activate
 
 # 6. Install project dependencies
