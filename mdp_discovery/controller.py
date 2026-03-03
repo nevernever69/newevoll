@@ -144,14 +144,16 @@ class EvolutionController:
         executor = ThreadPoolExecutor(max_workers=n)
         try:
             while self.iteration < max_iter:
-                batch_size = min(n, max_iter - self.iteration)
+                batch_size = n  # Always use full batch size
                 try:
                     self._run_batch(executor, batch_size)
+                    self.iteration += 1  # Increment after batch completes
                 except KeyboardInterrupt:
                     logger.info("Interrupted at iteration %d", self.iteration)
                     break
                 except Exception:
                     logger.exception("Error in batch at iteration %d", self.iteration)
+                    self.iteration += 1  # Still increment on error to avoid infinite loop
                     continue
 
                 # Checkpoint
@@ -306,8 +308,10 @@ class EvolutionController:
 
             if result is None:
                 logger.warning(
-                    "[Iter %d] LLM returned no code fence, skipping",
-                    self.iteration,
+                    "[Iter %d, Candidate %d/%d] LLM returned no code fence, skipping",
+                    self.iteration + 1,
+                    candidate_num,
+                    batch_size,
                 )
                 continue
 
@@ -456,15 +460,16 @@ class EvolutionController:
             futures[f] = (parent_id, generation)
 
         # 3. Collect results, store in DB (main thread, sequential)
+        candidate_num = 0
         for f in as_completed(futures):
             parent_id, generation = futures[f]
-            self.iteration += 1
+            candidate_num += 1
             iter_time = time.time() - batch_start
 
             try:
                 response, result = f.result()
             except Exception:
-                logger.exception("[Iter %d] Worker failed", self.iteration)
+                logger.exception("[Iter %d, Candidate %d/%d] Worker failed", self.iteration + 1, candidate_num, batch_size)
                 continue
 
             self.total_llm_tokens += response.input_tokens + response.output_tokens
@@ -473,8 +478,10 @@ class EvolutionController:
 
             if result is None:
                 logger.warning(
-                    "[Iter %d] LLM returned no code fence, skipping",
-                    self.iteration,
+                    "[Iter %d, Candidate %d/%d] LLM returned no code fence, skipping",
+                    self.iteration + 1,
+                    candidate_num,
+                    batch_size,
                 )
                 continue
 
