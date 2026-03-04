@@ -61,7 +61,7 @@ evaluator:
 
 llm:
   region_name: "us-east-1"
-  model_name: "claude-sonnet-4-6"
+  model_name: "claude-4-sonnet"
   temperature: 0.7
   max_tokens: 128000
   retries: 3
