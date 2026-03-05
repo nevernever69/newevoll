@@ -10,8 +10,8 @@ environment:
   context_file: "contexts/panda_pick_and_track_context.md"
 
 training:
-  # Brax PPO parallelism (increased for 2xlarge)
-  num_envs: 3072  # Increased from 2048 for 8 vCPUs
+  # Brax PPO parallelism (fixed to satisfy batch_size*num_minibatches % num_envs == 0)
+  num_envs: 8192  # 1024*32=32768, perfectly divisible
   num_minibatches: 32
 
   # Cascade timesteps
