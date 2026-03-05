@@ -199,7 +199,9 @@ class CascadeEvaluator:
                 total_timesteps=tc.total_timesteps,
             )
         except Exception as e:
+            import traceback
             logger.error("Short training failed: %s", e)
+            logger.error("Full traceback:\n%s", traceback.format_exc())
             return CandidateResult(
                 code=code,
                 stage=EvalStage.SHORT_TRAIN,
@@ -259,7 +261,9 @@ class CascadeEvaluator:
                 interface, obs_dim, tc.total_timesteps_full
             )
         except Exception as e:
+            import traceback
             logger.error("Full training failed: %s", e)
+            logger.error("Full traceback:\n%s", traceback.format_exc())
             # Fall back to short training metrics
             return CandidateResult(
                 code=code,
@@ -337,7 +341,9 @@ class CascadeEvaluator:
                 interface, obs_dim, tc.total_timesteps_full
             )
         except Exception as e:
+            import traceback
             logger.error("Full training failed: %s", e)
+            logger.error("Full traceback:\n%s", traceback.format_exc())
             return CandidateResult(
                 code=code,
                 stage=EvalStage.FULL_TRAIN,
