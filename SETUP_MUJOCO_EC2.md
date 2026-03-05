@@ -34,10 +34,10 @@ cd ~/newevoll
 source .venv/bin/activate
 
 # Test with cascade disabled (full ablation)
-python -m mdp_discovery.main --config configs/go1_push_recovery_noevo.yaml
+python run.py --config configs/go1_push_recovery_noevo.yaml
 
 # Or test with diagnostic config (only 3 candidates)
-python -m mdp_discovery.main --config configs/go1_test_cascade.yaml
+python run.py --config configs/go1_test_cascade.yaml
 ```
 
 ## Expected Behavior
@@ -49,5 +49,5 @@ python -m mdp_discovery.main --config configs/go1_test_cascade.yaml
 Check logs for actual error messages (not just empty "Full training failed:")
 ```bash
 # Run with DEBUG logging
-python -m mdp_discovery.main --config configs/go1_test_cascade.yaml
+python run.py --config configs/go1_test_cascade.yaml
 ```

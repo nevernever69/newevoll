@@ -28,7 +28,7 @@ echo "Assets will download automatically on first run."
 echo ""
 
 # Run diagnostic test first (only 3 candidates, cascade enabled, DEBUG logging)
-python -m mdp_discovery.main --config configs/go1_test_cascade.yaml
+python run.py --config configs/go1_test_cascade.yaml
 
 echo ""
 echo "=== Diagnostic test completed ==="
@@ -43,7 +43,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo ""
 
     # Run full ablation with cascade disabled
-    nohup python -m mdp_discovery.main --config configs/go1_push_recovery_noevo.yaml > go1_ablation.log 2>&1 &
+    nohup python run.py --config configs/go1_push_recovery_noevo.yaml > go1_ablation.log 2>&1 &
 
     echo "✓ Go1 ablation started in background (PID: $!)"
     echo "✓ Logs: tail -f go1_ablation.log"
