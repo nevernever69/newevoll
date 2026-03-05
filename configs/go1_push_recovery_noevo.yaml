@@ -55,7 +55,7 @@ crash_filter:
 evaluator:
   timeout: 1800
   max_retries: 2
-  cascade_evaluation: true
+  cascade_evaluation: false  # DISABLED for ablation - all candidates get full training
   cascade_thresholds: [0.01]
   parallel_evaluations: 2  # Evaluate 2 candidates in parallel on 2xlarge
 
